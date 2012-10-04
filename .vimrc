@@ -10,17 +10,14 @@
 " disclaimer: i'm an idiot do not listen to me
 
 " originally completed: oct 2, 2012
-" last updated: oct 2, 2012
+" last updated: oct 3, 2012
 
-" ========= Change defaults =========
-" Apparently nocompatible must be first if desired
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 set nocompatible
 set autochdir
 set shell=/bin/zsh
 set history=2000
-
-" disable cursor blink
-set gcr=a:blinkon0
 
 " Read a file when it is changed from the outside
 set autoread
@@ -77,12 +74,10 @@ filetype indent on
 set wildmenu
 set wildmode=list:longest,full
 
-" ========= File-type specifics =========
-
-" Default file types
 set ffs=unix,dos,mac
 
-" ========= Search methods + clipboard registers =========
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Search paramaters
 
 " use grep
 set grepprg=grep\ -nH\ $*
@@ -97,16 +92,11 @@ set incsearch
 " linux clipboard register
 let g:clipbrdDefaultReg = '+'
 
-set nolazyredraw
-
-" ========= Style =========
-" peaksea is best sea
-set guioptions-=T
-if ! has("gui_running")
-  set t_Co=256
-endif
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Style + Colors
+set t_Co=256
 set background=dark
-colorscheme peaksea
+colorscheme molokai
 
 set encoding=utf8
 set number
@@ -137,29 +127,31 @@ set hlsearch
 highlight MatchParen ctermbg=4
 set mat=2
 
-" hopefully this isn't a piece of shit
 set nowrap
 set linebreak
-
-" ========= Scrolling =========
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Scrolling
 
 set scrolloff=8
 set sidescrolloff=15
 set sidescroll=1
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Disable all bells
 
-" ========= Bell config =========
-" bells are for pansies and psychopaths
 set noerrorbells
 set novisualbell
 set t_vb=
 set tm=500
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Backups + temporary files
 
-" ========= Backup/temp directories =========
+set nobackup
+set writebackup
 
-set backupdir=~/.tmp
+set backupdir=~/.tmp/backup
 set directory=~/.tmp
-
-" ========= Key mapping =========
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Key mapping
 
 " Map 'jj' to escape on insert mode
 inoremap jj <Esc>
@@ -254,6 +246,3 @@ function! SetArrowKeysAsTextShifters()
 endfunction
 
 call SetArrowKeysAsTextShifters()
-
-" you may now clap
-" or don't, i don't give a fuck
