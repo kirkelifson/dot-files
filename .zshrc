@@ -5,5 +5,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/ga
 
 alias tmux="tmux -2"
 
-PS1='%(?.%F{green}.%F{red})%#%f '
-RPS1='[%B%F{blue}%~%f%b]'
+PS1='[%n@%m %~]%(!.#.$) '
+
+### Added by the Heroku Toolbelt
+export PATH="/usr/local/heroku/bin:$PATH"
