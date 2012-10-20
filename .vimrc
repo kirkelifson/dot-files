@@ -146,10 +146,7 @@ set tm=500
 " Backups + temporary files
 
 set nobackup
-set writebackup
 
-set backupdir=~/.tmp/backup
-set directory=~/.tmp
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
 
