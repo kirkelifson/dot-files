@@ -10,7 +10,7 @@
 " disclaimer: i'm an idiot do not listen to me
 
 " originally completed: oct 2, 2012
-" last updated: oct 3, 2012
+" last updated: oct 20, 2012
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
