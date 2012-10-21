@@ -1,8 +1,8 @@
 [user]
-	name = kirkelifson
-	email = kelifson@parodybit.net
+  name = kirkelifson
+  email = kelifson@parodybit.net
 [credential]
-	helper = cache --timeout=3600
+  helper = cache --timeout=3600
 [merge]
   conflictstyle = diff3
 [alias]
