@@ -7,17 +7,13 @@
 "|                                       |
 "=========================================
 
-" disclaimer: i'm an idiot do not listen to me
-
 " originally completed: oct 2, 2012
-" last updated: oct 20, 2012
+" last updated: oct 24, 2012
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 set nocompatible
-set autochdir
-set shell=/bin/zsh
-set history=2000
+set history=50
 
 " Read a file when it is changed from the outside
 set autoread
@@ -50,15 +46,6 @@ augroup JumpCursorOnEdit
             \ endif
 augroup END
 
-" Return to last edit position when opening files
-autocmd BufReadPost *
-     \ if line("'\"") > 0 && line("'\"") <= line("$") |
-     \   exe "normal! g`\"" |
-     \ endif
-
-" Remember info about open buffers on close
-set viminfo^=%
-
 " Regular tab widths are ignorant
 set tabstop=2
 set shiftwidth=2
@@ -67,14 +54,11 @@ set expandtab
 set smarttab
 set backspace=indent,eol,start
 
-filetype plugin on
-filetype indent on
+filetype off
 
 " Tab file completion extras
 set wildmenu
-set wildmode=list:longest,full
-
-set ffs=unix,dos,mac
+set wildmode=full
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Search paramaters
@@ -89,16 +73,36 @@ set smartcase
 " Incremental search
 set incsearch
 
-" linux clipboard register
-let g:clipbrdDefaultReg = '+'
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Style + Colors
-set t_Co=256
-set background=dark
+" Style
+
+set guifont=DejaVu\ Sans\ Mono\ 9
+
+if &t_Co > 2 || has("gui_running")
+  syntax on
+  set background=dark
+  set hlsearch
+endif
+
+set t_Co=256 " force 256 colors
 colorscheme molokai
 
-set encoding=utf8
+if has("autocmd")
+" Filetypes and indenting settings
+  filetype plugin indent on
+
+" For all text files set 'textwidth' to 78 characters.
+  autocmd FileType text setlocal textwidth=78
+
+" When editing a file, always jump to the last known cursor position.
+  autocmd BufReadPost *
+    \ if line("'\"") > 0 && line("'\"") <= line("$") |
+    \ exe "normal g`\"" |
+    \ endif
+endif " has("autocmd")
+
+" UTF-8 master-race
+set encoding=utf-8
 set number
 set ruler
 
@@ -127,14 +131,19 @@ set hlsearch
 highlight MatchParen ctermbg=4
 set mat=2
 
+" don't wrap text
 set nowrap
 set linebreak
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Scrolling
 
-set scrolloff=8
+set scrolloff=2
 set sidescrolloff=15
 set sidescroll=1
+set foldmethod=indent
+set foldlevel=99
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Disable all bells
 
@@ -142,6 +151,7 @@ set noerrorbells
 set novisualbell
 set t_vb=
 set tm=500
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Backups + temporary files
 
@@ -154,92 +164,8 @@ set nobackup
 inoremap jj <Esc>
 nnoremap JJJJ <Nop>
 
-" I will be removing the following after I grow some balls
-" babby's first vimrc needs his training wheels
-
-function! DelEmptyLineAbove()
-  if line(".") == 1
-    return
-  endif
-  let l:line = getline(line(".") - 1)
-  if l:line =~ '^\s*$'
-    let l:colsave = col(".")
-    .-1d
-    silent normal! <C-y>
-    call cursor(line("."), l:colsave)
-  endif
-endfunction
-
-function! AddEmptyLineAbove()
-  let l:scrolloffsave = &scrolloff
-" Avoid jerky scrolling with ^E at top of window
-  set scrolloff=0
-  call append(line(".") - 1, "")
-  if winline() != winheight(0)
-    silent normal! <C-e>
-  endif
-  let &scrolloff = l:scrolloffsave
-endfunction
-
-function! DelEmptyLineBelow()
-  if line(".") == line("$")
-    return
-  endif
-  let l:line = getline(line(".") + 1)
-  if l:line =~ '^\s*$'
-    let l:colsave = col(".")
-    .+1d
-    ''
-    call cursor(line("."), l:colsave)
-  endif
-endfunction
-
-function! AddEmptyLineBelow()
-  call append(line("."), "")
-endfunction
-
-" Arrow key remapping: Up/Dn = move line up/dn; Left/Right = indent/unindent
-function! SetArrowKeysAsTextShifters()
-" normal mode
-  nmap <silent> <Left> <<
-  nmap <silent> <Right> >>
-  nnoremap <silent> <Up> <Esc>:call DelEmptyLineAbove()<CR>
-  nnoremap <silent> <Down> <Esc>:call AddEmptyLineAbove()<CR>
-  nnoremap <silent> <C-Up> <Esc>:call DelEmptyLineBelow()<CR>
-  nnoremap <silent> <C-Down> <Esc>:call AddEmptyLineBelow()<CR>
-  nnoremap <silent> <C-S-Right> <Esc>:RightAlign<CR>
-
-" visual mode
-  vmap <silent> <Left> <
-  vmap <silent> <Right> >
-  vnoremap <silent> <Up> <Esc>:call DelEmptyLineAbove()<CR>gv
-  vnoremap <silent> <Down> <Esc>:call AddEmptyLineAbove()<CR>gv
-  vnoremap <silent> <C-Up> <Esc>:call DelEmptyLineBelow()<CR>gv
-  vnoremap <silent> <C-Down> <Esc>:call AddEmptyLineBelow()<CR>gv
-  vnoremap <silent> <C-S-Right> <Esc>:RightAlign<CR>gv
-
-" insert mode
-  imap <silent> <Left> <C-D>
-  imap <silent> <Right> <C-T>
-  inoremap <silent> <Up> <Esc>:call DelEmptyLineAbove()<CR>a
-  inoremap <silent> <Down> <Esc>:call AddEmptyLineAbove()<CR>a
-  inoremap <silent> <C-Up> <Esc>:call DelEmptyLineBelow()<CR>a
-  inoremap <silent> <C-Down> <Esc>:call AddEmptyLineBelow()<CR>a
-  inoremap <silent> <C-S-Right> <Esc>:RightAlign<CR>a
-
-" disable modified versions we are not using
-  nnoremap <S-Up> <NOP>
-  nnoremap <S-Down> <NOP>
-  nnoremap <S-Left> <NOP>
-  nnoremap <S-Right> <NOP>
-  vnoremap <S-Up> <NOP>
-  vnoremap <S-Down> <NOP>
-  vnoremap <S-Left> <NOP>
-  vnoremap <S-Right> <NOP>
-  inoremap <S-Up> <NOP>
-  inoremap <S-Down> <NOP>
-  inoremap <S-Left> <NOP>
-  inoremap <S-Right> <NOP>
-endfunction
-
-call SetArrowKeysAsTextShifters()
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Allow for local overrides
+if filereadable(expand("~/.vimrc.local"))
+  source ~/.vimrc.local
+endif
