@@ -54,6 +54,9 @@ set fileformats=unix,dos
 
 filetype off
 
+" backspace over everything in insert mode
+set backspace=indent,eol,start
+
 " Tab file completion extras
 set wildmenu
 set wildmode=full
@@ -151,6 +154,10 @@ set tm=500
 " Backups + temporary files
 
 set nobackup
+set writebackup
+
+set undodir=~/.vim/undo
+set undofile
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
