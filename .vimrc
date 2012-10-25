@@ -7,13 +7,12 @@
 "|                                       |
 "=========================================
 
-" originally completed: oct 2, 2012
-" last updated: oct 24, 2012
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 set nocompatible
 set history=50
+
+set titlestring=vim\ %{expand(\"%t\")}
 
 " Read a file when it is changed from the outside
 set autoread
@@ -22,37 +21,36 @@ set autoread
 autocmd BufRead,BufWrite * if ! &bin | silent! %s/\s\+$//ge | endif
 
 augroup JumpCursorOnEdit
-   au!
-   autocmd BufReadPost *
-            \ if expand("<afile>:p:h") !=? $TEMP |
+    au!
+    autocmd BufReadPost *
+        \ if expand("<afile>:p:h") !=? $TEMP |
             \ if line("'\"") > 1 && line("'\"") <= line("$") |
-            \ let JumpCursorOnEdit_foo = line("'\"") |
-            \ let b:doopenfold = 1 |
-            \ if (foldlevel(JumpCursorOnEdit_foo) > foldlevel(JumpCursorOnEdit_foo - 1)) |
-            \ let JumpCursorOnEdit_foo = JumpCursorOnEdit_foo - 1 |
-            \ let b:doopenfold = 2 |
+                \ let JumpCursorOnEdit_foo = line("'\"") |
+                \ let b:doopenfold = 1 |
+                \ if (foldlevel(JumpCursorOnEdit_foo) > foldlevel(JumpCursorOnEdit_foo - 1)) |
+                    \ let JumpCursorOnEdit_foo = JumpCursorOnEdit_foo - 1 |
+                    \ let b:doopenfold = 2 |
+                \ endif |
+                \ exe JumpCursorOnEdit_foo |
             \ endif |
-            \ exe JumpCursorOnEdit_foo |
-            \ endif |
-            \ endif
-" Need to postpone using "zv" until after reading the modelines.
-   autocmd BufWinEnter *
-            \ if exists("b:doopenfold") |
+        \ endif
+    " Need to postpone using "zv" until after reading the modelines.
+    autocmd BufWinEnter *
+        \ if exists("b:doopenfold") |
             \ exe "normal zv" |
             \ if(b:doopenfold > 1) |
-            \ exe "+".1 |
+                \ exe "+".1 |
             \ endif |
             \ unlet b:doopenfold |
-            \ endif
+        \ endif
 augroup END
 
 " Regular tab widths are ignorant
-set tabstop=2
-set shiftwidth=2
 set autoindent
+set shiftwidth=4
+set softtabstop=4
 set expandtab
-set smarttab
-set backspace=indent,eol,start
+set fileformats=unix,dos
 
 filetype off
 
@@ -78,27 +76,31 @@ set incsearch
 
 set guifont=DejaVu\ Sans\ Mono\ 9
 
+set showmatch
+set cursorline
+set relativenumber
+
 if &t_Co > 2 || has("gui_running")
-  syntax on
-  set background=dark
-  set hlsearch
+    syntax on
+    set background=dark
+    set hlsearch
 endif
 
 set t_Co=256 " force 256 colors
 colorscheme molokai
 
 if has("autocmd")
-" Filetypes and indenting settings
-  filetype plugin indent on
+    " Filetypes and indenting settings
+    filetype plugin indent on
 
-" For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
+    " For all text files set 'textwidth' to 78 characters.
+    autocmd FileType text setlocal textwidth=78
 
-" When editing a file, always jump to the last known cursor position.
-  autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \ exe "normal g`\"" |
-    \ endif
+    " When editing a file, always jump to the last known cursor position.
+    autocmd BufReadPost *
+        \ if line("'\"") > 0 && line("'\"") <= line("$") |
+        \ exe "normal g`\"" |
+        \ endif
 endif " has("autocmd")
 
 " UTF-8 master-race
@@ -114,7 +116,7 @@ function! CurDir()
 endfunction
 function! HasPaste()
     if &paste
-        return 'PASTE MODE '
+        return 'paste mode '
     else
         return ''
     endif
@@ -123,13 +125,6 @@ endfunction
 " Show current command in use
 set showcmd
 set cmdheight=2
-
-" highlight last search param
-set hlsearch
-
-" highlight matching parenthesis
-highlight MatchParen ctermbg=4
-set mat=2
 
 " don't wrap text
 set nowrap
@@ -167,5 +162,5 @@ nnoremap JJJJ <Nop>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Allow for local overrides
 if filereadable(expand("~/.vimrc.local"))
-  source ~/.vimrc.local
+    source ~/.vimrc.local
 endif
