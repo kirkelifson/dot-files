@@ -2,12 +2,9 @@
 "|                                       |
 "|              Kirk Elifson             |
 "|                 UCF '16               |
-"|          http://parodybit.net         |
 "|         kelifson@parodybit.net        |
 "|                                       |
 "=========================================
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 set nocompatible
 set history=50
@@ -78,10 +75,18 @@ set incsearch
 " Style
 
 set guifont=DejaVu\ Sans\ Mono\ 9
+set encoding=utf-8
+
+set number
+set ruler
 
 set showmatch
 set cursorline
 set relativenumber
+
+" don't wrap text
+set nowrap
+set linebreak
 
 if &t_Co > 2 || has("gui_running")
     syntax on
@@ -106,15 +111,11 @@ if has("autocmd")
         \ endif
 endif " has("autocmd")
 
-" UTF-8 master-race
-set encoding=utf-8
-set number
-set ruler
-
 set laststatus=2
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
+    let curdir = substitute(getcwd(), '/home/kelifson', "~", "g")
     return curdir
 endfunction
 function! HasPaste()
@@ -128,10 +129,6 @@ endfunction
 " Show current command in use
 set showcmd
 set cmdheight=2
-
-" don't wrap text
-set nowrap
-set linebreak
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Scrolling
@@ -158,13 +155,6 @@ set writebackup
 
 set undodir=~/.vim/undo
 set undofile
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Key mapping
-
-" Map 'jj' to escape on insert mode
-inoremap jj <Esc>
-nnoremap JJJJ <Nop>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Allow for local overrides
