@@ -82,7 +82,6 @@ set ruler
 
 set showmatch
 set cursorline
-set relativenumber
 
 " don't wrap text
 set nowrap
