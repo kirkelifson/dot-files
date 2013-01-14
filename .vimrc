@@ -2,7 +2,7 @@
 "|                                       |
 "|              Kirk Elifson             |
 "|                 UCF '16               |
-"|         kelifson@parodybit.net        |
+"|           kirk@parodybit.net          |
 "|                                       |
 "=========================================
 
@@ -93,7 +93,7 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 endif
 
-set t_Co=256 " force 256 colors
+set t_Co=256
 colorscheme molokai
 
 if has("autocmd")
