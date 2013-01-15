@@ -2,7 +2,7 @@
 "|                                       |
 "|              Kirk Elifson             |
 "|                 UCF '16               |
-"|           kirk@parodybit.net          |
+"|         kelifson@parodybit.net        |
 "|                                       |
 "=========================================
 
@@ -31,7 +31,6 @@ augroup JumpCursorOnEdit
                 \ exe JumpCursorOnEdit_foo |
             \ endif |
         \ endif
-    " Need to postpone using "zv" until after reading the modelines.
     autocmd BufWinEnter *
         \ if exists("b:doopenfold") |
             \ exe "normal zv" |
@@ -44,11 +43,12 @@ augroup END
 
 " Regular tab widths are ignorant
 set autoindent
+set expandtab
 set shiftwidth=4
 set softtabstop=4
-set expandtab
 set fileformats=unix,dos
 
+" don't detect filetype for syntax highlighting
 filetype off
 
 " backspace over everything in insert mode
@@ -83,7 +83,6 @@ set ruler
 set showmatch
 set cursorline
 
-" don't wrap text
 set nowrap
 set linebreak
 
@@ -93,7 +92,7 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 endif
 
-set t_Co=256
+set t_Co=256 " force 256 colors
 colorscheme molokai
 
 if has("autocmd")
@@ -114,7 +113,6 @@ set laststatus=2
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
-    let curdir = substitute(getcwd(), '/home/kelifson', "~", "g")
     return curdir
 endfunction
 function! HasPaste()
