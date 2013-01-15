@@ -2,7 +2,7 @@
 "|                                       |
 "|              Kirk Elifson             |
 "|                 UCF '16               |
-"|         kelifson@parodybit.net        |
+"|           kirk@parodybit.net          |
 "|                                       |
 "=========================================
 
