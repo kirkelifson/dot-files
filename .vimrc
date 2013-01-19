@@ -78,7 +78,6 @@ set guifont=DejaVu\ Sans\ Mono\ 9
 set encoding=utf-8
 
 set number
-set ruler
 
 set showmatch
 set cursorline
@@ -95,24 +94,11 @@ endif
 set t_Co=256 " force 256 colors
 colorscheme molokai
 
-if has("autocmd")
-    " Filetypes and indenting settings
-    filetype plugin indent on
-
-    " For all text files set 'textwidth' to 78 characters.
-    autocmd FileType text setlocal textwidth=78
-
-    " When editing a file, always jump to the last known cursor position.
-    autocmd BufReadPost *
-        \ if line("'\"") > 0 && line("'\"") <= line("$") |
-        \ exe "normal g`\"" |
-        \ endif
-endif " has("autocmd")
-
 set laststatus=2
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
+    let curdir = substitute(getcwd(), '/home/kelifson', "~", "g")
     return curdir
 endfunction
 function! HasPaste()
@@ -125,7 +111,7 @@ endfunction
 
 " Show current command in use
 set showcmd
-set cmdheight=2
+set cmdheight=1
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Scrolling
@@ -141,8 +127,6 @@ set foldlevel=99
 
 set noerrorbells
 set novisualbell
-set t_vb=
-set tm=500
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Backups + temporary files
