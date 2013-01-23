@@ -47,6 +47,7 @@ set expandtab
 set shiftwidth=4
 set softtabstop=4
 set fileformats=unix,dos
+set cindent
 
 " don't detect filetype for syntax highlighting
 filetype off
