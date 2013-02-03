@@ -50,7 +50,8 @@ set fileformats=unix,dos
 set cindent
 
 " don't detect filetype for syntax highlighting
-filetype off
+filetype plugin on
+filetype indent on
 
 " backspace over everything in insert mode
 set backspace=indent,eol,start
