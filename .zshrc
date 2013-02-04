@@ -1,8 +1,12 @@
-export ZSH=$HOME/.oh-my-zsh
-export ZSH_THEME="fishy"
+ZSH=$HOME/.oh-my-zsh
 
-plugins=(git ruby)
+ZSH_THEME="fishy"
+
+# load aliases only if script is found
+if [ -f ~/.aliases.sh ]; then
+    $ZSH/aliases.sh
+fi
+
+plugins=(git ruby pip)
 
 source $ZSH/oh-my-zsh.sh
-
-source $ZSH/aliases.sh
