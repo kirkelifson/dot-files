@@ -44,10 +44,6 @@ set fileformats=unix,dos
 set cindent
 set autoindent
 
-" don't detect filetype for syntax highlighting
-filetype plugin on
-filetype indent on
-
 " backspace over everything in insert mode
 set backspace=indent,eol,start
 
@@ -56,17 +52,16 @@ set wildmenu
 set wildmode=full
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Search paramaters
-
-" use grep
-set grepprg=grep\ -nH\ $*
-
 " Case insensitive
 set ignorecase
 set smartcase
 
 " Incremental search
 set incsearch
+set showmatch
+set hlsearch
+
+set gdefault
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Style
@@ -74,17 +69,12 @@ set incsearch
 set encoding=utf-8
 
 set number
-set showmatch
 set cursorline
-
-set nowrap
+set wrap
 set linebreak
 
-if &t_Co > 2 || has("gui_running")
-    syntax on
-    set background=dark
-    set hlsearch
-endif
+syntax on
+set background=dark
 
 set t_Co=256
 colorscheme molokai
@@ -111,9 +101,9 @@ set cmdheight=1
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Scrolling
 
+set sidescroll=1
 set scrolloff=2
 set sidescrolloff=15
-set sidescroll=1
 set foldmethod=indent
 set foldlevel=99
 
@@ -134,4 +124,39 @@ set undofile
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-execute pathogen#infect()
+filetype off
+call pathogen#runtime_append_all_bundles()
+filetype plugin indent on
+
+set modelines=0
+
+set ttyfast
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Key mapping
+
+let mapleader = ","
+nnoremap / /\v
+vnoremap / /\v
+noremap <leader><space> :noh<cr>
+nnoremap <tab> %
+vnoremap <tab> %
+
+nnoremap <up> <nop>
+nnoremap <down> <nop>
+nnoremap <left> <nop>
+nnoremap <right> <nop>
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
+
+nnoremap ; :
+inoremap jj <ESC>
+
+nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
+nnoremap <leader>w <C-w>v<C-w>l
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
