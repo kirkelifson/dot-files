@@ -9,13 +9,8 @@
 set nocompatible
 set history=50
 
-set titlestring=vim\ %{expand(\"%t\")}
-
 " Read a file when it is changed from the outside
 set autoread
-
-" Remove any trailing whitespace in the file
-autocmd BufRead,BufWrite * if ! &bin | silent! %s/\s\+$//ge | endif
 
 augroup JumpCursorOnEdit
     au!
@@ -42,12 +37,12 @@ augroup JumpCursorOnEdit
 augroup END
 
 " Regular tab widths are ignorant
-set autoindent
 set expandtab
 set shiftwidth=4
 set softtabstop=4
 set fileformats=unix,dos
 set cindent
+set autoindent
 
 " don't detect filetype for syntax highlighting
 filetype plugin on
@@ -76,11 +71,9 @@ set incsearch
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
-set guifont=DejaVu\ Sans\ Mono\ 9
 set encoding=utf-8
 
 set number
-
 set showmatch
 set cursorline
 
@@ -93,7 +86,7 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 endif
 
-set t_Co=256 " force 256 colors
+set t_Co=256
 colorscheme molokai
 
 set laststatus=2
@@ -140,7 +133,5 @@ set undodir=~/.vim/undo
 set undofile
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Allow for local overrides
-if filereadable(expand("~/.vimrc.local"))
-    source ~/.vimrc.local
-endif
+
+execute pathogen#infect()
