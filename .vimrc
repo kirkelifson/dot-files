@@ -61,12 +61,14 @@ set incsearch
 set showmatch
 set hlsearch
 
+" substitute global per line as default
 set gdefault
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
 set encoding=utf-8
+set ttyfast
 
 set number
 set cursorline
@@ -74,7 +76,6 @@ set wrap
 set linebreak
 
 syntax on
-set background=dark
 
 set t_Co=256
 colorscheme molokai
@@ -123,15 +124,12 @@ set undodir=~/.vim/undo
 set undofile
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Plugins
 
-call pathogen#runtime_append_all_bundles()
 filetype off
+call pathogen#runtime_append_all_bundles()
 syntax on
 filetype plugin indent on
-
-set modelines=0
-
-set ttyfast
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
@@ -139,10 +137,13 @@ set ttyfast
 let mapleader = ","
 nnoremap / /\v
 vnoremap / /\v
-noremap <leader><space> :noh<cr>
 nnoremap <tab> %
 vnoremap <tab> %
 
+" clear search highlighting
+noremap <leader><space> :noh<cr>
+
+" disable arrow keys
 nnoremap <up> <nop>
 nnoremap <down> <nop>
 nnoremap <left> <nop>
@@ -152,12 +153,13 @@ inoremap <down> <nop>
 inoremap <left> <nop>
 inoremap <right> <nop>
 
+" easier command entering
 nnoremap ; :
 inoremap jj <ESC>
 
+" ,ev -> edit vimrc
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
+" ,w -> new vertical split and use it
 nnoremap <leader>w <C-w>v<C-w>l
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
+" ,s -> new horizontal split and use it
+nnoremap <leader>s <C-w>s<C-w>j
