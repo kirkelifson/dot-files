@@ -124,8 +124,9 @@ set undofile
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-filetype off
 call pathogen#runtime_append_all_bundles()
+filetype off
+syntax on
 filetype plugin indent on
 
 set modelines=0
