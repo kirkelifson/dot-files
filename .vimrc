@@ -127,7 +127,11 @@ set undofile
 " Plugins
 
 filetype off
-call pathogen#runtime_append_all_bundles()
+set rtp+=~/.vim/bundle/vundle
+call vundle#rc()
+
+Bundle 'gmarik/vundle'
+
 syntax on
 filetype plugin indent on
 
