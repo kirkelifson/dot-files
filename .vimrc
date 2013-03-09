@@ -75,16 +75,17 @@ set cursorline
 set wrap
 set linebreak
 
+filetype plugin indent on
 syntax on
 
 set t_Co=256
 colorscheme molokai
+set background=dark
 
 set laststatus=2
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
-    let curdir = substitute(getcwd(), '/home/kelifson', "~", "g")
     return curdir
 endfunction
 function! HasPaste()
@@ -122,14 +123,6 @@ set writebackup
 
 set undodir=~/.vim/undo
 set undofile
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Plugins
-
-filetype off
-
-syntax on
-filetype plugin indent on
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
