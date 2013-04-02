@@ -7,7 +7,7 @@ if [ ! -d ~/.oh-my-zsh ]; then
 fi
 
 # copy current dot files into home directory 
-cp -r .vim .vimrc .oh-my-zsh .zshrc .tmux.conf .gitconfig .gdbinit .htoprc update.sh ~
+cp -r .vim .vimrc .oh-my-zsh .zshrc .tmux.conf .gitconfig .gdbinit update.sh ~
 
 # execute zshrc to see new config
 source ~/.zshrc
