@@ -41,7 +41,6 @@ set expandtab
 set shiftwidth=4
 set softtabstop=4
 set fileformats=unix,dos
-set cindent
 set autoindent
 
 " backspace over everything in insert mode
@@ -75,7 +74,6 @@ set cursorline
 set wrap
 set linebreak
 
-filetype plugin indent on
 syntax on
 
 set t_Co=256
@@ -136,16 +134,6 @@ vnoremap <tab> %
 " clear search highlighting
 noremap <leader><space> :noh<cr>
 
-" disable arrow keys
-nnoremap <up> <nop>
-nnoremap <down> <nop>
-nnoremap <left> <nop>
-nnoremap <right> <nop>
-inoremap <up> <nop>
-inoremap <down> <nop>
-inoremap <left> <nop>
-inoremap <right> <nop>
-
 " easier command entering
 nnoremap ; :
 inoremap jj <ESC>
@@ -156,3 +144,20 @@ nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 nnoremap <leader>w <C-w>v<C-w>l
 " ,s -> new horizontal split and use it
 nnoremap <leader>s <C-w>s<C-w>j
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vundle
+filetype off
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+" let Vundle manage Vundle
+" required! 
+Bundle 'gmarik/vundle'
+
+" extra vundles
+Bundle 'withgod/vim-sourcepawn.git'
+au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
+
+filetype plugin indent on
