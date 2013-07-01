@@ -7,7 +7,7 @@
 "=========================================
 
 set nocompatible
-set history=50
+set history=100
 
 " Read a file when it is changed from the outside
 set autoread
