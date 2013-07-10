@@ -1,4 +1,8 @@
-autoload -U colors && colors
+autoload -U colors
+autoload -U zutil
+autoload -U compinit
+autoload -U complist
+colors && compinit
 
 ZSH=$HOME/.oh-my-zsh
 export HISTFILE=~/.zsh_history
@@ -17,6 +21,7 @@ alias ls="ls -lAvF --si --color=auto"
 plugins=(git)
 
 PROMPT="%{$fg[green]%}%n%{$reset_color%} : %{$fg[cyan]%}%1~%{$reset_color%} %(!.#.λ) "
+RPROMPT="[%m]"
 
 # rvm
 export PATH=$PATH:/home/xtc/.rvm/gems/ruby-1.9.3-p392/bin:/home/xtc/.rvm/gems/ruby-1.9.3-p392@global/bin:/home/xtc/.rvm/rubies/ruby-1.9.3-p392/bin:/home/xtc/.rvm/bin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/home/xtc/.rvm/bin
