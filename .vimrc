@@ -12,6 +12,12 @@ set history=100
 " Read a file when it is changed from the outside
 set autoread
 
+" raise dialogue to save file if cmd fails
+set confirm
+
+" prevent vulnerabilities
+set nomodeline
+
 augroup JumpCursorOnEdit
     au!
     autocmd BufReadPost *
@@ -36,11 +42,14 @@ augroup JumpCursorOnEdit
         \ endif
 augroup END
 
-" Regular tab widths are ignorant
+" improved buffer functionality
+set hidden
+
+" satan uses hard tabs
 set expandtab
 set shiftwidth=4
 set softtabstop=4
-set fileformats=unix,dos
+set fileformats=unix
 set autoindent
 
 " backspace over everything in insert mode
@@ -67,10 +76,14 @@ set gdefault
 " Style
 
 set encoding=utf-8
+
+" improves redrawing
 set ttyfast
 
 set number
 set cursorline
+
+" word wrap
 set wrap
 set linebreak
 
@@ -145,21 +158,33 @@ nnoremap <leader>w <C-w>v<C-w>l
 " ,s -> new horizontal split and use it
 nnoremap <leader>s <C-w>s<C-w>j
 
+" improve movement with j and k
+nnoremap j gj
+nnoremap k gk
+
+" redraw screen with C-l
+nnoremap <C-L> :nohl<CR><C-L>
+
+" set Y = yank until EOL
+map Y y$
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Vundle
+
+" turn off (required!)
 filetype off
 
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
-" let Vundle manage Vundle
-" required! 
+" let Vundle manage Vundle (required!)
 Bundle 'gmarik/vundle'
 
-" extra vundles
+" Vundles
 Bundle 'withgod/vim-sourcepawn'
 au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
 
 Bundle 'pangloss/vim-javascript'
 
+" turn filetype back on
 filetype plugin indent on
