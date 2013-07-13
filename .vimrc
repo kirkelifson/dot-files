@@ -157,7 +157,9 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 
 " extra vundles
-Bundle 'withgod/vim-sourcepawn.git'
+Bundle 'withgod/vim-sourcepawn'
 au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
+
+Bundle 'pangloss/vim-javascript'
 
 filetype plugin indent on
