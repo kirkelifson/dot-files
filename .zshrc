@@ -17,11 +17,10 @@ alias tmux="tmux -2"
 source $ZSH/oh-my-zsh.sh
 
 alias ls="ls -lAvF --si --color=auto"
-alias sl="ls"
 
 plugins=(git)
 
-PROMPT="%{$fg[green]%}%n%{$reset_color%} : %{$fg[cyan]%}%1~%{$reset_color%} %(!.#.λ) "
+PROMPT="%{$fg[green]%}%n%{$reset_color%} : %{$fg[cyan]%}%1~%{$reset_color%} %(!.#.$) "
 RPROMPT="[%m]"
 
 # rvm
