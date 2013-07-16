@@ -185,6 +185,10 @@ Bundle 'withgod/vim-sourcepawn'
 au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
 
 Bundle 'pangloss/vim-javascript'
+Bundle 'corntrace/bufexplorer'
+Bundle 'scrooloose/nerdtree'
+Bundle 'vim-scripts/surround.vim'
+Bundle 'tpope/vim-fugitive'
 
 " turn filetype back on
 filetype plugin indent on
