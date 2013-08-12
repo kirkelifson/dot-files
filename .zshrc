@@ -20,7 +20,6 @@ alias ls="ls -lAvF --si --color=auto"
 
 plugins=(git)
 
-PROMPT="%{$fg[green]%}%n%{$reset_color%} : %{$fg[cyan]%}%1~%{$reset_color%} %(!.#.$) "
-RPROMPT="[%m]"
+PROMPT="%{$fg[cyan]%}%n%{$reset_color%}@%{$fg[blue]%}%m%{$reset_color%}(%{$fg[magenta]%}%1~%{$reset_color%})%(!.#.$) "
 
 PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
