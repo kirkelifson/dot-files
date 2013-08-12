@@ -14,10 +14,9 @@ ln -sb dot-files/.vimrc .
 ln -sb dot-files/.zshrc .
 ln -sb dot-files/.tmux.conf .
 ln -sb dot-files/.gitconfig .
-ln -sb dot-files/bench.sh .
 ln -sb dot-files/update.sh .
 
-chmod +x bench.sh update.sh
+chmod +x update.sh
 
 # symbolic links with vundle would get messy
 cp -r dot-files/.vim .
