@@ -1,10 +1,12 @@
+# load zsh extensions
 autoload -U colors
 autoload -U zutil
 autoload -U compinit
 autoload -U complist
 colors && compinit
+plugins=(git)
 
-ZSH=$HOME/.oh-my-zsh
+# save a good amount of history
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
@@ -14,12 +16,13 @@ alias apt-get="sudo apt-get"
 alias aptitude="sudo aptitude"
 alias tmux="tmux -2"
 
-source $ZSH/oh-my-zsh.sh
+# env
+PROMPT="%{$fg[green]%}%n@%m%{$reset_color%}:%{$fg[cyan]%}%~%{$reset_color%} %(!.#.λ) "
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+ZSH=$HOME/.oh-my-zsh
 
+# aliases
 alias ls="ls -lAvF --si --color=auto"
 
-plugins=(git)
-
-PROMPT="%{$fg[cyan]%}%n%{$reset_color%}@%{$fg[blue]%}%m%{$reset_color%}(%{$fg[magenta]%}%1~%{$reset_color%})%(!.#.$) "
-
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+# exec oh-my-zsh
+source $ZSH/oh-my-zsh.sh
