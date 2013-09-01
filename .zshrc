@@ -1,3 +1,11 @@
+# exec oh-my-zsh
+ZSH=$HOME/.oh-my-zsh
+source $ZSH/oh-my-zsh.sh
+
+# env
+PROMPT="%{$fg[green]%}%n@%m%{$reset_color%}:%{$fg[cyan]%}%~%{$reset_color%} %(!.#.λ) "
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+
 # load zsh extensions
 autoload -U colors
 autoload -U zutil
@@ -16,13 +24,5 @@ alias apt-get="sudo apt-get"
 alias aptitude="sudo aptitude"
 alias tmux="tmux -2"
 
-# env
-PROMPT="%{$fg[green]%}%n@%m%{$reset_color%}:%{$fg[cyan]%}%~%{$reset_color%} %(!.#.λ) "
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-ZSH=$HOME/.oh-my-zsh
-
 # aliases
 alias ls="ls -lAvF --si --color=auto"
-
-# exec oh-my-zsh
-source $ZSH/oh-my-zsh.sh
