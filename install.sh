@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# assumed that zsh is installed
+# assumed: zsh installed and already being used
 
 # install oh-my-zsh if not installed
 if [ ! -d ~/.oh-my-zsh ]; then
@@ -15,8 +15,6 @@ ln -sb dot-files/.zshrc .
 ln -sb dot-files/.tmux.conf .
 ln -sb dot-files/.gitconfig .
 ln -sb dot-files/update.sh .
-
-chmod +x update.sh
 
 # symbolic links with vundle would get messy
 cp -r dot-files/.vim .
