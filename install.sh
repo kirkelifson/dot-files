@@ -21,5 +21,9 @@ chmod +x update.sh
 # symbolic links with vundle would get messy
 cp -r dot-files/.vim .
 
+# install vundle
+git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+vim +BundleInstall +qall
+
 # execute zshrc to utilize new config
 source ~/.zshrc
