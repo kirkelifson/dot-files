@@ -3,9 +3,10 @@ ZSH=$HOME/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 
 # env
-export PROMPT="%{$fg[green]%}%n@%m%{$reset_color%}:%{$fg[cyan]%}%~%{$reset_color%} %1(!.#.λ) "
+export PROMPT="%{$fg[green]%}%n@%m%{$reset_color%}:%{$fg[cyan]%}%~%{$reset_color%} %(!.#.λ) "
 export PATH=$PATH:$HOME/.rvm/bin
 export DISABLE_AUTO_TITLE=true
+export LANG=en_US.UTF-8
 
 # load zsh extensions
 autoload -U colors
