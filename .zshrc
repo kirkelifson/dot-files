@@ -25,6 +25,5 @@ export SAVEHIST=1000000
 alias apt-get="sudo apt-get"
 alias aptitude="sudo aptitude"
 alias tmux="tmux -2"
-
-# aliases
 alias ls="ls -lAvF --si --color=auto"
+alias gdb="gdb --quiet"
