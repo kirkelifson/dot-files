@@ -1,7 +1,7 @@
 {
     "update_check": false,
         "color_scheme": "Packages/Color Scheme - Default/Twilight.tmTheme",
-        "font_size": 13,
+        "font_size": 10,
 
     // Note that the font_face and font_size are overriden in the platform
     // specific settings file, for example, "Preferences (Linux).sublime-settings".
@@ -41,7 +41,7 @@
     "tab_size": 4,
 
     // Set to true to insert spaces when tab is pressed
-    "translate_tabs_to_spaces": false,
+    "translate_tabs_to_spaces": true,
 
     // Set to false to disable detection of tabs vs. spaces on load
     "detect_indentation": true,
@@ -187,7 +187,7 @@
     // Determines what character(s) are used to terminate each line in new files.
     // Valid values are 'system' (whatever the OS uses), 'windows' (CRLF) and
     // 'unix' (LF only).
-    "default_line_ending": "system",
+    "default_line_ending": "unix",
 
     // When enabled, pressing tab will insert the best matching completion.
     // When disabled, tab will only trigger snippets or insert a tab.
@@ -228,7 +228,7 @@
     // tab character - this allows tabs to be inserted when tab_completion is
     // enabled. Set this to true to make shift+tab always unindent, instead of
     // inserting tabs.
-    "shift_tab_unindent": false,
+    "shift_tab_unindent": true,
 
     // If true, the copy and cut commands will operate on the current line
     // when the selection is empty, rather than doing nothing.
@@ -362,3 +362,4 @@
     // a restart may be required if the package contains plugins.
     "ignored_packages": ["Vintage"]
 }
+
