@@ -1,6 +1,6 @@
+# load zsh extensions
 ZSH=$HOME/.oh-my-zsh
 
-# load zsh extensions
 autoload -U compinit && compinit
 autoload -U colors && colors
 plugins=(git)
