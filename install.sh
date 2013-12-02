@@ -9,9 +9,9 @@ fi
 
 # create symbolic links for all dot-files
 cd $HOME
-
 ln -sb dot-files/.vimrc .
 ln -sb dot-files/.zshrc .
+ln -sb dot-files/.zshenv .
 ln -sb dot-files/.tmux.conf .
 ln -sb dot-files/.gitconfig .
 ln -sb dot-files/update.sh .
