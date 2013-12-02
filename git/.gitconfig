@@ -32,3 +32,5 @@
     lg = log --oneline --graph --decorate
 [push]
     default = current
+[core]
+	editor = vim
