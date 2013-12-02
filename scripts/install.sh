@@ -9,15 +9,15 @@ fi
 
 # create symbolic links for all dot-files
 cd $HOME
-ln -sb dot-files/.vimrc .
-ln -sb dot-files/.zshrc .
-ln -sb dot-files/.zshenv .
-ln -sb dot-files/.tmux.conf .
-ln -sb dot-files/.gitconfig .
-ln -sb dot-files/update.sh .
+ln -sb dot-files/vim/.vimrc .
+ln -sb dot-files/zsh/.zshrc .
+ln -sb dot-files/zsh/.zshenv .
+ln -sb dot-files/tmux/.tmux.conf .
+ln -sb dot-files/git/.gitconfig .
+ln -sb dot-files/scripts/update.sh .
 
 # symbolic links with vundle would get messy
-cp -r dot-files/.vim .
+cp -r dot-files/vim/.vim .
 
 # install vundle
 git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
