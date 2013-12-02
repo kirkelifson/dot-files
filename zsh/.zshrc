@@ -18,4 +18,5 @@ alias ls="ls -lAvF --si --color=auto"
 alias gdb="gdb --quiet"
 
 # settings
-setopt autocd correct
+unsetopt correct_all
+setopt correct
