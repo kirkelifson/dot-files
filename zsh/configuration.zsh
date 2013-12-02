@@ -1,8 +1,8 @@
 # display user:host if remotely connected
 if [[ -n $SSH_CONNECTION ]]; then
-    export PS1='%{$fg[cyan]%}%n:%m%{$reset_color%} [%~] %(!.#.λ) '
+    export PROMPT='%{$fg[cyan]%}%n:%m%{$reset_color%} [%~] %(!.#.λ) '
 else
-    export PS1='[%~] %(!.#.λ) '
+    export PROMPT='[%~] %(!.#.λ) '
 fi
 
 setopt NO_LIST_BEEP
