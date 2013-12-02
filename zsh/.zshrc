@@ -3,7 +3,6 @@ export DOT_FILES=~/dot-files
 export ZSH=~/.oh-my-zsh
 
 autoload colors && colors
-plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
 
