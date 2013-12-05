@@ -18,5 +18,4 @@ done
 
 autoload -U compinit && compinit
 
-# load completion file after autocomplete loads
-source $DOT_FILES/zsh/completion.zsh
+unset DOT_FILES
