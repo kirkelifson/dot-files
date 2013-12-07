@@ -97,6 +97,7 @@ set laststatus=2
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
+    let curdir = substitute(getcwd(), '/home/kirk', "~", "g")
     return curdir
 endfunction
 function! HasPaste()
