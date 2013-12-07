@@ -23,6 +23,9 @@ ln -sb dot-files/tmux/.tmux.conf .
 # git
 ln -sb dot-files/git/.gitconfig .
 
+# gdb
+ln -sb dot-files/gdb/.gdbinit .
+
 # scripts
 ln -sb dot-files/scripts/update.sh .
 
