@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# grab directory structure
+_dir="$(dirname $(readlink -f $0) | sed -e 's/\/scripts//')"
+
 # assumed: zsh installed and already being used
 
 # install oh-my-zsh if not installed
@@ -8,26 +11,25 @@ if [ ! -d ~/.oh-my-zsh ]; then
 fi
 
 # install using symlinks
-cd $HOME
 # vim
-ln -sb dot-files/vim/.vimrc .
-cp -r dot-files/vim/.vim .
+ln -sb $_dir/vim/.vimrc ~/
+cp -r $_dir/vim/.vim ~/
 
 # zsh
-ln -sb dot-files/zsh/.zshrc .
-ln -sb dot-files/zsh/.zshenv .
+ln -sb $_dir/zsh/.zshrc ~/
+ln -sb $_dir/zsh/.zshenv ~/
 
 # tmux
-ln -sb dot-files/tmux/.tmux.conf .
+ln -sb $_dir/tmux/.tmux.conf ~/
 
 # git
-ln -sb dot-files/git/.gitconfig .
+ln -sb $_dir/git/.gitconfig ~/
 
 # gdb
-ln -sb dot-files/gdb/.gdbinit .
+ln -sb $_dir/gdb/.gdbinit ~/
 
 # scripts
-ln -sb dot-files/scripts/update.sh .
+ln -sb $_dir/scripts/update.sh ~/
 
 # install vundle
 if [ ! -d ~/.vim/bundle/vundle ]; then
