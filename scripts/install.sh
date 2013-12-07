@@ -7,20 +7,30 @@ if [ ! -d ~/.oh-my-zsh ]; then
     wget --no-check-certificate https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | sh
 fi
 
-# create symbolic links for all dot-files
+# install using symlinks
 cd $HOME
+# vim
 ln -sb dot-files/vim/.vimrc .
-ln -sb dot-files/zsh/.zshrc .
-ln -sb dot-files/zsh/.zshenv .
-ln -sb dot-files/tmux/.tmux.conf .
-ln -sb dot-files/git/.gitconfig .
-ln -sb dot-files/scripts/update.sh .
-
-# symbolic links with vundle would get messy
 cp -r dot-files/vim/.vim .
 
+# zsh
+ln -sb dot-files/zsh/.zshrc .
+ln -sb dot-files/zsh/.zshenv .
+
+# tmux
+ln -sb dot-files/tmux/.tmux.conf .
+
+# git
+ln -sb dot-files/git/.gitconfig .
+
+# scripts
+ln -sb dot-files/scripts/update.sh .
+
 # install vundle
-git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+if [ ! -d ~/.vim/bundle/vundle ]; then
+    git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+fi
+
 vim +BundleInstall +qall
 
 # execute zshrc to utilize new config
