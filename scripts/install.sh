@@ -38,5 +38,14 @@ fi
 
 vim +BundleInstall +qall
 
+# move backups into external folder
+if [ ! -d ~/.dotfile-backup ]; then
+    mkdir ~/.dotfile-backup
+fi
+
+mv ~/*.*~ ~/.dotfile-backup
+mv ~/.*~ ~/.dotfile-backup
+echo -n "All previous dot-files have been backed up into ~/.dotfile-backup\n"
+
 # execute zshrc to utilize new config
 source ~/.zshrc
