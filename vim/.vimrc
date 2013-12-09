@@ -182,7 +182,7 @@ Bundle 'gmarik/vundle'
 
 " Vundles
 Bundle 'withgod/vim-sourcepawn'
-au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
+" au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
 
 Bundle 'pangloss/vim-javascript'
 Bundle 'corntrace/bufexplorer'
