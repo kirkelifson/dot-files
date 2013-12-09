@@ -16,6 +16,7 @@ set confirm
 " prevent vulnerabilities
 set nomodeline
 
+" restore cursor to last saved position on reload
 augroup JumpCursorOnEdit
     au!
     autocmd BufReadPost *
