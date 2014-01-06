@@ -182,13 +182,10 @@ Bundle 'gmarik/vundle'
 
 " Vundles
 Bundle 'withgod/vim-sourcepawn'
-" au FileType sourcepawn setlocal makeprg=/path/to/spcomp\ %
-
 Bundle 'pangloss/vim-javascript'
-Bundle 'corntrace/bufexplorer'
-Bundle 'scrooloose/nerdtree'
 Bundle 'vim-scripts/surround.vim'
-Bundle 'tpope/vim-fugitive'
+Bundle 'christoomey/vim-tmux-navigator'
+Bundle 'dag/vim2hs'
 
 " turn filetype back on
 filetype plugin indent on
