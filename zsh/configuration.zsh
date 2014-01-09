@@ -5,6 +5,10 @@ else
     export PROMPT='(%~)%(!.#.λ) '
 fi
 
+if [[ -n $UID ]]; then
+    export PATH=/usr/local/bin:$PATH
+fi
+
 setopt NO_LIST_BEEP
 setopt PROMPT_SUBST
 setopt CORRECT
