@@ -39,8 +39,12 @@ set hidden
 set expandtab
 set shiftwidth=4
 set softtabstop=4
-set fileformats=unix
+set fileformat=unix
 set autoindent
+
+" highlight hard tabs
+highlight HardTabs ctermbg=red guibg=red
+match HardTabs /\t/
 
 " backspace over everything in insert mode
 set backspace=indent,eol,start
