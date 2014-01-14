@@ -1,11 +1,8 @@
 set nocompatible
-set history=100
+set history=1000
 
-" Read a file when it is changed from the outside
+" Read upon file change
 set autoread
-
-" raise dialogue to save file if cmd fails
-set confirm
 
 " prevent vulnerabilities
 set nomodeline
@@ -81,7 +78,7 @@ set linebreak
 syntax on
 
 set t_Co=256
-colorscheme molokai
+colorscheme grb256
 set background=dark
 
 set laststatus=2
@@ -100,17 +97,16 @@ function! HasPaste()
 endfunction
 
 " Show current command in use
-set showcmd
 set cmdheight=2
 
 " Scrolling
-
-set sidescroll=1
-set scrolloff=2
-set sidescrolloff=15
-set foldmethod=indent
-set foldlevel=99
-
+"
+"set sidescroll=1
+"set scrolloff=2
+"set sidescrolloff=15
+"set foldmethod=indent
+"set foldlevel=99
+"
 " Backups
 
 set nobackup
