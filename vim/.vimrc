@@ -1,9 +1,3 @@
-"=================================
-"|          Kirk Elifson         |
-"|             UCF '16           |
-"|       kirk@parodybit.net      |
-"=================================
-
 set nocompatible
 set history=100
 
@@ -58,7 +52,6 @@ set backspace=indent,eol,start
 set wildmenu
 set wildmode=full
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Case insensitive
 set ignorecase
 set smartcase
@@ -71,7 +64,6 @@ set hlsearch
 " substitute global per line as default
 set gdefault
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
 set encoding=utf-8
@@ -109,9 +101,8 @@ endfunction
 
 " Show current command in use
 set showcmd
-set cmdheight=1
+set cmdheight=2
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Scrolling
 
 set sidescroll=1
@@ -120,14 +111,7 @@ set sidescrolloff=15
 set foldmethod=indent
 set foldlevel=99
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Disable all bells
-
-set noerrorbells
-set novisualbell
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Backups + temporary files
+" Backups
 
 set nobackup
 set writebackup
@@ -135,7 +119,6 @@ set writebackup
 set undodir=~/.vim/undo
 set undofile
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
 
 let mapleader = ","
@@ -153,10 +136,6 @@ inoremap jj <ESC>
 
 " ,ev -> edit vimrc
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
-" ,w -> new vertical split and use it
-nnoremap <leader>w <C-w>v<C-w>l
-" ,s -> new horizontal split and use it
-nnoremap <leader>s <C-w>s<C-w>j
 
 " improve movement with j and k
 nnoremap j gj
@@ -168,7 +147,6 @@ nnoremap <C-L> :nohl<CR><C-L>
 " set Y = yank until EOL
 map Y y$
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Vundle
 
 " turn off (required!)
@@ -181,10 +159,7 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 
 " Vundles
-Bundle 'withgod/vim-sourcepawn'
-Bundle 'pangloss/vim-javascript'
 Bundle 'vim-scripts/surround.vim'
-Bundle 'christoomey/vim-tmux-navigator'
 Bundle 'dag/vim2hs'
 
 " turn filetype back on
