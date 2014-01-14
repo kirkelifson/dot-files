@@ -5,14 +5,16 @@ else
     export PROMPT='(%~)%(!.#.λ) '
 fi
 
+# add local/bin path for root
 if [[ -n $UID ]]; then
     export PATH=/usr/local/bin:$PATH
 fi
 
-setopt NO_LIST_BEEP
-setopt PROMPT_SUBST
-setopt CORRECT
-setopt COMPLETE_IN_WORD
+# zsh features
+setopt promptsubst
+setopt correct
+setopt complete_in_word
+setopt append_history
 
 # don't expand aliases before completion has finished
 setopt complete_aliases
