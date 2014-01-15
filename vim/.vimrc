@@ -93,8 +93,8 @@ endfunction
 set backup
 set backupdir=~/.vim/backup
 
-set undodir=~/.vim/undo
 set undofile
+set undodir=~/.vim/undo
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
