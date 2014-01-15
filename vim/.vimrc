@@ -66,8 +66,7 @@ set cursorline
 set wrap
 set linebreak
 set t_Co=256
-colorscheme grb256
-set background=dark
+color grb256
 set laststatus=2
 set cmdheight=2
 
@@ -91,8 +90,8 @@ endfunction
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Backups
 
-set nobackup
-set writebackup
+set backup
+set backupdir=~/.vim/backup
 
 set undodir=~/.vim/undo
 set undofile
