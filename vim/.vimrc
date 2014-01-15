@@ -8,6 +8,7 @@ set modelines=3
 " improved buffer functionality
 set hidden
 " satan uses hard tabs
+" extra tab options in autocmds (filetypes)
 set expandtab
 set shiftwidth=4
 set softtabstop=4
@@ -26,31 +27,6 @@ set incsearch
 set showmatch
 set hlsearch
 set encoding=utf-8
-
-" restore cursor to last saved position on reload
-augroup JumpCursorOnEdit
-    au!
-    autocmd BufReadPost *
-        \ if expand("<afile>:p:h") !=? $TEMP |
-            \ if line("'\"") > 1 && line("'\"") <= line("$") |
-                \ let JumpCursorOnEdit_foo = line("'\"") |
-                \ let b:doopenfold = 1 |
-                \ if (foldlevel(JumpCursorOnEdit_foo) > foldlevel(JumpCursorOnEdit_foo - 1)) |
-                    \ let JumpCursorOnEdit_foo = JumpCursorOnEdit_foo - 1 |
-                    \ let b:doopenfold = 2 |
-                \ endif |
-                \ exe JumpCursorOnEdit_foo |
-            \ endif |
-        \ endif
-    autocmd BufWinEnter *
-        \ if exists("b:doopenfold") |
-            \ exe "normal zv" |
-            \ if(b:doopenfold > 1) |
-                \ exe "+".1 |
-            \ endif |
-            \ unlet b:doopenfold |
-        \ endif
-augroup END
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Style
@@ -73,7 +49,8 @@ set cmdheight=2
 syntax on
 au BufNewFile,BufRead *.sp set filetype=c
 
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
+"set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
+set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
     let curdir = substitute(getcwd(), '/home/kirk', "~", "g")
@@ -124,6 +101,28 @@ nnoremap <C-L> :nohl<CR><C-L>
 
 " set Y = yank until EOL
 map Y y$
+
+""""""""""""""""""""""""""""""""""""""""""""""""""
+" autocmds
+
+augroup vimrcEx
+    autocmd!
+    autocmd FileType text setlocal textwidth=78
+    autocmd BufReadPost *
+      \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+      \   exe "normal g`\"" |
+      \ endif
+
+    autocmd FileType ruby,javascript,html,sass set ai sw=2 sts=2 et
+    autocmd FileType python set sw=4 sts=4 et
+
+    autocmd! BufRead,BufNewFile *.sass setfiletype sass
+
+    " markdown
+    autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:&gt;
+    autocmd BufRead *.markdown set ai formatoptions=tcroqn2 comments=n:&gt;
+    autocmd! FileType mkd setlocal syn=off
+augroup END
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Vundle
