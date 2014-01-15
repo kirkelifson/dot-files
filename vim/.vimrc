@@ -1,11 +1,31 @@
+""""""""""""""""""""""""""""""""""""""""""""""""""
 set nocompatible
 set history=1000
-
 " Read upon file change
 set autoread
-
 " prevent vulnerabilities
 set nomodeline
+" improved buffer functionality
+set hidden
+" satan uses hard tabs
+set expandtab
+set shiftwidth=4
+set softtabstop=4
+set fileformat=unix
+set autoindent
+" backspace over everything in insert mode
+set backspace=indent,eol,start
+" Tab file completion extras
+set wildmenu
+set wildmode=full
+" Case insensitive
+set ignorecase
+set smartcase
+" Incremental search
+set incsearch
+set showmatch
+set hlsearch
+set encoding=utf-8
 
 " restore cursor to last saved position on reload
 augroup JumpCursorOnEdit
@@ -32,60 +52,28 @@ augroup JumpCursorOnEdit
         \ endif
 augroup END
 
-" improved buffer functionality
-set hidden
-
-" satan uses hard tabs
-set expandtab
-set shiftwidth=4
-set softtabstop=4
-set fileformat=unix
-set autoindent
+""""""""""""""""""""""""""""""""""""""""""""""""""
+" Style
 
 " highlight hard tabs
 highlight HardTabs ctermbg=red guibg=red
 match HardTabs /\t/
-
-" backspace over everything in insert mode
-set backspace=indent,eol,start
-
-" Tab file completion extras
-set wildmenu
-set wildmode=full
-
-" Case insensitive
-set ignorecase
-set smartcase
-
-" Incremental search
-set incsearch
-set showmatch
-set hlsearch
-
-" substitute global per line as default
-set gdefault
-
-" Style
-
-set encoding=utf-8
-
 " improves redrawing
 set ttyfast
-
 set number
 set cursorline
-
 " word wrap
 set wrap
 set linebreak
-
-syntax on
-
 set t_Co=256
 colorscheme grb256
 set background=dark
-
 set laststatus=2
+set cmdheight=2
+
+syntax on
+au BufNewFile,BufRead *.sp set filetype=c
+
 set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 function! CurDir()
     let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
@@ -100,17 +88,7 @@ function! HasPaste()
     endif
 endfunction
 
-" Show current command in use
-set cmdheight=2
-
-" Scrolling
-"
-"set sidescroll=1
-"set scrolloff=2
-"set sidescrolloff=15
-"set foldmethod=indent
-"set foldlevel=99
-"
+""""""""""""""""""""""""""""""""""""""""""""""""""
 " Backups
 
 set nobackup
@@ -119,6 +97,7 @@ set writebackup
 set undodir=~/.vim/undo
 set undofile
 
+""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key mapping
 
 let mapleader = ","
@@ -147,6 +126,7 @@ nnoremap <C-L> :nohl<CR><C-L>
 " set Y = yank until EOL
 map Y y$
 
+""""""""""""""""""""""""""""""""""""""""""""""""""
 " Vundle
 
 " turn off (required!)
