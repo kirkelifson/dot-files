@@ -3,8 +3,8 @@ set nocompatible
 set history=1000
 " Read upon file change
 set autoread
-" prevent vulnerabilities
-set nomodeline
+set modeline
+set modelines=3
 " improved buffer functionality
 set hidden
 " satan uses hard tabs
