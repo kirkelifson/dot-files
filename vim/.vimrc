@@ -28,6 +28,8 @@ set showmatch
 set hlsearch
 set encoding=utf-8
 
+set showtabline=2
+
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
@@ -43,26 +45,13 @@ set wrap
 set linebreak
 set t_Co=256
 color grb256
+set winwidth=79
 set laststatus=2
-set cmdheight=2
+set cmdheight=1
 
 syntax on
-au BufNewFile,BufRead *.sp set filetype=c
 
-"set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ cwd:\ %r%{CurDir()}%h\ \ \ line:\ %l/%L:%c
 set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
-function! CurDir()
-    let curdir = substitute(getcwd(), '/home/xtc', "~", "g")
-    let curdir = substitute(getcwd(), '/home/kirk', "~", "g")
-    return curdir
-endfunction
-function! HasPaste()
-    if &paste
-        return 'paste mode '
-    else
-        return ''
-    endif
-endfunction
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Backups
@@ -117,6 +106,7 @@ augroup vimrcEx
     autocmd FileType python set sw=4 sts=4 et
 
     autocmd! BufRead,BufNewFile *.sass setfiletype sass
+    autocmd! BufRead,BufNewFile *.sp set filetype=c
 
     " markdown
     autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:&gt;
