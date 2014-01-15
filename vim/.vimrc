@@ -20,8 +20,7 @@ set backspace=indent,eol,start
 set wildmenu
 set wildmode=full
 " Case insensitive
-set ignorecase
-set smartcase
+set ignorecase smartcase
 " Incremental search
 set incsearch
 set showmatch
