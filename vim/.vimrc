@@ -1,4 +1,6 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""
+" General
+
 set nocompatible
 set history=1000
 " Read upon file change
@@ -16,7 +18,6 @@ set fileformat=unix
 set autoindent
 " backspace over everything in insert mode
 set backspace=indent,eol,start
-" Tab file completion extras
 set wildmenu
 set wildmode=full
 " Case insensitive
@@ -26,7 +27,6 @@ set incsearch
 set showmatch
 set hlsearch
 set encoding=utf-8
-
 set showtabline=2
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
@@ -39,17 +39,13 @@ match HardTabs /\t/
 set ttyfast
 set number
 set cursorline
-" word wrap
 set wrap
-set linebreak
 set t_Co=256
 color grb256
 set winwidth=79
-set laststatus=2
-set cmdheight=1
-
 syntax on
-
+set cmdheight=1
+set laststatus=2
 set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
