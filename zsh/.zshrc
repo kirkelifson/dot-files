@@ -2,7 +2,8 @@
 export DOT_FILES=~/dot-files
 export ZSH=~/.oh-my-zsh
 
-autoload colors && colors
+autoload -U colors && colors
+autoload -U compinit && compinit
 
 source $ZSH/oh-my-zsh.sh
 
@@ -15,8 +16,6 @@ for file in ${${config_files:#*/path.zsh}:#*/completion.zsh}
 do
     source $file
 done
-
-autoload -U compinit && compinit
 
 zstyle ':completion:*:*:kill:*:processes' command 'ps --forest -e -o pid,user,tty,cmd'
 
