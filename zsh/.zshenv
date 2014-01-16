@@ -4,3 +4,5 @@ export LESS='-RM'
 export PATH=$PATH:$HOME/.rvm/bin
 export LANG=en_US.UTF-8
 export DISABLE_AUTO_TITLE=true
+export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
+export GREP_OPTIONS="--color"
