@@ -100,8 +100,8 @@ augroup vimrcEx
     autocmd FileType ruby,javascript,html,sass set ai sw=2 sts=2 et
     autocmd FileType python set sw=4 sts=4 et
 
-    autocmd! BufRead,BufNewFile *.sass setfiletype sass
-    autocmd! BufRead,BufNewFile *.sp set filetype=c
+    autocmd! BufRead,BufNewFile *.sass set filetype sass
+    autocmd! BufRead,BufNewFile *.sp set filetype c
 
     " markdown
     autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:&gt;
