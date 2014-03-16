@@ -20,3 +20,4 @@ done
 zstyle ':completion:*:*:kill:*:processes' command 'ps --forest -e -o pid,user,tty,cmd'
 
 unset DOT_FILES
+

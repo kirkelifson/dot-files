@@ -10,6 +10,8 @@ if [[ -n $UID ]]; then
     export PATH=/usr/local/bin:$PATH
 fi
 
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+
 # zsh features
 setopt promptsubst
 setopt correct
