@@ -21,3 +21,7 @@ zstyle ':completion:*:*:kill:*:processes' command 'ps --forest -e -o pid,user,tt
 
 unset DOT_FILES
 
+if [ -f ~/.zshlocal ];
+then
+    source ~/.zshlocal
+fi
