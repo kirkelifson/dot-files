@@ -41,9 +41,9 @@ set number
 set cursorline
 set wrap
 set t_Co=256
-color grb256
+color solarized
 set winwidth=79
-syntax on
+syntax enable
 set cmdheight=1
 set laststatus=2
 set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
