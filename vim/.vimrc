@@ -41,9 +41,10 @@ set number
 set cursorline
 set wrap
 set t_Co=256
-color solarized
-set winwidth=79
 syntax enable
+set background=light
+colorscheme solarized
+set winwidth=80
 set cmdheight=1
 set laststatus=2
 set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
@@ -124,6 +125,7 @@ Bundle 'gmarik/vundle'
 " Vundles
 Bundle 'vim-scripts/surround.vim'
 Bundle 'dag/vim2hs'
+Bundle 'altercation/vim-colors-solarized.git'
 
 " turn filetype back on
 filetype plugin indent on
