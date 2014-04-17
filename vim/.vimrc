@@ -125,7 +125,6 @@ Bundle 'gmarik/vundle'
 " Vundles
 Bundle 'vim-scripts/surround.vim'
 Bundle 'dag/vim2hs'
-Bundle 'altercation/vim-colors-solarized.git'
 
 " turn filetype back on
 filetype plugin indent on
