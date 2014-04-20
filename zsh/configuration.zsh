@@ -18,4 +18,3 @@ setopt complete_aliases
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
