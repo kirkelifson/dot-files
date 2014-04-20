@@ -5,13 +5,6 @@ else
     export PROMPT='(%~)%(!.#.λ) '
 fi
 
-# add local/bin path for root
-if [[ -n $UID ]]; then
-    export PATH=/usr/local/bin:$PATH
-fi
-
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-
 # zsh features
 setopt promptsubst
 setopt correct
@@ -25,3 +18,4 @@ setopt complete_aliases
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
