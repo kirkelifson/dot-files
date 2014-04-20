@@ -26,10 +26,8 @@
         conflictstyle = diff3
 [alias]
         st = status
-        ci = commit
         br = branch
         co = checkout
-        df = diff
         lg = log --oneline --graph --decorate
 [push]
         default = current
