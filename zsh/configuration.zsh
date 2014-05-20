@@ -1,12 +1,6 @@
 # display user:host if remotely connected
-if [[ -n $SSH_CONNECTION ]]; then
-    export PROMPT='%{$fg[cyan]%}%n:%m%{$reset_color%}(%~)%(!.#.λ) '
-else
-    export PROMPT='(%~)%(!.#.λ) '
-fi
+export PROMPT='%n:%m %~ %(!.#.$) '
 
-# zsh features
-setopt promptsubst
 setopt correct
 setopt complete_in_word
 setopt append_history
