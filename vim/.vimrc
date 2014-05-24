@@ -2,10 +2,9 @@
 " General
 
 set nocompatible
-set history=1000
+set history=10000
 " Read upon file change
 set autoread
-set modeline
 set modelines=3
 " improved buffer functionality
 set hidden
@@ -42,9 +41,8 @@ set cursorline
 set wrap
 set t_Co=256
 syntax enable
-set background=light
-colorscheme solarized
-set winwidth=80
+set background=dark
+colorscheme molokai
 set cmdheight=1
 set laststatus=2
 set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
