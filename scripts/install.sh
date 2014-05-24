@@ -13,10 +13,10 @@ fi
 # vim
 # backup ~/.vim
 if [ -d ~/.vim-backup ]; then
-    echo -ne "[!] Backing up ~/.vim to ~/.vim-backup\n\n"
     rm -rf ~/.vim-backup
 fi
 
+echo -ne "[!] Backing up ~/.vim to ~/.vim-backup\n\n"
 mv ~/.vim ~/.vim-backup
 
 ln -sb $_dir/vim/.vimrc ~/
