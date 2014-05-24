@@ -32,11 +32,11 @@ alias ifconfig='sudo ifconfig'
 # }}}
 
 setopt auto_cd
-setopt correct
 setopt complete_aliases
 setopt append_history
 setopt prompt_subst
 
+zstyle ':completion:*:functions' ignored-patterns '_*'
 zstyle ':completion::complete:*' use-cache 1
 
 HISTFILE=~/.zsh_history
