@@ -1,24 +1,30 @@
-# load from dot-files directory (~/dot-files)
-DOT_FILES=~/dot-files
-ZSH=~/.oh-my-zsh
+# aliases {{{
 
-autoload -U colors && colors
+alias apt-get="sudo apt-get"
+alias aptitude="sudo aptitude"
+alias ifconfig="sudo ifconfig"
+alias tmux="tmux -2"
+alias ls="ls --color=always"
+alias ll="ls -lA --color=always"
+alias gdb="gdb --quiet"
+alias grep="grep --color=always"
+alias x="chmod +x"
+alias ta="tmux attach -t"
+
+# }}}
+
+setopt AUTO_CD
+setopt CORRECT
+setopt completealiases
+setopt append_history
+setopt promptsubst
+zstyle ':completion::complete:*' use-cache 1
+
 autoload -U compinit && compinit
 
-source $ZSH/oh-my-zsh.sh
-
-# list of all zsh files
-typeset -U config_files
-config_files=($DOT_FILES/**/*.zsh)
-
-# load all configurating files
-for file in ${${config_files:#*/path.zsh}:#*/completion.zsh}
-do
-    source $file
-done
-
-# load in local settings
-if [ -f ~/.zshlocal ];
-then
+# load optional local settings
+if [ -f ~/.zshlocal ]; then
     source ~/.zshlocal
 fi
+
+source $ZSH/oh-my-zsh.sh
