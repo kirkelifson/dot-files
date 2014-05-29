@@ -28,10 +28,8 @@
         st = status
         br = branch
         co = checkout
-        lg = log --oneline --graph --decorate
+        lg = log --oneline --abbrev-commit --all --graph --decorate --color --date=relative
 [push]
         default = current
 [core]
         editor = vim
-[log]
-	decorate = short
