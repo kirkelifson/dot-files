@@ -39,7 +39,6 @@ ln -sb $_dir/gdb/.gdbinit ~/
 ln -sb $_dir/update ~/
 
 # delete all duplicated symlinks
-rm ~/*.*~
 rm ~/.*~
 
 # install vundle
