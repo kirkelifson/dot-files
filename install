@@ -40,6 +40,7 @@ ln -sb $_dir/update ~/
 
 # delete all duplicated symlinks
 rm ~/.*~
+rm ~/update~
 
 # install vundle
 if [ ! -d ~/.vim/bundle/vundle ]; then
