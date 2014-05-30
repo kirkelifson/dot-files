@@ -36,7 +36,7 @@ ln -sb $_dir/git/.gitconfig ~/
 ln -sb $_dir/gdb/.gdbinit ~/
 
 # scripts
-ln -sb $_dir/scripts/update.sh ~/
+ln -sb $_dir/update ~/
 
 # delete all duplicated symlinks
 rm ~/*.*~
