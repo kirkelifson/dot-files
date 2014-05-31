@@ -3,8 +3,6 @@
 
 set nocompatible
 set history=10000
-" Read upon file change
-set autoread
 set modelines=3
 " improved buffer functionality
 set hidden
