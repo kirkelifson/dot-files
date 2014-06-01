@@ -43,6 +43,7 @@ zstyle ':completion::complete:*' use-cache 1
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
+MAILCHECK=0
 
 autoload -U compinit && compinit
 
