@@ -42,7 +42,6 @@ syntax enable
 set background=dark
 colorscheme molokai
 set laststatus=1
-set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Backups
@@ -119,8 +118,9 @@ Bundle 'gmarik/vundle'
 
 " Vundles
 Bundle 'vim-scripts/surround.vim'
-Bundle 'dag/vim2hs'
 Bundle 'airblade/vim-gitgutter'
+Bundle 'tpope/vim-fugitive'
+Bundle 'tpope/vim-git'
 
 " turn filetype back on
 filetype plugin indent on
