@@ -33,6 +33,7 @@ alias ifconfig='sudo ifconfig'
 
 setopt auto_cd
 setopt complete_aliases
+setopt complete_in_word
 setopt append_history
 setopt prompt_subst
 
