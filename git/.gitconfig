@@ -1,35 +1,35 @@
 [user]
-        name = kirkelifson
-        email = kirk@parodybit.net
+    name = kirkelifson
+    email = kirk@parodybit.net
 [color]
-	ui = auto
-        branch = auto
-        diff = auto
-        status = auto
-	interactive = auto
+    ui = auto
+    branch = auto
+    diff = auto
+    status = auto
+    interactive = auto
 [color "branch"]
-        current = yellow reverse
-        local = yellow
-        remote = green
+    current = yellow reverse
+    local = yellow
+    remote = green
 [color "diff"]
-        meta = yellow bold
-        frag = magenta bold
-        old = red bold
-        new = green bold
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
 [color "status"]
-        added = yellow
-        changed = green
-        untracked = cyan
+    added = yellow
+    changed = green
+    untracked = cyan
 [credential]
-        helper = cache --timeout=3600
+    helper = cache --timeout=3600
 [merge]
-        conflictstyle = diff3
+    conflictstyle = diff3
 [alias]
-        st = status
-        br = branch
-        co = checkout
-        lg = log --oneline --all --graph --color --date=relative --stat
+    st = status
+    br = branch
+    co = checkout
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 [push]
-        default = current
+    default = current
 [core]
-        editor = vim
+    editor = vim
