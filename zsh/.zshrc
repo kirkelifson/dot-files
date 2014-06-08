@@ -9,6 +9,8 @@ export PROMPT='%n:%m %~ %(!.#.$) '
 # utilize all of my cores
 alias make='make -j5'
 
+alias cd='cd -P'
+
 # recursive and verbose
 alias cp='cp -Rv'
 
