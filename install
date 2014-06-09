@@ -47,7 +47,7 @@ if [ ! -d ~/.vim/bundle/vundle ]; then
     git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle &> /dev/null
 fi
 
-vim +BundleInstall +qall
+vim +PluginInstall +qall
 
 # execute zshrc to utilize new config
 source ~/.zshrc
