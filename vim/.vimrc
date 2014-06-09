@@ -110,17 +110,18 @@ augroup END
 " turn off (required!)
 filetype off
 
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
 
-" let Vundle manage Vundle (required!)
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/Vundle.vim'
 
 " Vundles
-Bundle 'vim-scripts/surround.vim'
-Bundle 'airblade/vim-gitgutter'
-Bundle 'tpope/vim-fugitive'
-Bundle 'tpope/vim-git'
+Plugin 'vim-scripts/surround.vim'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-git'
+Plugin 'bling/vim-airline'
 
 " turn filetype back on
+call vundle#end()
 filetype plugin indent on
