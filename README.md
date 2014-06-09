@@ -1,14 +1,14 @@
 #dot-files
 
-This is my most committed repository which has both positive and negative sides. It suggests that I am interested in personalized development environments but also implies I am incredibly OCD (all true).
+This is my most committed repository which is both positive and negative. It suggests that I am incredibly OCD, and I don't write enough code (true presently).
 
-#### Be warned:
+### Warning:
 
-This includes my gitconfig and other preferences that are user specific. If you want to install everything then read the directions below. However it is also very simple to `cp` files that meet your standards. If I were you I would choose the latter. The installation script is very unforgiving.
+This includes my gitconfig and various other user specifics. The installation script is very unforgiving. If you are not me, `cp` the files that fit your fancy.
 
 #Usage
 
-To install my exact environment execute the following commands:
+To install execute the following:
 
 ```
 git clone https://github.com/kirkelifson/dot-files.git
@@ -16,11 +16,9 @@ cd dot-files
 ./install
 ```
 
-It's that simple.
-
 #Required
 
-For full installation and pleasure, you must have:
+For maximum pleasure, you must have:
 
 * zshell
 * vim `--with-features=big`
