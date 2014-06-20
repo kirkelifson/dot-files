@@ -8,7 +8,7 @@ ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-export PROMPT='%n:%m %~ $(git_prompt_info)%(!.#.$) '
+export PROMPT='%n:%m %~ $(git_prompt_info) %(!.#.$) '
 
 # aliases {{{
 
