@@ -1,6 +1,7 @@
 # load oh-my-zsh
 export ZSH=~/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
+autoload -U compinit && compinit
 
 ZSH_THEME_GIT_PROMPT_PREFIX="on %{$fg[magenta]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
@@ -14,27 +15,21 @@ export PROMPT='%n:%m %~ $(git_prompt_info)%(!.#.$) '
 
 # utilize all of my cores
 alias make='make -j5'
-
 alias cd='cd -P'
-
 # recursive and verbose
 alias cp='cp -Rv'
-
 alias tmux='tmux -2'
 alias ta='tmux attach -t'
-
 alias ls='ls --color=always'
 alias ll='ls -lA --color=always'
-
 alias gdb='gdb --quiet'
-
 alias grep='grep --color=always'
-
 alias x='chmod +x'
 
 # always forget to add sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
+alias dpkg='sudo dpkg'
 alias ifconfig='sudo ifconfig'
 
 # }}}
@@ -53,7 +48,10 @@ HISTSIZE=1000000
 SAVEHIST=1000000
 MAILCHECK=0
 
-autoload -U compinit && compinit
+# env
+export EDITOR=vim
+export DISABLE_AUTO_TITLE=true
+export PATH=$PATH:$HOME/.rvm/bin
 
 # load optional local settings
 if [ -f ~/.zshlocal ]; then
