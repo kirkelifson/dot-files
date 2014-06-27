@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # grab directory structure
-_dir="$(dirname $(readlink -f $0) | sed -e 's/\/scripts//')"
+_dir="$(dirname $(readlink -f $0))"
 
 # install oh-my-zsh if not installed
 if [ ! -d ~/.oh-my-zsh ]; then
@@ -19,21 +19,21 @@ fi
 echo -ne "[!] Backing up ~/.vim to ~/.vim-backup\n\n"
 mv ~/.vim ~/.vim-backup
 
-ln -sb $_dir/vim/.vimrc ~/
-cp -r $_dir/vim/.vim ~/
+ln -sb $_dir/.vimrc ~/
+cp -r $_dir/.vim ~/
 
 # zsh
-ln -sb $_dir/zsh/.zshrc ~/
-ln -sb $_dir/zsh/.zshenv ~/
+ln -sb $_dir/.zshrc ~/
+ln -sb $_dir/.zshenv ~/
 
 # tmux
-ln -sb $_dir/tmux/.tmux.conf ~/
+ln -sb $_dir/.tmux.conf ~/
 
 # git
-ln -sb $_dir/git/.gitconfig ~/
+ln -sb $_dir/.gitconfig ~/
 
 # gdb
-ln -sb $_dir/gdb/.gdbinit ~/
+ln -sb $_dir/.gdbinit ~/
 
 # scripts
 ln -sb $_dir/update ~/
