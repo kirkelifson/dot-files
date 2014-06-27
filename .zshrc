@@ -9,7 +9,7 @@ ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-export PROMPT="%~ $(git_prompt_info)%(!.#.$) "
+export PROMPT='%~ $(git_prompt_info)%(!.#.$) '
 
 if [ $SSH_CONNECTION ]; then
     export PROMPT="%n:%m $PROMPT"
