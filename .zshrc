@@ -25,11 +25,9 @@ alias ll='ls -lA --color=always'
 alias gdb='gdb --quiet'
 alias grep='grep --color=always'
 alias x='chmod +x'
-
 # always forget to add sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
-alias dpkg='sudo dpkg'
 alias ifconfig='sudo ifconfig'
 
 # }}}
@@ -41,7 +39,6 @@ setopt append_history
 setopt prompt_subst
 
 zstyle ':completion:*:functions' ignored-patterns '_*'
-zstyle ':completion::complete:*' use-cache 1
 
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
@@ -49,8 +46,6 @@ SAVEHIST=1000000
 MAILCHECK=0
 
 # env
-export EDITOR=vim
-export DISABLE_AUTO_TITLE=true
 export PATH=$PATH:$HOME/.rvm/bin
 
 # load optional local settings
