@@ -1,5 +1,5 @@
 # load oh-my-zsh
-export ZSH=~/.oh-my-zsh
+ZSH=~/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 autoload -U compinit && compinit
 
@@ -9,7 +9,11 @@ ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-export PROMPT='%n:%m %~ $(git_prompt_info)%(!.#.$) '
+export PROMPT="%~ $(git_prompt_info)%(!.#.$) "
+
+if [ $SSH_CONNECTION ]; then
+    export PROMPT="%n:%m $PROMPT"
+fi
 
 # aliases {{{
 
