@@ -11,13 +11,7 @@ fi
 # Installation:
 
 # vim
-# backup ~/.vim
-if [ -d ~/.vim-backup ]; then
-    rm -rf ~/.vim-backup
-fi
-
-echo -ne "[!] Backing up ~/.vim to ~/.vim-backup\n\n"
-mv ~/.vim ~/.vim-backup
+rm -rf ~/.vim
 
 ln -sb $_dir/.vimrc ~/
 cp -r $_dir/.vim ~/
