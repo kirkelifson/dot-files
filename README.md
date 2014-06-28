@@ -25,3 +25,11 @@ For maximum pleasure, you must have:
 * tmux
 * gdb
 * git (I would hope so)
+
+#Usability
+
+In order for the dynamic prompt to work well with ssh connections and sudo, add this to your sudoers file (always use `visudo`!):
+
+```
+Defaults env_keep = "SSH_CONNECTION"
+```
