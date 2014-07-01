@@ -51,6 +51,7 @@ MAILCHECK=0
 
 # env
 export PATH=$PATH:$HOME/.rvm/bin
+export DISABLE_AUTO_TITLE=true
 
 # load optional local settings
 if [ -f ~/.zshlocal ]; then
