@@ -1,5 +1,4 @@
-# load oh-my-zsh
-ZSH=~/.oh-my-zsh
+export ZSH=~/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 autoload -U compinit && compinit
 
@@ -9,7 +8,7 @@ ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-export PROMPT='%~ $(git_prompt_info)%(!.#.$) '
+export PROMPT='%1~ $(git_prompt_info)%(!.#.$) '
 
 if [ $SSH_CONNECTION ]; then
     export PROMPT="%n:%m $PROMPT"
@@ -36,10 +35,10 @@ alias ifconfig='sudo ifconfig'
 
 # }}}
 
+setopt append_history
 setopt auto_cd
 setopt complete_aliases
 setopt complete_in_word
-setopt append_history
 setopt prompt_subst
 
 zstyle ':completion:*:functions' ignored-patterns '_*'
