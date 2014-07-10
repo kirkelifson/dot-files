@@ -1,6 +1,6 @@
 export ZSH=~/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
-autoload -U compinit && compinit
+autoload -U compinit && compinit -u
 
 ZSH_THEME_GIT_PROMPT_PREFIX="on %{$fg[magenta]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "

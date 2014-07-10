@@ -1,0 +1,3 @@
+#!/bin/zsh
+cp -r .gdbinit .gitconfig .tmux.conf .vim .vimrc .zshrc ~
+vim +PluginInstall +qall
