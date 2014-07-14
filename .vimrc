@@ -29,9 +29,6 @@ set showtabline=2
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
-" highlight hard tabs
-highlight HardTabs ctermbg=red guibg=red
-match HardTabs /\t/
 " improves redrawing
 set ttyfast
 set number
@@ -42,6 +39,11 @@ syntax enable
 set background=dark
 colorscheme molokai
 set laststatus=1
+" highlight hard tabs
+highlight UglySpaces ctermbg=red guibg=red
+match UglySpaces /\t/
+match UglySpaces /\s\+$/
+match UglySpaces /\s\+$\| \+\ze\t/
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Backups
