@@ -73,6 +73,12 @@ map Y y$
 " autocmds
 
 augroup exec
+    " restore cursor to previous position on file open
+    autocmd BufReadPost *
+        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+        \   exe "normal g`\"" |
+        \ endif
+
     autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
     autocmd FileType text setlocal textwidth=80
     autocmd FileType mkd setlocal syn=off
