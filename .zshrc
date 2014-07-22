@@ -22,6 +22,7 @@ alias cd='cd -P'
 # recursive and verbose
 alias cp='cp -Rv'
 alias tmux='tmux -2'
+alias tat='tmux new -s `basename $PWD`'
 alias ta='tmux attach -t'
 alias ls='ls --color=always'
 alias ll='ls -lA --color=always'
