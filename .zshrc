@@ -31,6 +31,7 @@ alias gdb='gdb --quiet'
 alias grep='grep --color=always'
 alias x='chmod +x'
 alias sba='source bin/activate'
+alias clean-py='find . -name \*.pyc -delete'
 # always forget to add sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
