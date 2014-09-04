@@ -96,10 +96,16 @@ set rtp+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'gmarik/Vundle.vim'
 " Vundles
+
+" left-margin diffing
 Plugin 'airblade/vim-gitgutter'
-Plugin 'tpope/vim-fugitive'
+" syntax and indent profiles for .git*
 Plugin 'tpope/vim-git'
+" fancy statusbar theme~
 Plugin 'bling/vim-airline'
-Plugin 'vim-scripts/surround.vim'
+" transform contents of quotes, parens; ci( is magic
+Plugin 'tpope/vim-surround'
+" file-finding stuff
+Plugin 'kien/ctrlp.vim'
 call vundle#end()
 filetype plugin indent on
