@@ -79,7 +79,7 @@ augroup exec
 
     " extension based properties
     autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
-    autocmd FileType text setlocal textwidth=80 formatoptions=+t
+    autocmd FileType text setlocal textwidth=80 formatoptions+=t
     autocmd FileType mkd setlocal syn=off
     autocmd BufRead *.mkd set formatoptions=tcroqn2 comments=n:&gt;
     autocmd BufRead *.markdown set formatoptions=tcroqn2 comments=n:&gt;
