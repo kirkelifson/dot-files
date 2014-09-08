@@ -27,7 +27,6 @@ set encoding=utf-8
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Style
 
-" colors
 colorscheme molokai
 set background=dark
 set t_Co=256
@@ -37,7 +36,7 @@ set ttyfast
 set number
 set laststatus=2
 " highlight hard tabs
-highlight UglySpaces ctermbg=red guibg=red
+highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
 
 """"""""""""""""""""""""""""""""""""""""""""""""""
@@ -60,7 +59,6 @@ vnoremap / /\v
 noremap <leader><space> :noh<cr>
 " easier command entering
 nnoremap ; :
-inoremap jj <ESC>
 " improve movement with j and k
 nnoremap j gj
 nnoremap k gk
@@ -79,11 +77,12 @@ augroup exec
         \   exe "normal g`\"" |
         \ endif
 
+    " extension based properties
     autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
-    autocmd FileType text setlocal textwidth=80
+    autocmd FileType text setlocal textwidth=80 formatoptions=t
     autocmd FileType mkd setlocal syn=off
-    autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:&gt;
-    autocmd BufRead *.markdown set ai formatoptions=tcroqn2 comments=n:&gt;
+    autocmd BufRead *.mkd set formatoptions=tcroqn2 comments=n:&gt;
+    autocmd BufRead *.markdown set formatoptions=tcroqn2 comments=n:&gt;
     autocmd BufRead,BufNewFile *.sass set filetype sass
     autocmd BufRead,BufNewFile *.sp set filetype c
 augroup END
@@ -92,8 +91,10 @@ augroup END
 " Vundle
 
 filetype off
+
 set rtp+=~/.vim/bundle/vundle
 call vundle#begin()
+
 Plugin 'gmarik/Vundle.vim'
 " Vundles
 
@@ -103,9 +104,10 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-git'
 " fancy statusbar theme~
 Plugin 'bling/vim-airline'
-" transform contents of quotes, parens; ci( is magic
+" transform contents of quotes, parens
 Plugin 'tpope/vim-surround'
 " file-finding stuff
 Plugin 'kien/ctrlp.vim'
 call vundle#end()
+
 filetype plugin indent on
