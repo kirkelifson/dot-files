@@ -1,26 +1,29 @@
+# zsh, oh-my-zsh
 export ZSH=~/.oh-my-zsh
-export LANG="en_US.UTF-8"
 source $ZSH/oh-my-zsh.sh
 autoload -U compinit && compinit -u
+setopt append_history
+setopt auto_cd
+setopt complete_aliases
+setopt complete_in_word
+setopt prompt_subst
+zstyle ':completion:*:functions' ignored-patterns '_*'
 
+# prompt
 ZSH_THEME_GIT_PROMPT_PREFIX="on %{$fg[magenta]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
-
 export PROMPT='%1~ $(git_prompt_info)%(!.#.$) '
-
 if [ $SSH_CONNECTION ]; then
     export PROMPT="%n:%m $PROMPT"
 fi
 
-# aliases {{{
+# aliases
 
-# utilize all of my cores
 alias make='make -j5'
 alias cd='cd -P'
-# recursive and verbose
 alias cp='cp -Rv'
 alias mv='mv -v'
 alias tmux='tmux -2'
@@ -33,32 +36,18 @@ alias grep='grep --color=always'
 alias x='chmod +x'
 alias sba='source bin/activate'
 alias clean-py='find . -name \*.pyc -delete'
-# always forget to add sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
 alias ifconfig='sudo ifconfig'
-# calculator
-
 bin() { echo "obase=2;$1" | bc }
-
-# }}}
-
-setopt append_history
-setopt auto_cd
-setopt complete_aliases
-setopt complete_in_word
-setopt prompt_subst
-
-zstyle ':completion:*:functions' ignored-patterns '_*'
-
-HISTFILE=~/.zsh_history
-HISTSIZE=1000000
-SAVEHIST=1000000
-MAILCHECK=0
 
 # env
 export PATH=$PATH:$HOME/.rvm/bin
 export DISABLE_AUTO_TITLE=true
+HISTFILE=~/.zsh_history
+HISTSIZE=1000000
+SAVEHIST=1000000
+MAILCHECK=0
 
 # load optional local settings
 if [ -f ~/.zshlocal ]; then
