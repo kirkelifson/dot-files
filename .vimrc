@@ -5,7 +5,8 @@ set shiftwidth=4
 set softtabstop=4
 set autoindent
 set backspace=indent,eol,start
-set fo-=t " soft-wrap
+" soft-wrap
+set fo-=t
 set wildmenu
 set wildmode=full
 set ignorecase smartcase
@@ -20,16 +21,32 @@ set backup
 set backupdir=~/.vim/backup
 set undofile
 set undodir=~/.vim/undo
+set ttyfast
+set term=xterm-256color
+set termencoding=utf-8
+
+augroup exec
+    " restore cursor to previous position on file open
+    autocmd BufReadPost *
+        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+        \   exe "normal g`\"" |
+        \ endif
+    autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
+    autocmd FileType text setlocal textwidth=80 formatoptions-=t
+    autocmd FileType mkd setlocal syn=off
+    autocmd BufRead *.mkd set formatoptions=tcroqn2 comments=n:&gt;
+augroup END
 
 " Style
 
 colorscheme molokai
-set t_Co=256
 syntax enable
-set ttyfast " improves redrawing
+set laststatus=2
+set t_Co=256
 set number
+set fillchars+=stl:\ ,stlnc:\
 highlight UglySpaces ctermbg=red
-match UglySpaces /\t/ " highlights hard tabs
+match UglySpaces /\t/
 
 " Keys
 
@@ -39,30 +56,14 @@ noremap <leader><space> :noh<cr>
 nnoremap ; :
 map Y y$
 
-" on file load
-augroup exec
-    " restore cursor to previous position on file open
-    autocmd BufReadPost *
-        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-        \   exe "normal g`\"" |
-        \ endif
-
-    autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
-    autocmd FileType text setlocal textwidth=80 formatoptions-=t
-    autocmd FileType mkd setlocal syn=off
-    autocmd BufRead *.mkd set formatoptions=tcroqn2 comments=n:&gt;
-augroup END
-
 " Vundle
 
 filetype off
 set rtp+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'gmarik/Vundle.vim'
-" git
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-git'
-" powerline
 Bundle 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
 " transform contents of quotes, parens
 Plugin 'tpope/vim-surround'
