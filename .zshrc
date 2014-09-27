@@ -21,7 +21,6 @@ if [ $SSH_CONNECTION ]; then
 fi
 
 # aliases
-
 alias make='make -j5'
 alias cd='cd -P'
 alias cp='cp -Rv'
