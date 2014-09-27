@@ -1,47 +1,44 @@
 #!/bin/zsh
 
+echo -ne "Installing dot-files:\n\n"
+
 # grab directory structure
 _dir="$(dirname $(readlink -f $0))"
 
 # install oh-my-zsh if not installed
 if [ ! -d ~/.oh-my-zsh ]; then
+    echo -ne "Downloading oh-my-zsh....\n"
     wget --no-check-certificate https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | sh
 fi
 
 # Installation:
 
+echo -ne "Creating soft-links to dot-files.\n"
+
 # vim
-rm -rf ~/.vim
-
-ln -sb $_dir/.vimrc ~/
-cp -r $_dir/.vim ~/
-
+ln -sf $_dir/.vimrc ~
+cp -r $_dir/.vim ~
 # zsh
-ln -sb $_dir/.zshrc ~/
-ln -sb $_dir/.zshenv ~/
-
+ln -sf $_dir/.zshrc ~
+ln -sf $_dir/.zshenv ~
 # tmux
-ln -sb $_dir/.tmux.conf ~/
-
+ln -sf $_dir/.tmux.conf ~
 # git
-ln -sb $_dir/.gitconfig ~/
-
+ln -sf $_dir/.gitconfig ~
 # gdb
-ln -sb $_dir/.gdbinit ~/
-
-# scripts
-ln -sb $_dir/update ~/
-
-# delete all duplicated symlinks
-rm ~/.*~
-rm ~/update~
+ln -sf $_dir/.gdbinit ~
+# update script
+ln -sf $_dir/update ~
 
 # install vundle
 if [ ! -d ~/.vim/bundle/vundle ]; then
+    echo -ne "Installing vundle.\n"
     git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle &> /dev/null
 fi
 
+echo -ne "Installing new vundles.\n"
 vim +PluginInstall +qall
 
+echo -ne "\nReloading zshrc with new config.\n"
 # execute zshrc to utilize new config
 source ~/.zshrc
