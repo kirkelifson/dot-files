@@ -41,7 +41,6 @@ alias ifconfig='sudo ifconfig'
 bin() { echo "obase=2;$1" | bc }
 
 # env
-export PATH=$PATH:$HOME/.rvm/bin
 export DISABLE_AUTO_TITLE=true
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000

@@ -39,7 +39,7 @@ augroup END
 
 " Style
 
-colorscheme molokai
+colorscheme grb256
 syntax enable
 set laststatus=2
 set t_Co=256
