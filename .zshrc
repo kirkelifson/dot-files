@@ -38,6 +38,8 @@ alias clean-py='find . -name \*.pyc -delete'
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
 alias ifconfig='sudo ifconfig'
+# opens each file in a new tab
+alias vim='vim -p'
 bin() { echo "obase=2;$1" | bc }
 
 # env
