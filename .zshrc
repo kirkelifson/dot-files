@@ -37,6 +37,7 @@ alias sba='source bin/activate'
 alias clean-py='find . -name \*.pyc -delete'
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
+alias pkgcount='dpkg --get-selections | wc -l'
 alias ifconfig='sudo ifconfig'
 bin() { echo "obase=2;$1" | bc }
 
