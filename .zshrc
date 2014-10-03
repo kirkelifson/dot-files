@@ -39,6 +39,8 @@ alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
 alias pkgcount='dpkg --get-selections | wc -l'
 alias ifconfig='sudo ifconfig'
+# opens each file in a new tab
+alias vim='vim -p'
 bin() { echo "obase=2;$1" | bc }
 
 # env
