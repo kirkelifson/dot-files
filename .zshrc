@@ -38,7 +38,6 @@ alias clean-py='find . -name \*.pyc -delete'
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
 alias pkgcount='sudo dpkg --get-selections | wc -l'
-alias dpkg='sudo dpkg'
 alias ifconfig='sudo ifconfig'
 # opens each file in a new tab
 alias vim='vim -p'
