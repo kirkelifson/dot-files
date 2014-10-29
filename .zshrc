@@ -42,6 +42,10 @@ alias ifconfig='sudo ifconfig'
 # opens each file in a new tab
 alias vim='vim -p'
 bin() { echo "obase=2;$1" | bc }
+apt-gpg() {
+    gpg --keyserver pgpkeys.mit.edu --recv-key $1
+    gpg -a --export $1 | sudo apt-key add -
+}
 
 # env
 export DISABLE_AUTO_TITLE=true
