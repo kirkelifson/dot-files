@@ -1,4 +1,5 @@
-sudo apt-get install build-essential curl gdb git htop libncurses5-dev linux-headers-$(uname -r) python2.7-dev ssh
+cd ~
+sudo apt-get install build-essential curl gdb git libncurses5-dev linux-headers-$(uname -r) python2.7-dev ssh
 sudo apt-get build-dep vim
 wget ftp://ftp.vim.org/pub/vim/unix/vim-7.4.tar.bz2
 tar xzf vim-7.4.tar.bz2
