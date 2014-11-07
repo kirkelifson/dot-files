@@ -44,6 +44,7 @@ syntax enable
 set laststatus=2
 set t_Co=256
 set number
+set relativenumber
 set fillchars+=stl:\ ,stlnc:\
 highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
