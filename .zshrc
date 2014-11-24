@@ -9,7 +9,7 @@ setopt complete_in_word
 setopt prompt_subst
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-# prompt
+# Git-infused prompt
 ZSH_THEME_GIT_PROMPT_PREFIX="on %{$fg[magenta]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
@@ -20,35 +20,39 @@ if [ $SSH_CONNECTION ]; then
     export PROMPT="%n:%m $PROMPT"
 fi
 
-# aliases
+# Aliases
+# General linux
 alias make='make -j5'
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias mv='mv -v'
+alias grep='grep --color=always'
+alias ls='ls --color=always'
+alias ll='ls -lA --color=always'
+alias x='chmod +x'
+alias gdb='gdb --quiet'
+# Tmux
 alias tmux='tmux -2'
 alias tat='tmux new -s `basename $PWD`'
 alias ta='tmux attach -t'
-alias ls='ls --color=always'
-alias ll='ls -lA --color=always'
-alias gdb='gdb --quiet'
-alias grep='grep --color=always'
-alias x='chmod +x'
+# Python
 alias sba='source bin/activate'
 alias clean-py='find . -name \*.pyc -delete'
+# Because I never remember to sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
 alias pkgcount='sudo dpkg --get-selections | wc -l'
 alias ifconfig='sudo ifconfig'
-# opens each file in a new tab
-alias vim='vim -p'
+
+# Various tools
 bin() { echo "obase=2;$1" | bc }
+# Adds gpg key; usage: apt-gpg KEY_HASH
 apt-gpg() {
     gpg --keyserver pgpkeys.mit.edu --recv-key $1
     gpg -a --export $1 | sudo apt-key add -
 }
 
 # env
-export DISABLE_AUTO_TITLE=true
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
