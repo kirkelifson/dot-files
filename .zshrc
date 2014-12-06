@@ -57,6 +57,7 @@ HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
 MAILCHECK=0
+DISABLE_UPDATE_PROMPT=true
 
 # load optional local settings
 if [ -f ~/.zshlocal ]; then
