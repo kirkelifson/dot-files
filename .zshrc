@@ -22,15 +22,16 @@ fi
 
 # Aliases
 # General linux
-alias make='make -j5'
 alias cd='cd -P'
 alias cp='cp -Rv'
-alias mv='mv -v'
-alias grep='grep --color=always'
-alias ls='ls --color=always'
-alias ll='ls -lA --color=always'
-alias x='chmod +x'
 alias gdb='gdb --quiet'
+alias grep='grep --color=always'
+alias ll='ls -lA --color=always'
+alias ls='ls --color=always'
+alias make='make -j5'
+alias mv='mv -v'
+alias ps='ps --forest'
+alias x='chmod +x'
 # Tmux
 alias tmux='tmux -2'
 alias tat='tmux new -s `basename $PWD`'
