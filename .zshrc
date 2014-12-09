@@ -52,6 +52,9 @@ apt-gpg() {
     gpg --keyserver pgpkeys.mit.edu --recv-key $1
     gpg -a --export $1 | sudo apt-key add -
 }
+pull-recursive() {
+    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`; do echo "Updating: $x" && cd $x && git pull; cd ..; done
+}
 
 # env
 HISTFILE=~/.zsh_history
