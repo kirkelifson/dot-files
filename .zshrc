@@ -5,7 +5,7 @@ autoload -U compinit && compinit -u
 setopt append_history
 setopt auto_cd
 setopt complete_aliases
-setopt complete_in_word
+#setopt complete_in_word
 setopt prompt_subst
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
@@ -52,11 +52,15 @@ apt-gpg() {
     gpg --keyserver pgpkeys.mit.edu --recv-key $1
     gpg -a --export $1 | sudo apt-key add -
 }
+# Recursively updates (git-pull) every directory from current
+# TODO: Only pull directories with .git folder
+# TODO: Determine whether git-pull or git-fetch is more
+#       appropriate
 pull-recursive() {
     for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`; do echo "Updating: $x" && cd $x && git pull; cd ..; done
 }
 
-# env
+# Environment variables
 HISTFILE=~/.zsh_history
 HISTSIZE=1000000
 SAVEHIST=1000000
