@@ -1,3 +1,5 @@
+autocmd!
+
 " General
 
 set expandtab
@@ -17,11 +19,9 @@ set nocompatible
 set history=10000
 set fileformat=unix
 set encoding=utf-8
-set backup
+set nobackup
+set nowritebackup
 set backupdir=~/.vim/backup
-set undofile
-set undodir=~/.vim/undo
-set ttyfast
 set term=xterm-256color
 set termencoding=utf-8
 
@@ -39,8 +39,13 @@ augroup END
 
 " Style
 
-colorscheme grb256
-syntax enable
+color grb256
+syntax on
+set background=dark
+set cursorline
+set showtabline=2
+set cmdheight=1
+set winwidth=79
 set laststatus=2
 set t_Co=256
 set number
@@ -59,9 +64,11 @@ map Y y$
 
 " Vundle
 
+" these are required before vundle for some reason
 filetype off
 set rtp+=~/.vim/bundle/vundle
 call vundle#begin()
+
 Plugin 'gmarik/Vundle.vim'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-git'
@@ -70,5 +77,6 @@ Bundle 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
 Plugin 'tpope/vim-surround'
 " neat file management
 Plugin 'kien/ctrlp.vim'
+
 call vundle#end()
 filetype plugin indent on
