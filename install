@@ -1,19 +1,19 @@
 #!/bin/zsh
 
-echo -ne "Installing dot-files:\n\n"
+echo "Installing dot-files:\n"
 
 # grab directory structure
-_dir="$(dirname $(readlink -f $0))"
+_dir=$(dirname $(readlink -f $0))
 
 # install oh-my-zsh if not installed
 if [ ! -d ~/.oh-my-zsh ]; then
-    echo -ne "Downloading oh-my-zsh....\n"
+    echo "\t[+] Downloading oh-my-zsh...."
     wget --no-check-certificate https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | sh
 fi
 
 # Installation:
 
-echo -ne "Creating soft-links to dot-files.\n"
+echo "\t[+] Creating soft-links to dot-files."
 
 # vim
 ln -sf $_dir/.vimrc ~
@@ -32,13 +32,13 @@ ln -sf $_dir/update ~
 
 # install vundle
 if [ ! -d ~/.vim/bundle/vundle ]; then
-    echo -ne "Installing vundle.\n"
+    echo "\t[+] Installing vundle."
     git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle &> /dev/null
 fi
 
-echo -ne "Installing new vundles.\n"
+echo "\t[+] Installing new vundles."
 vim +PluginInstall +qall
 
-echo -ne "\nReloading zshrc with new config.\n"
+echo "\t[+] Reloading zshrc with new config."
 # execute zshrc to utilize new config
 source ~/.zshrc
