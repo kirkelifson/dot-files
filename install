@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-echo "Installing dot-files:\n"
+echo "Installing dot-files:"
 
 # grab directory structure
 _dir=$(dirname $(readlink -f $0))
