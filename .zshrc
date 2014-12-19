@@ -5,7 +5,8 @@ autoload -U compinit && compinit -u
 setopt append_history
 setopt auto_cd
 setopt complete_aliases
-#setopt complete_in_word
+setopt complete_in_word
+# need for git stuff in prompt
 setopt prompt_subst
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
@@ -17,7 +18,7 @@ ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 export PROMPT='%1~ $(git_prompt_info)%(!.#.$) '
 if [ $SSH_CONNECTION ]; then
-    export PROMPT="%n:%m $PROMPT"
+    export PROMPT="(%n@%m) $PROMPT"
 fi
 
 # Aliases
@@ -52,12 +53,10 @@ apt-gpg() {
     gpg --keyserver pgpkeys.mit.edu --recv-key $1
     gpg -a --export $1 | sudo apt-key add -
 }
-# Recursively updates (git-pull) every directory from current
-# TODO: Only pull directories with .git folder
-# TODO: Determine whether git-pull or git-fetch is more
-#       appropriate
-pull-recursive() {
-    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`; do echo "Updating: $x" && cd $x && git pull; cd ..; done
+# Recursively updates (git-fetch) every directory from current
+# TODO: Only fetch directories with .git folder
+fetch-recursive() {
+    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`; do echo "Updating: $x" && cd $x && git fetch; cd ..; done
 }
 
 # Environment variables
