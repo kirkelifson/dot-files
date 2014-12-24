@@ -1,5 +1,3 @@
-autocmd!
-
 " General
 
 set expandtab
@@ -12,11 +10,8 @@ set fo-=t
 set wildmenu
 set wildmode=full
 set ignorecase smartcase
-set hlsearch
-set incsearch
 set showmatch
 set nocompatible
-set history=10000
 set fileformat=unix
 set encoding=utf-8
 set term=xterm-256color
@@ -26,33 +21,44 @@ set undofile
 set undodir=$HOME/.vim/undo
 set undolevels=1000
 set undoreload=10000
+set history=10000
 
-augroup exec
+augroup restore
+    autocmd!
     " restore cursor to previous position on file open
     autocmd BufReadPost *
         \ if line("'\"") > 0 && line ("'\"") <= line("$") |
         \   exe "normal g`\"" |
         \ endif
+augroup END
+
+augroup filetypes
+    autocmd!
     autocmd FileType ruby,javascript,html,sass set sw=2 sts=2
     autocmd FileType text setlocal textwidth=80 formatoptions-=t
     autocmd FileType mkd setlocal syn=off
     autocmd BufRead *.mkd set formatoptions=tcroqn2 comments=n:&gt;
 augroup END
 
+augroup reload_vimrc
+    autocmd!
+    autocmd BufWritePost $MYVIMRC source $MYVIMRC
+augroup END
+
 " Style
 
-color grb256
 syntax on
-set background=dark
+color grb256
+set t_Co=256
 set cursorline
 set showtabline=2
 set cmdheight=1
 set winwidth=79
 set laststatus=1
-set t_Co=256
 set number
 set relativenumber
 set fillchars+=stl:\ ,stlnc:\
+" make hard tabs distinct
 highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
 
@@ -66,7 +72,6 @@ map Y y$
 
 " Vundle
 
-" these are required before vundle for some reason
 filetype off
 set rtp+=~/.vim/bundle/vundle
 call vundle#begin()
