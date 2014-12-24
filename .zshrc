@@ -60,11 +60,11 @@ fetch-recursive() {
 }
 
 # Environment variables
-HISTFILE=~/.zsh_history
-HISTSIZE=1000000
-SAVEHIST=1000000
-MAILCHECK=0
-DISABLE_UPDATE_PROMPT=true
+export HISTFILE=~/.zsh_history
+export HISTSIZE=1000000
+export SAVEHIST=1000000
+export MAILCHECK=0
+export DISABLE_AUTO_TITLE=true
 
 # load optional local settings
 if [ -f ~/.zshlocal ]; then
