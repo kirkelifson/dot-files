@@ -1,16 +1,21 @@
-# zsh, oh-my-zsh
+# Set up zsh
 export ZSH=~/.oh-my-zsh
 source $ZSH/oh-my-zsh.sh
-autoload -U compinit && compinit -u
-setopt append_history
+
+# Completion
+autoload -U compinit
+compinit
+
+# Custom prompt
+setopt prompt_subst
+autoload -U promptinit
+promptinit
+
 setopt auto_cd
 setopt complete_aliases
 setopt complete_in_word
-# need for git stuff in prompt
-setopt prompt_subst
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-# Git-infused prompt
 ZSH_THEME_GIT_PROMPT_PREFIX="on %{$fg[magenta]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[green]%}!"
@@ -39,7 +44,7 @@ alias tat='tmux new -s `basename $PWD`'
 alias ta='tmux attach -t'
 # Python
 alias sba='source bin/activate'
-alias clean-py='find . -name \*.pyc -delete'
+alias py-clean='find . -name \*.pyc -delete'
 # Because I never remember to sudo
 alias apt-get='sudo apt-get'
 alias aptitude='sudo aptitude'
@@ -70,7 +75,7 @@ export SAVEHIST=1000000
 export MAILCHECK=0
 export DISABLE_AUTO_TITLE=true
 
-# load optional local settings
+# Load optional local settings
 if [ -f ~/.zshlocal ]; then
     source ~/.zshlocal
 fi
