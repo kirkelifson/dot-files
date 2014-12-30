@@ -1,5 +1,0 @@
-#!/bin/zsh
-echo -ne "Copying new versions of dot-files.\n"
-cp -r .gdbinit .gitconfig .tmux.conf .vim .vimrc .zshrc ~
-echo -ne "Installing new vundles.\n"
-vim +PluginInstall +qall
