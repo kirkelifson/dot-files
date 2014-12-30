@@ -54,9 +54,13 @@ apt-gpg() {
     gpg -a --export $1 | sudo apt-key add -
 }
 # Recursively updates (git-fetch) every directory from current
-# TODO: Only fetch directories with .git folder
-fetch-recursive() {
-    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`; do echo "Updating: $x" && cd $x && git fetch; cd ..; done
+git-fetch-recursive() {
+    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`;
+    do
+        if [[ -d $x/.git ]]; then
+            echo "Updating: $x" && cd $x && git fetch; cd ..;
+        fi
+    done
 }
 
 # Environment variables
