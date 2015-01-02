@@ -21,6 +21,7 @@ cp -r $_dir/.vim ~
 # zsh
 ln -sf $_dir/.zshrc ~
 ln -sf $_dir/.zshenv ~
+ln -sf $_dir/.zsh ~
 # tmux
 ln -sf $_dir/.tmux.conf ~
 # git
