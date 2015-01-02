@@ -8,8 +8,7 @@ autoload -U promptinit
 promptinit
 prompt grb
 
-export PATH=/usr/local/sbin:/usr/local/bin:${PATH}
-export PATH="$HOME/bin:$PATH"
+export PATH=$HOME/bin:/usr/local/sbin:/usr/local/bin:$PATH
 
 setopt auto_cd
 setopt complete_aliases
