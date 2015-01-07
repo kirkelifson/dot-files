@@ -20,7 +20,9 @@ alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
 alias grep='grep --color=always'
-alias ls='ls -lAGhp --color=always'
+alias ls='ls -lAGhp'
+# OSX is annoying sometimes
+if [[ $_system_type == "Linux" ]]; then alias ls ='ls --color=always'; fi
 alias make='make -j5'
 alias mv='mv -v'
 alias ps='ps --forest'
