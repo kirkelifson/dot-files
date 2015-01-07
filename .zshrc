@@ -22,7 +22,7 @@ alias gdb='gdb -q'
 alias grep='grep --color=always'
 alias ls='ls -lAGhp'
 # OSX is annoying sometimes
-if [[ `uname -s` == "Linux" ]]; then alias ls ='ls -lAGhp --color=always'; fi
+if [[ `uname -s` == "Linux" ]]; then alias ls='ls -lAGhp --color=always'; fi
 alias make='make -j5'
 alias mv='mv -v'
 alias ps='ps --forest'
