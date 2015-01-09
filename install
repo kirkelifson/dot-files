@@ -22,8 +22,8 @@ ln -sf $_dir/.tmux.conf ~
 ln -sf $_dir/.gitconfig ~
 # gdb
 ln -sf $_dir/.gdbinit ~
-# update script
-ln -sf $_dir/update ~
+# update script (only for debian)
+if [[ `uname -s` == "Linux" ]]; then ln -sf $_dir/update ~; fi
 
 # install vundle
 if [ ! -d ~/.vim/bundle/vundle ]; then
