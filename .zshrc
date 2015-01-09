@@ -60,6 +60,10 @@ export SAVEHIST=1000000
 export MAILCHECK=0
 export DISABLE_AUTO_TITLE=true
 
+local knownhosts
+knownhosts=( ${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*} ) 
+zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+
 # Load optional local settings
 if [ -f ~/.zshlocal ]; then
     source ~/.zshlocal
