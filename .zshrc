@@ -44,7 +44,7 @@ apt-gpg() {
 }
 # Recursively updates (git-fetch) every directory from current
 git-fetch-recursive() {
-    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^...//'`;
+    for x in `find ./ -maxdepth 1 -type d | sed -n '1!p' | sed 's/^.[/]*//'`;
     do
         if [[ -d $x/.git ]]; then
             echo "Updating: $x" && (cd $x && git fetch)
