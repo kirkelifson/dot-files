@@ -1,39 +1,35 @@
-# Completion
-autoload -U compinit
-compinit
-
 # Custom prompt
 setopt prompt_subst
 autoload -U promptinit
 promptinit
 prompt grb
 
-export PATH=$HOME/bin:/usr/local/sbin:/usr/local/bin:$PATH
+export PATH=/usr/local/sbin:/usr/local/bin:$PATH
 
-setopt auto_cd
-setopt complete_aliases
-setopt complete_in_word
+# Completion
+autoload -U compinit
+compinit
 
 # Aliases
 # General linux
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
-alias grep='grep --color=always'
 alias ls='ls -lAGhp'
-# OSX is annoying sometimes
-if [[ `uname -s` == "Linux" ]]; then alias ls='ls -lAGhp --color=always'; fi
-alias make='make -j5'
+# Linux specific
+if [[ `uname -s` == "Linux" ]]; then
+    alias ls='ls -lAGhp --color=always'
+    # Because I never remember to sudo
+    alias apt-get='sudo apt-get'
+    alias aptitude='sudo aptitude'
+    alias ifconfig='sudo ifconfig'
+fi
 alias mv='mv -v'
 alias ps='ps --forest'
 # Tmux
 alias ta='tmux attach -t'
 # Python
 alias sba='source bin/activate'
-# Because I never remember to sudo
-alias apt-get='sudo apt-get'
-alias aptitude='sudo aptitude'
-alias ifconfig='sudo ifconfig'
 
 # Various tools
 # Convert to binary
@@ -54,14 +50,17 @@ git-fetch-recursive() {
 }
 
 # Environment variables
-export HISTFILE=~/.zsh_history
+export HISTFILE="~/.zsh_history"
 export HISTSIZE=1000000
 export SAVEHIST=1000000
-export MAILCHECK=0
 export DISABLE_AUTO_TITLE=true
 
+# Colors
+export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
+export GREP_OPTIONS="--color"
+
 local knownhosts
-knownhosts=( ${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*} ) 
+knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
 zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
 
 # Load optional local settings
