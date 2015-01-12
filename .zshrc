@@ -31,6 +31,9 @@ alias ta='tmux attach -t'
 # Python
 alias sba='source bin/activate'
 
+# vim always
+export EDITOR=vim
+
 # Various tools
 # Convert to binary
 bin() { echo "obase=2;$1" | bc }
