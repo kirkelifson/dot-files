@@ -4,8 +4,6 @@ autoload -U promptinit
 promptinit
 prompt grb
 
-export PATH=/usr/local/sbin:/usr/local/bin:$PATH
-
 # Completion
 autoload -U compinit
 compinit
@@ -53,7 +51,7 @@ git-fetch-recursive() {
 }
 
 # Environment variables
-export HISTFILE="~/.zsh_history"
+export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
 export DISABLE_AUTO_TITLE=true
