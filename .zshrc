@@ -62,9 +62,12 @@ export DISABLE_AUTO_TITLE=true
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export GREP_OPTIONS="--color"
 
-local knownhosts
-knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
-zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+if [[ -f ~/.ssh/known_hosts ]];
+then
+    local knownhosts
+    knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
+    zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+fi
 
 # Load optional local settings
 if [ -f ~/.zshlocal ]; then
