@@ -25,14 +25,12 @@ set fileformat=unix
 set encoding=utf-8
 set termencoding=utf-8
 set term=xterm-256color
-" backups
-set undofile
-set undodir=$HOME/.vim/undo
-set backup
-set backupdir=$HOME/.vim/backup
-set undolevels=1000
-set undoreload=10000
 set history=10000
+" no backups
+set nobackup
+set nowritebackup
+set backupdir=~/.vim/backup
+set dir=~/.vim/backup
 
 augroup vimrcExec
     autocmd!
