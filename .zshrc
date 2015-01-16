@@ -62,7 +62,6 @@ export GREP_OPTIONS="--color"
 
 if [[ -f ~/.ssh/known_hosts ]];
 then
-    local knownhosts
     knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
     zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
 fi
