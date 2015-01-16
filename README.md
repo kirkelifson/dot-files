@@ -11,7 +11,7 @@ To install execute the following:
 ```
 git clone https://github.com/kirkelifson/dot-files.git
 cd dot-files
-./install
+./install.sh
 ```
 
 #Required:

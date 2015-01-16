@@ -10,4 +10,4 @@ cd
 ssh-keygen
 git clone https://github.com/kirkelifson/dot-files
 cd dot-files
-./install
+./install.sh
