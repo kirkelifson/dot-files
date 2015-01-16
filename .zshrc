@@ -64,7 +64,7 @@ if [[ -f ~/.ssh/known_hosts ]];
 then
     local knownhosts
     knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
-    zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+    zstyle ':completion:*:(ssh|mosh|scp|sftp):*' hosts $knownhosts
 fi
 
 # Load optional local settings
