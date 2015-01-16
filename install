@@ -6,21 +6,15 @@ set -e
 echo -e "Installing dot-files:"
 echo -e "\t[+] Creating soft-links to dot-files."
 
-# Backup directories
-if [[ -d ~/.zsh ]];
-then
-    mv ~/.zsh ~/.zsh-backup
-fi
-
-if [[ -d ~/.vim ]];
-then
-    mv ~/.vim ~/.vim-backup
-fi
-
 # Soft-link all files and directories (except .git of course)
 for dotfile in $(find $(pwd) -maxdepth 1 -name ".*" | sed '/.git/d');
 do
-    ln -sf $dotfile ~
+    if [[ -d $dotfile ]];
+    then
+        cp -r $dotfile ~
+    else
+        ln -sf $dotfile ~
+    fi
 done
 
 # Only copy update script on debian
