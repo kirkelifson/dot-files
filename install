@@ -1,34 +1,37 @@
 #!/bin/bash
 
 set -e
+cwd=$(pwd -P) # current working directory
 
+# Begin installation:
 echo -e "Installing dot-files:"
-
-# grab directory structure
-_dir=$(pwd -P)
-
-# Installation:
-
 echo -e "\t[+] Creating soft-links to dot-files."
 
-# vim
-ln -sf $_dir/.vimrc ~
-cp -r $_dir/.vim ~
-# zsh
-ln -sf $_dir/.zshrc ~
-ln -sf $_dir/.zshenv ~
-ln -sf $_dir/.zsh ~
-# tmux
-ln -sf $_dir/.tmux.conf ~
-# git
-ln -sf $_dir/.gitconfig ~
-# gdb
-ln -sf $_dir/.gdbinit ~
-# update script (only for debian)
-if [[ `uname -s` == "Linux" ]]; then ln -sf $_dir/update ~; fi
+# Backup directories
+if [[ -d ~/.zsh ]];
+then
+    mv ~/.zsh ~/.zsh-backup
+fi
 
-# install vundle
-if [ ! -d ~/.vim/bundle/vundle ]; then
+if [[ -d ~/.vim ]];
+then
+    mv ~/.vim ~/.vim-backup
+fi
+
+# Soft-link all files and directories (except .git of course)
+for dotfile in $(find $(pwd) -maxdepth 1 -name ".*" | sed '/.git/d');
+do
+    ln -sf $dotfile ~
+done
+
+# Only copy update script on debian
+if [[ `uname -s` == "Linux" ]];
+then
+    ln -sf update ~
+fi
+
+# Install vundle
+if [[ ! -d ~/.vim/bundle/vundle ]]; then
     echo -e "\t[+] Installing vundle."
     git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle &> /dev/null
 fi
@@ -36,4 +39,4 @@ fi
 echo -e "\t[+] Installing new vundles."
 vim +PluginInstall +qall
 
-echo -e "Restart terminal session for changes to take effect."
+echo -e "[!] Restart terminal session for changes to take effect."
