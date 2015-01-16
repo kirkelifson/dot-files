@@ -26,7 +26,8 @@ set encoding=utf-8
 set termencoding=utf-8
 set term=xterm-256color
 set history=10000
-" no backups
+set undofile
+set undodir=~/.vim/undo
 set nobackup
 set nowritebackup
 set backupdir=~/.vim/backup
