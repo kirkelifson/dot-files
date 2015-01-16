@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-cwd=$(pwd -P) # current working directory
 
 # Begin installation:
 echo -e "Installing dot-files:"
