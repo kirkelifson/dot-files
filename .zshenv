@@ -1,3 +1,3 @@
-fpath=($fpath $HOME/.zsh/func)
+fpath=($fpath ~/.zsh/func)
 typeset -U fpath
 
