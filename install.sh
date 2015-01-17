@@ -20,7 +20,7 @@ done
 # Only copy update script on debian
 if [[ `uname -s` == "Linux" ]];
 then
-    ln -sf update.sh ~
+    ln -sf `pwd`/update.sh ~
 fi
 
 # Install vundle
