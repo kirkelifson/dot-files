@@ -74,3 +74,6 @@ nnoremap <c-h> <c-w>h
 nnoremap <c-l> <c-w>l
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
+" Toggle hard tab highlighting
+nnoremap <leader>h :hi UglySpaces ctermbg=red<cr>
+nnoremap <leader>H :hi clear UglySpaces<cr>
