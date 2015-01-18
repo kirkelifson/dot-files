@@ -8,6 +8,8 @@ prompt grb
 autoload -U compinit
 compinit
 
+setopt auto_cd
+
 # Aliases
 # General linux
 alias cd='cd -P'
