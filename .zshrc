@@ -1,3 +1,4 @@
+# zshell options
 # Custom prompt
 setopt prompt_subst
 autoload -U promptinit
@@ -9,6 +10,14 @@ autoload -U compinit
 compinit
 
 setopt auto_cd
+
+zstyle ':completion:*' menu select=20
+
+if [[ -f ~/.ssh/known_hosts ]];
+then
+    knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
+    zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+fi
 
 # Aliases
 # General linux
@@ -60,12 +69,6 @@ export DISABLE_AUTO_TITLE=true
 # Colors
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export GREP_OPTIONS="--color"
-
-if [[ -f ~/.ssh/known_hosts ]];
-then
-    knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
-    zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
-fi
 
 # Load optional local settings
 if [ -f ~/.zshlocal ]; then
