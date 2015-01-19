@@ -59,6 +59,10 @@ git-fetch-recursive() {
         echo "Updating: $name" && (cd $x && git fa -p)
     done
 }
+# List contributors to git repo, # of commits (sorted)
+git-contrib() {
+    git log --format=%an | sort | uniq -c | sort -rk1
+}
 
 # Environment variables
 export HISTFILE=~/.zsh_history
