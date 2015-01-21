@@ -33,19 +33,6 @@ set nowritebackup
 set backupdir=~/.vim/backup
 set dir=~/.vim/backup
 
-augroup vimrcExec
-    autocmd!
-    " Restore cursor to previous position on file open
-    autocmd BufReadPost *
-        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-        \   exe "normal g`\"" |
-        \ endif
-    " Filetype specifics
-    autocmd FileType ruby,javascript,html,sass,yaml set sw=2 sts=2
-    autocmd FileType python set sw=4 sts=4
-    autocmd FileType mkd set syn=off formatoptions=tcroqn2 comments=n:&gt;
-augroup END
-
 " Style
 
 syntax on
@@ -58,6 +45,19 @@ set relativenumber
 " make hard tabs distinct
 highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
+
+augroup vimrcExec
+    autocmd!
+    " Restore cursor to previous position on file open
+    autocmd BufReadPost *
+        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+        \   exe "normal g`\"" |
+        \ endif
+    " Filetype specifics
+    autocmd FileType ruby,javascript,html,sass,yaml set shiftwidth=2 softtabstop=2
+    autocmd FileType python set shiftwidth=4 softtabstop=4
+    autocmd FileType mkd,md set syntax=off formatoptions=tcroqn2 comments=n:&gt;
+augroup END
 
 " Key mappings
 
