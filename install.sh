@@ -7,8 +7,9 @@ echo -e "Installing dot-files:"
 echo -e "\t[+] Creating soft-links to dot-files."
 
 # Soft-link all files and directories (except .git of course)
-for dotfile in $(find $(pwd) -maxdepth 1 -name ".*" | sed '/.git/d');
+for dotfile in $(find $(pwd) -maxdepth 1 -name ".*" | sed '/.git$/d');
 do
+    echo -e "\t\t[>] Copying $dotfile"
     if [[ -d $dotfile ]];
     then
         cp -r $dotfile ~
