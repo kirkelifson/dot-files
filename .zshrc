@@ -11,7 +11,6 @@ prompt grb
 autoload -U compinit
 compinit
 zstyle ':completion:*' menu select=20
-
 # Fix ssh tab completion (not sure what the problem is)
 if [[ -f ~/.ssh/known_hosts ]];
 then
@@ -20,11 +19,14 @@ then
 fi
 
 # Aliases
-# General linux
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
 alias ls='ls -lAGhp'
+alias mv='mv -v'
+alias ps='ps --forest'
+alias ta='tmux attach -t'
+alias sba='source bin/activate'
 # Linux specific
 if [[ `uname -s` == "Linux" ]]; then
     alias ls='ls -lAGhp --color=always'
@@ -33,12 +35,6 @@ if [[ `uname -s` == "Linux" ]]; then
     alias aptitude='sudo aptitude'
     alias ifconfig='sudo ifconfig'
 fi
-alias mv='mv -v'
-alias ps='ps --forest'
-# Tmux
-alias ta='tmux attach -t'
-# Python
-alias sba='source bin/activate'
 
 # Various tools
 # Convert to binary
@@ -67,7 +63,6 @@ export HISTSIZE=1000000
 export SAVEHIST=1000000
 export DISABLE_AUTO_TITLE=true
 export EDITOR=vim
-
 # Colors
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export GREP_OPTIONS="--color"
