@@ -2,25 +2,24 @@
     name = Kirk Elifson
     email = kirk@parodybit.net
 [alias]
-    st = status
-    b = branch
-    co = checkout
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-    ci = commit --verbose
-    dc = diff --cached
-    amend = commit --amend
     aa = add --all
-    ff = merge --ff-only
-    noff = merge --no-ff
-    pullff = pull -ff-only
-    fa = fetch --all
-    pom = push origin master
-    ds = diff --stat=160,120
+    amend = commit --amend
+    b = branch
+    ci = commit --verbose
+    co = checkout
+    dc = diff --cached
     dh1 = diff HEAD~1
+    ds = diff --stat=160,120
+    fa = fetch --all
+    ff = merge --ff-only
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    noff = merge --no-ff
+    pom = push origin master
+    pullff = pull -ff-only
+    st = status
 [color]
     ui = auto
 [merge]
     tool = vimdiff
 [push]
     default = current
-
