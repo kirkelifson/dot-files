@@ -1,6 +1,8 @@
 # zshell options
-# Custom prompt
 setopt prompt_subst
+setopt auto_cd
+
+# Custom prompt
 autoload -U promptinit
 promptinit
 prompt grb
@@ -8,11 +10,9 @@ prompt grb
 # Completion
 autoload -U compinit
 compinit
-
-setopt auto_cd
-
 zstyle ':completion:*' menu select=20
 
+# Fix ssh tab completion (not sure what the problem is)
 if [[ -f ~/.ssh/known_hosts ]];
 then
     knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
@@ -40,9 +40,6 @@ alias ta='tmux attach -t'
 # Python
 alias sba='source bin/activate'
 
-# vim always
-export EDITOR=vim
-
 # Various tools
 # Convert to binary
 bin() { echo "obase=2;$1" | bc }
@@ -69,6 +66,7 @@ export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
 export DISABLE_AUTO_TITLE=true
+export EDITOR=vim
 
 # Colors
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
