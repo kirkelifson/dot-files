@@ -1,6 +1,10 @@
 # zshell options
-setopt prompt_subst
 setopt auto_cd
+setopt completeinword
+setopt correct
+setopt extendedhistory
+setopt prompt_subst
+setopt sharehistory
 
 # Custom prompt
 autoload -U promptinit
@@ -10,7 +14,8 @@ prompt grb
 # Completion
 autoload -U compinit
 compinit
-zstyle ':completion:*' menu select=20
+zstyle ':completion:*' completer _complete _approximate
+zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 # Fix ssh tab completion (not sure what the problem is)
 if [[ -f ~/.ssh/known_hosts ]];
 then
