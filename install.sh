@@ -18,6 +18,9 @@ do
     fi
 done
 
+# Copy bin as well
+ln -sf $(pwd)/bin ~
+
 # Only copy update script on debian
 if [[ `uname -s` == "Linux" ]];
 then
