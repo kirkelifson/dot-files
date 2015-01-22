@@ -40,6 +40,7 @@ export DISABLE_AUTO_TITLE=true
 export EDITOR=vim
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
+export PATH=$HOME/bin:$PATH
 export SAVEHIST=1000000
 # Colors
 export GREP_OPTIONS="--color"
