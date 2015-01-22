@@ -19,7 +19,6 @@ then
 fi
 
 # Aliases
-alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
 alias ls='ls -lAGhp'
