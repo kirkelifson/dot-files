@@ -7,12 +7,12 @@ setopt prompt_subst
 setopt sharehistory
 
 # Custom prompt
-autoload -U promptinit
+autoload -Uz promptinit
 promptinit
 prompt grb
 
 # Completion
-autoload -U compinit
+autoload -Uz compinit
 compinit
 zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
