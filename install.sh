@@ -21,7 +21,7 @@ do
 done
 
 # Copy bin as well
-echo -e "\t\t[>] Linking bin"
+echo -e "\t\t[>] Linking $dir/bin"
 ln -sf $dir/bin ~
 
 # Only copy update script on debian
