@@ -1,9 +1,7 @@
 #!/bin/bash
 # Recursively updates (git-fetch) every directory from current
-git-fetch-recursive() {
-    for x in `find ./ -name .git -type d`;
-    do
-        name=`echo $x | sed 's/[./]*//' | sed 's/\/.git//'`
-        echo "Updating: $name" && (cd $x && git fa -p)
-    done
-}
+for x in `find ./ -name .git -type d`;
+do
+    name=`echo $x | sed 's/[./]*//' | sed 's/\/.git//'`
+    echo "Updating: $name" && (cd $x && git fa -p)
+done

@@ -1,2 +1,3 @@
 #!/bin/bash
-bin() { echo "obase=2;$1" | bc }
+# Converts into binary; usage bin 16
+echo "obase=2;$1" | bc
