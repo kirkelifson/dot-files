@@ -36,14 +36,14 @@ if [[ `uname -s` == "Linux" ]]; then
 fi
 
 # Environment variables
+export DISABLE_AUTO_TITLE=true
+export EDITOR=vim
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
-export DISABLE_AUTO_TITLE=true
-export EDITOR=vim
 # Colors
-export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export GREP_OPTIONS="--color"
+export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 
 # Load optional local settings
 if [ -f ~/.zshlocal ]; then
