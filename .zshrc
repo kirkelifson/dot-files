@@ -25,15 +25,14 @@ alias gdb='gdb -q'
 alias ls='ls -lAGhp'
 alias mv='mv -v'
 alias ps='ps --forest'
-alias ta='tmux attach -t'
 alias sba='source bin/activate'
+alias ta='tmux attach -t'
 # Linux specific
 if [[ `uname -s` == "Linux" ]]; then
-    alias ls='ls -lAGhp --color=always'
-    # Because I never remember to sudo
-    alias apt-get='sudo apt-get'
     alias aptitude='sudo aptitude'
+    alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
+    alias ls='ls -lAGhp --color=always'
 fi
 
 # Various tools
