@@ -19,6 +19,7 @@ set backspace=indent,eol,start
 set wildmenu
 set wildmode=full
 set ignorecase smartcase
+set hlsearch
 set showmatch
 set nocompatible
 set fileformat=unix
