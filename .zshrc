@@ -27,7 +27,7 @@ fi
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
-alias less='less -r'
+alias less='less -R'
 alias ls='ls -lAGhp'
 alias mv='mv -v'
 alias ps='ps --forest'
