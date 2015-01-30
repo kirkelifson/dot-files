@@ -3,6 +3,7 @@ setopt auto_cd
 setopt completeinword
 setopt correct
 setopt extendedhistory
+setopt menu_complete
 setopt prompt_subst
 setopt sharehistory
 
@@ -14,8 +15,10 @@ prompt grb
 # Completion
 autoload -Uz compinit
 compinit
+zstyle ':completion:*' menu select=10
 zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+bindkey '^[[Z' reverse-menu-complete
 # Fix ssh tab completion (not sure what the problem is)
 if [[ -f ~/.ssh/known_hosts ]];
 then
