@@ -66,6 +66,8 @@ nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 " ,<space> = clear highlights from search
 noremap <leader><space> :nohlsearch<cr>
 nnoremap ; :
+" escape faster
+imap jj <esc>
 " Move around splits with <c-hjkl>
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
