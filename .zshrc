@@ -23,7 +23,7 @@ bindkey '^[[Z' reverse-menu-complete
 if [[ -f ~/.ssh/known_hosts ]];
 then
     knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
-    zstyle ':completion:*:(ssh|scp|sftp):*' hosts $knownhosts
+    zstyle ':completion:*:(ssh|scp|sftp|rsync):*' hosts $knownhosts
 fi
 
 # Aliases
