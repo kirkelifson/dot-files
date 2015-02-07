@@ -26,6 +26,7 @@ set fileformat=unix
 set encoding=utf-8
 set termencoding=utf-8
 set term=xterm-256color
+set title
 set history=10000
 set nobackup
 set noswapfile
@@ -39,6 +40,7 @@ color grb256
 set background=dark
 set t_Co=256
 set showtabline=2
+set smarttab
 set number
 set relativenumber
 " make hard tabs distinct
