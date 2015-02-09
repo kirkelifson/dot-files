@@ -41,7 +41,7 @@ if [[ `uname -s` == "Linux" ]]; then
     alias aptitude='sudo aptitude'
     alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
-    alias ls='ls -lAGhp --color=always'
+    alias ls='ls -lAhp --color=always'
 fi
 
 # Environment variables
