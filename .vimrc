@@ -26,7 +26,6 @@ set fileformat=unix
 set encoding=utf-8
 set termencoding=utf-8
 set term=xterm-256color
-set title
 set history=10000
 set nobackup
 set noswapfile
