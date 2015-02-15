@@ -31,7 +31,7 @@ alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
 alias less='less -R'
-alias ls='ls -lAGhp'
+alias ls='ls -lGhp'
 alias mv='mv -v'
 alias ps='ps --forest'
 alias sba='source bin/activate'
@@ -41,7 +41,7 @@ if [[ `uname -s` == "Linux" ]]; then
     alias aptitude='sudo aptitude'
     alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
-    alias ls='ls -lAhp --color=always'
+    alias ls='ls -lhp --color=always'
 fi
 
 # Environment variables
