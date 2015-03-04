@@ -3,5 +3,5 @@
 for x in `find ./ -name .git -type d`;
 do
     name=`echo $x | sed 's/[./]*//' | sed 's/\/.git//'`
-    echo "Updating: $name" && (cd $x/.. && git pull -p)
+    echo "Updating: $name" && (cd $x/.. && git pull)
 done
