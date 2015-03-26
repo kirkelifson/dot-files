@@ -1,16 +1,21 @@
+" Clear all previous settings
+autocmd!
+
 " Plugins
 
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
-Plugin 'gmarik/Vundle.vim'
+Plugin 'gmarik/vundle'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-surround'
 Plugin 'ervandew/supertab'
+Plugin 'kien/ctrlp.vim'
 call vundle#end()
 filetype plugin indent on
 
 " General
 
+set exrc
 set expandtab
 set shiftwidth=4
 set softtabstop=4
@@ -47,7 +52,6 @@ highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
 
 augroup vimrcExec
-    autocmd!
     " Restore cursor to previous position on file open
     autocmd BufReadPost *
         \ if line("'\"") > 0 && line ("'\"") <= line("$") |
