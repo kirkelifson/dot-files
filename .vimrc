@@ -1,8 +1,6 @@
-" Clear all previous settings
-autocmd!
-
 " Plugins
 
+autocmd!
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'gmarik/vundle'
@@ -15,7 +13,6 @@ filetype plugin indent on
 
 " General
 
-set exrc
 set expandtab
 set shiftwidth=4
 set softtabstop=4
@@ -43,13 +40,13 @@ syntax on
 color grb256
 set background=dark
 set t_Co=256
-set showtabline=2
 set smarttab
 set number
 set relativenumber
 " make hard tabs distinct
 highlight UglySpaces ctermbg=red
 match UglySpaces /\t/
+match UglySpaces /\s\+$/
 
 augroup vimrcExec
     " Restore cursor to previous position on file open
@@ -59,8 +56,7 @@ augroup vimrcExec
         \ endif
     " Filetype specifics
     autocmd FileType ruby,javascript,html,sass,yaml set shiftwidth=2 softtabstop=2
-    autocmd FileType python set shiftwidth=4 softtabstop=4
-    autocmd FileType mkd,md set syntax=off formatoptions=tcroqn2 comments=n:&gt;
+    autocmd BufRead *.mkd  set ai formatoptions=tcroqn2 comments=n:>
 augroup END
 
 " Key mappings
