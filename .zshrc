@@ -59,3 +59,5 @@ export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 if [ -f ~/.zshlocal ]; then
     source ~/.zshlocal
 fi
+
+bindkey '^R' history-incremental-search-backward
