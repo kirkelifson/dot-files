@@ -79,3 +79,6 @@ nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
+
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'

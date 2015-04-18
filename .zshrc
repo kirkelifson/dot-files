@@ -19,6 +19,7 @@ zstyle ':completion:*' menu select=10
 zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 bindkey '^[[Z' reverse-menu-complete
+bindkey '^R' history-incremental-search-backward
 # Fix ssh tab completion (not sure what the problem is)
 if [[ -f ~/.ssh/known_hosts ]];
 then
@@ -60,4 +61,3 @@ if [ -f ~/.zshlocal ]; then
     source ~/.zshlocal
 fi
 
-bindkey '^R' history-incremental-search-backward
