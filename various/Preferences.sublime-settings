@@ -1,29 +1,19 @@
 {
-    "color_scheme": "Packages/Color Scheme - Default/Twilight.tmTheme",
-    "theme":        "Default.sublime-theme",
-    
     "draw_minimap_border":          false,
     "always_show_minimap_viewport": false,
 
-    "font_size":    10,
-    "font_face":    "consolas",
-    "font_options": ["directwrite"],
-
     "word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?",
-    
+
     "fold_buttons": true,
     "fade_fold_buttons": true,
 
-    "spell_check": false,
-    "dictionary":  "Packages/Language - English/en_US.dic",
-
-    "margin":       -3,
+    "margin":       0,
     "rulers":       [80],
     "word_wrap":    "auto",
     "wrap_width":   0,
     "line_numbers": true,
     "gutter":       true,
-    
+
     "tab_size": 4,
     "translate_tabs_to_spaces":   true,
     "detect_indentation":         true,
@@ -36,8 +26,7 @@
     "shift_tab_unindent":         true,
     "trim_automatic_white_space": true,
     "draw_white_space":           "selection",
-    
-    
+
     "draw_centered": false,
 
     "auto_match_enabled": true,
@@ -81,7 +70,7 @@
     "auto_complete_commit_on_tab": false,
     "auto_complete_with_fields": false,
     "auto_close_tags": true,
-    
+
     "copy_with_empty_selection": true,
     "find_selected_text": true,
     "auto_find_in_selection": false,
@@ -90,7 +79,7 @@
     "scroll_speed": 1,
     "gpu_window_buffer": "auto",
     "overlay_scroll_bars": "system",
-    
+
     "tree_animation_enabled": true,
     "animation_enabled": true,
     "highlight_modified_tabs": false,
@@ -101,11 +90,11 @@
     "hot_exit": true,
     "remember_open_files": true,
     "always_prompt_for_file_reload": false,
-    "open_files_in_new_window": true,
+    "open_files_in_new_window": false,
     "create_window_at_startup": true,
-    "close_windows_when_empty": false,
+    "close_windows_when_empty": true,
 
-    "show_full_path": true,
+    "show_full_path": false,
     "preview_on_click": true,
     "folder_exclude_patterns": [".svn", ".git", ".hg", "CVS"],
     "file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", "*.class", "*.psd", "*.db", "*.sublime-workspace"],
