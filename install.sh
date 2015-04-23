@@ -30,7 +30,7 @@ then
     ln -sf $dir/update.sh ~
 fi
 
-if [[ !-d ~/peda ]]; then
+if [[ ! -d ~/peda ]]; then
     echo -e "\t[+] Installing peda (gdb)."
     git clone https://github.com/crowell/p3da ~/peda &> /dev/null
 fi
