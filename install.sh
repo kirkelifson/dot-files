@@ -30,6 +30,11 @@ then
     ln -sf $dir/update.sh ~
 fi
 
+if [[ !-d ~/peda ]]; then
+    echo -e "\t[+] Installing peda (gdb)."
+    git clone https://github.com/crowell/p3da ~/peda &> /dev/null
+fi
+
 # Install vundle
 if [[ ! -d ~/.vim/bundle/vundle ]]; then
     echo -e "\t[+] Installing vundle."
