@@ -1,7 +1,3 @@
 #!/bin/bash
 # Recursively updates (git-fetch) every directory from current
-for x in `find ./ -name .git -type d`;
-do
-    name=`echo $x | sed 's/[./]*//' | sed 's/\/.git//'`
-    echo "Updating: $name" && (cd $x && git fa -p)
-done
+find ./ -name ".git" -print0 | while read -d $'\0' file; do name="$(pwd)/"$(echo $file | sed -e 's/\.git//' | sed -e 's/\.\/\///'); (cd "$name"; git fetch); done
