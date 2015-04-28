@@ -8,23 +8,21 @@ setopt prompt_subst
 setopt sharehistory
 
 # Custom prompt
-autoload -Uz promptinit
-promptinit
+autoload -Uz promptinit && promptinit
 prompt grb
 
 # Completion
-autoload -Uz compinit
-compinit
+autoload -Uz compinit && compinit
 zstyle ':completion:*' menu select=10
 zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
-# Fix ssh tab completion (not sure what the problem is)
-if [[ -f ~/.ssh/known_hosts ]];
-then
-    knownhosts=(${${${${(f)"$( < ~/.ssh/known_hosts )"}:#[0-9]*}%%\ *}%%,*})
-    zstyle ':completion:*:(ssh|scp|sftp|rsync):*' hosts $knownhosts
+# Fix ssh tab completion
+compdef mosh=ssh
+if [[ -f ~/.ssh/config ]]; then
+    knownhosts=$(cat ~/.ssh/config | grep "Host \w" | sed 's/Host //' | tr '\n' ' ')
+    zstyle ':completion:*:(mosh|ssh|scp|sftp|rsync):*' hosts $knownhosts
 fi
 
 # Aliases
@@ -45,14 +43,12 @@ if [[ `uname -s` == "Linux" ]]; then
     alias ls='ls -lhp --color=always'
 fi
 
-# Environment variables
 export DISABLE_AUTO_TITLE=true
 export EDITOR=vim
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
-export PATH=$HOME/bin:$PATH
 export SAVEHIST=1000000
-# Colors
+export PATH=$HOME/bin:$PATH
 export GREP_OPTIONS="--color"
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 
