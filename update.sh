@@ -6,7 +6,7 @@ for arg in args; do
 done
 
 # Purge packages marked for uninstall
-dpkg --get-selections | grep deinstall | cut -f1 | xargs sudo apt-get -y purge
+sudo dpkg --get-selections | grep deinstall | cut -f1 | xargs sudo apt-get -y purge
 
 # Purge orphaned packages
-deborphan | xargs sudo apt-get -y purge
+sudo deborphan | xargs sudo apt-get -y purge
