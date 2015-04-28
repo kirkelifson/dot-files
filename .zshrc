@@ -35,6 +35,7 @@ alias mv='mv -v'
 alias ps='ps --forest'
 alias sba='source bin/activate'
 alias ta='tmux attach -t'
+alias clbin="curl -F 'clbin=<-' https://clbin.com"
 # Linux specific
 if [[ `uname -s` == "Linux" ]]; then
     alias aptitude='sudo aptitude'
