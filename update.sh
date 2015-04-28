@@ -1,9 +1,9 @@
-# Do everything apt-get can possibly accomplish
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get dist-upgrade
-sudo apt-get autoremove
-sudo apt-get autoclean
+#!/bin/bash
+
+args=(update upgrade dist-upgrade autoremove autoclean)
+for arg in args; do
+    sudo apt-get $arg
+done
 
 # Purge packages marked for uninstall
 dpkg --get-selections | grep deinstall | cut -f1 | xargs sudo apt-get -y purge
