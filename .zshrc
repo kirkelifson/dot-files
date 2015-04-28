@@ -37,7 +37,7 @@ alias sba='source bin/activate'
 alias ta='tmux attach -t'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 # Linux specific
-if [[ `uname -s` == "Linux" ]]; then
+if [[ $(uname -s) == "Linux" ]]; then
     alias aptitude='sudo aptitude'
     alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
