@@ -1,7 +1,7 @@
 #!/bin/bash
 
 args=(update upgrade dist-upgrade autoremove autoclean)
-for arg in args; do
+for arg in ${args[@]}; do
     sudo apt-get $arg
 done
 
