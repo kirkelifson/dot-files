@@ -1,0 +1,8 @@
+#!/bin/bash
+# Recursively updates (git-fetch) every directory from current
+find ./ -name ".git" -print0 | while read -d $'\0' file;
+do
+    (IFS="/"; tokens=($file); echo "Updating: ${tokens[*]: -2:1}")
+    name="$(pwd)/"$(echo $file | sed -e 's/\.git//' | sed -e 's/\.\/\///')
+    (cd "$name"; git fa -p)
+done
