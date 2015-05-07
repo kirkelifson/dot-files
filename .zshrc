@@ -54,7 +54,7 @@ export GREP_OPTIONS="--color"
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 
 # Load optional local settings
-if [ -f ~/.zshlocal ]; then
+if [[ -f ~/.zshlocal ]]; then
     source ~/.zshlocal
 fi
 
