@@ -81,3 +81,10 @@ nnoremap <leader>H :highlight clear UglySpaces<cr>
 
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
+
+let &titlestring = expand('%:t')
+set title
+if &term == "screen"
+    autocmd BufEnter * call system("tmux rename-window " . expand('%:t'))
+    autocmd VimLeave * call system("tmux rename-window zsh-")
+endif
