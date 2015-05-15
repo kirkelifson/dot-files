@@ -52,9 +52,3 @@ export SAVEHIST=1000000
 export PATH=$HOME/bin:$PATH
 export GREP_OPTIONS="--color"
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
-
-# Load optional local settings
-if [[ -f ~/.zshlocal ]]; then
-    source ~/.zshlocal
-fi
-
