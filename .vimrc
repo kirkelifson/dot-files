@@ -5,6 +5,8 @@ set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'gmarik/vundle'
 Plugin 'airblade/vim-gitgutter'
+Plugin 'tpope/vim-rails'
+Plugin 'vim-ruby/vim-ruby'
 Plugin 'tpope/vim-surround'
 Plugin 'ervandew/supertab'
 Plugin 'kien/ctrlp.vim'
@@ -85,6 +87,7 @@ let g:ctrlp_cmd = 'CtrlP'
 let &titlestring = expand('%:t')
 set title
 if &term == "screen"
+    " TODO: learn how to retrieve current tmux window title to restore state
     autocmd BufEnter * call system("tmux rename-window " . expand('%:t'))
     autocmd VimLeave * call system("tmux rename-window zsh")
 endif
