@@ -85,8 +85,8 @@ let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
 
 let &titlestring = expand('%:t')
-set title
 if &term == "screen"
+    set title
     " TODO: learn how to retrieve current tmux window title to restore state
     autocmd BufEnter * call system("tmux rename-window " . expand('%:t'))
     autocmd VimLeave * call system("tmux rename-window zsh")
