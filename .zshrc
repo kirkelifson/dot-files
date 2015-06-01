@@ -20,10 +20,7 @@ bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 # Fix ssh tab completion
 compdef mosh=ssh
-if [[ -f ~/.ssh/config ]]; then
-    knownhosts=$(cat ~/.ssh/config | grep "Host \w" | sed 's/Host //' | tr '\n' ' ')
-    zstyle ':completion:*:(mosh|ssh|scp|sftp|rsync):*' hosts $knownhosts
-fi
+zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 
 # Aliases
 alias cd='cd -P'
