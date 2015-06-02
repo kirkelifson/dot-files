@@ -33,6 +33,7 @@ alias mv='mv -v'
 alias ps='ps --forest'
 alias sba='source bin/activate'
 alias ta='tmux attach -t'
+alias tn='tmux new -s'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
 # Linux specific
