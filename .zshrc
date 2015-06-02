@@ -18,6 +18,7 @@ zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
+bindkey '^F' history-incremental-search-forward
 # Fix ssh tab completion
 compdef mosh=ssh
 zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
