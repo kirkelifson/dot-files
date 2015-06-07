@@ -5,6 +5,14 @@ alias rspec='rspec --color spec'
 # less colors
 export CLICOLOR_FORCE=1
 
+# rvm
+if [[ -d ~/.rvm ]];
+then
+    export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+    [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+fi
+
 if [[ $_system_name == "OSX" ]];
 then
     unalias ps
