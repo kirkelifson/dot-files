@@ -1,5 +1,6 @@
 alias password='ruby ~/tools/password.rb -an'
 alias r='bin/rails'
+alias rake='bin/rake'
 alias rspec='rspec --color spec'
 
 # less colors
