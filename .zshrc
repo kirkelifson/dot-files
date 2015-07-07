@@ -27,6 +27,7 @@ zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
+alias grep='grep --color=auto'
 alias less='less -R'
 alias ls='ls -lGhpF'
 alias mv='mv -v'
@@ -50,5 +51,4 @@ export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
 export PATH=$HOME/bin:$PATH
-export GREP_OPTIONS="--color"
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
