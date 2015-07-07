@@ -33,6 +33,7 @@ alias ls='ls -lGhpF'
 alias mv='mv -v'
 alias ps='ps --forest'
 alias sba='source bin/activate'
+alias tmux='tmux -2 -u'
 alias ta='tmux attach -t'
 alias tn='tmux new -s'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
