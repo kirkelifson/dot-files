@@ -21,4 +21,5 @@ then
 
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync_music='rsync --iconv=utf8 -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Media'
+    alias md5sum='md5 -q'
 fi
