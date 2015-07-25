@@ -10,7 +10,6 @@ export CLICOLOR_FORCE=1
 if [[ -d ~/.rvm ]];
 then
     export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-
     [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 fi
 
@@ -20,6 +19,6 @@ then
     alias brew_update='brew update && brew upgrade --all && brew cleanup && brew services cleanup && brew doctor && brew linkapps && brew prune'
 
     # recursive, preserve times, verbose, update (only if change time greater)
-    alias sync_music='rsync --iconv=utf8 -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Media'
+    alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Media/Music/'
     alias md5sum='md5 -q'
 fi
