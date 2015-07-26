@@ -8,11 +8,11 @@ setopt prompt_subst
 setopt sharehistory
 
 # Custom prompt
-autoload -Uz promptinit && promptinit
+autoload -Uz promptinit && promptinit -u
 prompt grb
 
 # Completion
-autoload -Uz compinit && compinit
+autoload -Uz compinit && compinit -u
 zstyle ':completion:*' menu select=10
 zstyle ':completion:*' completer _complete _approximate
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]} r:|[._-]=* r:|=*' 'l:|=* r:|=*'
