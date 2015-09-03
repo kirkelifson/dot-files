@@ -53,3 +53,7 @@ export HISTSIZE=1000000
 export SAVEHIST=1000000
 export PATH=$HOME/bin:$PATH
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
+
+if [[ -f ~/.zshlocal ]]; then
+    source ~/.zshlocal
+fi
