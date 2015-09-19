@@ -29,7 +29,7 @@ fi
 
 if [[ ! -d ~/peda ]]; then
     echo -e "\t[+] Installing peda (gdb)."
-    git clone https://github.com/crowell/p3da ~/peda &> /dev/null
+    git clone https://github.com/longld/peda.git ~/peda &> /dev/null
 fi
 
 # Install vundle
