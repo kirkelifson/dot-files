@@ -1,5 +1,5 @@
 # zshell options
-setopt auto_cd
+setopt autocd
 setopt completeinword
 setopt correct
 setopt extendedhistory
@@ -21,7 +21,7 @@ bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
 # Fix ssh tab completion
 compdef mosh=ssh
-zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
+zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat ~/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 
 # Aliases
 alias cd='cd -P'
@@ -46,7 +46,6 @@ if [[ $(uname -s) == "Linux" ]]; then
     alias ls='ls -lhp --color=always'
 fi
 
-export DISABLE_AUTO_TITLE=true
 export EDITOR=vim
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
