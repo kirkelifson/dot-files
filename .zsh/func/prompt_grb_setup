@@ -5,10 +5,8 @@ autoload -U zgitinit
 zgitinit
 
 prompt_grb_help () {
-  cat <<'EOF'
-
+  cat << 'EOF'
   prompt grb
-
 EOF
 }
 
@@ -24,6 +22,7 @@ coloratom() {
     fi
     echo $(( $off + $colorcode[${(L)atom}] ))
 }
+
 colorword() {
     local fg=$1 bg=$2 att=$3
     local -a s

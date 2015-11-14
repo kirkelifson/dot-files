@@ -1,11 +1,11 @@
 # zshell options
 setopt autocd
-setopt completeinword
+setopt complete_in_word
 setopt correct
-setopt extendedhistory
 setopt menu_complete
 setopt prompt_subst
-setopt sharehistory
+setopt append_history
+setopt no_beep
 
 # Custom prompt
 autoload -Uz promptinit && promptinit -u
@@ -31,20 +31,13 @@ alias grep='grep --color=auto'
 alias less='less -R'
 alias ls='ls -lGhpF'
 alias mv='mv -v'
-alias ps='ps --forest'
+alias ps='ps aux --forest'
 alias sba='source bin/activate'
 alias tmux='tmux -2 -u'
 alias ta='tmux attach -t'
 alias tn='tmux new -s'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
-# Linux specific
-if [[ $(uname -s) == "Linux" ]]; then
-    alias aptitude='sudo aptitude'
-    alias apt-get='sudo apt-get'
-    alias ifconfig='sudo ifconfig'
-    alias ls='ls -lhp --color=always'
-fi
 
 export EDITOR=vim
 export HISTFILE=~/.zsh_history
