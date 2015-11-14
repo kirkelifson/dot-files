@@ -16,7 +16,7 @@ fi
 if [[ $_system_name == "OSX" ]];
 then
     unalias ps
-    alias brew_update='brew update && brew upgrade --all && brew cleanup && brew services cleanup && brew doctor && brew linkapps && brew prune'
+    alias brew_update='brew update && brew upgrade --all && brew cleanup && brew doctor && brew linkapps && brew prune'
 
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Media/Music/'
