@@ -32,6 +32,9 @@ alias less='less -R'
 alias ls='ls -lGhpF'
 alias mv='mv -v'
 alias ps='ps aux --forest'
+alias r='bin/rails'
+alias rake='bin/rake'
+alias rspec='rspec --color spec'
 alias sba='source bin/activate'
 alias tmux='tmux -2 -u'
 alias ta='tmux attach -t'
@@ -46,6 +49,35 @@ export SAVEHIST=1000000
 export PATH=/usr/local/bin:$HOME/bin:$PATH
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 
-if [[ -f ~/.zshlocal ]]; then
+# rvm
+if [[ -d ~/.rvm ]];
+then
+    export PATH="$HOME/.rvm/bin:$PATH"
+    [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+fi
+
+# Linux specific
+if [[ $(uname -s) == "Linux" ]];
+then
+    alias aptitude='sudo aptitude'
+    alias apt-get='sudo apt-get'
+    alias ifconfig='sudo ifconfig'
+    alias ls='ls -lhp --color=always'
+fi
+
+# OSX specific
+if [[ $(uname -s) == "Darwin" ]];
+then
+    unalias ps
+    alias brew_update='brew update && brew upgrade --all && brew cleanup && brew services cleanup && brew doctor && brew linkapps && brew prune'
+
+    # recursive, preserve times, verbose, update (only if change time greater)
+    alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc-external/Media/Music/'
+    alias md5sum='md5 -q'
+fi
+
+# Per-machine settings
+if [[ -f ~/.zshlocal ]];
+then
     source ~/.zshlocal
 fi
