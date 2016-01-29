@@ -17,6 +17,7 @@
     pom = push origin master
     pullff = pull -ff-only
     st = status
+    nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
 [color]
     ui = auto
 [merge]
