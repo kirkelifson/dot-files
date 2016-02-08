@@ -10,14 +10,13 @@ Plugin 'vim-ruby/vim-ruby'
 Plugin 'tpope/vim-surround'
 Plugin 'ervandew/supertab'
 Plugin 'kien/ctrlp.vim'
+Plugin 'gregsexton/MatchTag'
 call vundle#end()
 filetype plugin indent on
 
 " General
 
 set expandtab
-set shiftwidth=4
-set softtabstop=4
 set autoindent
 set backspace=indent,eol,start
 set wildmenu
@@ -56,8 +55,9 @@ augroup vimrcExec
         \   exe "normal g`\"" |
         \ endif
     " Filetype specifics
-    autocmd FileType ruby,javascript,html,sass,yaml set shiftwidth=2 softtabstop=2
-    autocmd BufRead *.mkd  set ai formatoptions=tcroqn2 comments=n:>
+    autocmd FileType * set shiftwidth=2 softtabstop=2
+    autocmd FileType python set shiftwidth=4 softtabstop=4
+    autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:>
 augroup END
 
 " Key mappings
