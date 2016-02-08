@@ -1,4 +1,4 @@
-# zshell options
+# zsh options
 setopt autocd
 setopt complete_in_word
 setopt correct
@@ -45,7 +45,6 @@ export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
 export PATH=/usr/local/bin:$HOME/bin:$PATH
-export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 
 # rvm
 if [[ -d ~/.rvm ]];
