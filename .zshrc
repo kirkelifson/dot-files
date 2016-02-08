@@ -14,6 +14,8 @@ prompt grb
 # Completion
 autoload -Uz compinit && compinit -u
 zstyle ':completion:*' menu select=10
+zstyle ':completion:*' completer _complete
+zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
