@@ -14,7 +14,6 @@ prompt grb
 # Completion
 autoload -Uz compinit && compinit -u
 zstyle ':completion:*' menu select=10
-zstyle ':completion:*' completer _complete
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
@@ -68,7 +67,7 @@ fi
 if [[ $(uname -s) == "Darwin" ]];
 then
     unalias ps
-    alias brew_update='brew update && brew upgrade --all && brew cleanup && brew services cleanup && brew doctor && brew linkapps && brew prune'
+    alias brew_update='brew update && brew upgrade --all && brew services cleanup && brew doctor && brew linkapps && brew cleanup && brew prune'
 
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc-external/Media/Music/'
