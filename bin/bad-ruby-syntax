@@ -5,3 +5,5 @@ egrep -R ":([a-z_]+) => " .
 echo -ne "\n\nCamel case variables:\n\n"
 egrep -R "([a-z_]+)?([A-Z]+)([a-z_]+)? = " .
 egrep -R "\w+\[\:([a-z_]+)?([A-Z]+)([a-z_]+)?\]" .
+
+echo -ne "\n\n"
