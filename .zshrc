@@ -4,7 +4,8 @@ setopt complete_in_word
 setopt correct
 setopt menu_complete
 setopt prompt_subst
-setopt append_history
+setopt share_history
+setopt hist_ignore_dups
 setopt no_beep
 
 # Custom prompt
