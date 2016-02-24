@@ -155,9 +155,8 @@ prompt_grb_setup() {
     typeset -Ag wunjo_prompt_colors
     wunjo_prompt_colors=(${(kv)pc})
 
-    local p_date p_line p_rc
-    p_date="$pc[date]%D{%Y-%m-%d} $pc[time]%D{%T}$pc[reset]"
-    p_line="$pc[line]%y$pc[reset]"
+    local p_date
+    p_date="$pc[date]%D{%D} $pc[time]%D{%T}$pc[reset]"
 
     PROMPT=
     PROMPT+="$pc[scm_branch]\$(prompt_wunjo_scm_branch)$pc[reset]"
