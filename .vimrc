@@ -57,7 +57,6 @@ augroup vimrcExec
     " Filetype specifics
     autocmd FileType * set shiftwidth=2 softtabstop=2
     autocmd FileType python set shiftwidth=4 softtabstop=4
-    autocmd BufRead *.mkd set ai formatoptions=tcroqn2 comments=n:>
 augroup END
 
 " Key mappings
