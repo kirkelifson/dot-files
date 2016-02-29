@@ -1,92 +1,77 @@
 " Plugins
-
-autocmd!
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
-Plugin 'gmarik/vundle'
-Plugin 'airblade/vim-gitgutter'
-Plugin 'tpope/vim-rails'
-Plugin 'vim-ruby/vim-ruby'
-Plugin 'tpope/vim-surround'
-Plugin 'ervandew/supertab'
-Plugin 'kien/ctrlp.vim'
-Plugin 'gregsexton/MatchTag'
+Plugin 'gmarik/vundle' " required
+Plugin 'tpope/vim-surround' " CRUD w quotes, parens
+Plugin 'gregsexton/MatchTag' " highlights matching html tags
+Plugin 'ervandew/supertab' " tab completion
+Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 call vundle#end()
 filetype plugin indent on
 
-" General
-
-set expandtab
+" Whitespace
+set expandtab " converts tabs to spaces
 set autoindent
-set backspace=indent,eol,start
-set wildmenu
+
+" Various
+set backspace=indent,eol,start " otherwise backspace/delete doesn't work
+set wildmenu " wild*: command line completion
 set wildmode=full
-set ignorecase smartcase
-set hlsearch
-set showmatch
-set nocompatible
+set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
+
+" Searching
+set hlsearch " highlight
+set showmatch " use % to jump to matching brace, begin/end of comment
+set ignorecase smartcase " case-insensitive unless includes uppercase
+
+" History
+set history=10000
+set undofile
+set undodir=~/.vim/undo
+set backupdir=~/.vim/tmp
+set directory=~/.vim/tmp
+
+" File Formatting
 set fileformat=unix
 set encoding=utf-8
 set termencoding=utf-8
-set history=10000
-set nobackup
-set noswapfile
-set undofile
-set undodir=~/.vim/undo
 
 " Style
-
 syntax on
 color grb256
 set background=dark
 set t_Co=256
-set smarttab
 set number
-set relativenumber
-" make hard tabs distinct
-highlight UglySpaces ctermbg=red
+" Restore previous cursor position
+autocmd BufReadPost *
+  \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+  \   exe "normal g`\"" |
+  \ endif
+" Filetype specifics
+autocmd FileType * set shiftwidth=2 softtabstop=2 " default 2 spaces
+autocmd FileType python set shiftwidth=4 softtabstop=4 " python requires 4 spaces
+autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window %")
+" Highlight unwanted whitespace
+highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
 match UglySpaces /\s\+$/
 
-augroup vimrcExec
-    " Restore cursor to previous position on file open
-    autocmd BufReadPost *
-        \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-        \   exe "normal g`\"" |
-        \ endif
-    " Filetype specifics
-    autocmd FileType * set shiftwidth=2 softtabstop=2
-    autocmd FileType python set shiftwidth=4 softtabstop=4
-augroup END
-
 " Key mappings
-
 let mapleader = ","
+" ctrl+p for fuzzy file search
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
 " ,ev = edit vimrc
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 " ,<space> = clear highlights from search
 noremap <leader><space> :nohlsearch<cr>
+" semicolon not used, no need to hold shift
 nnoremap ; :
 " escape faster
 imap jj <esc>
-" Move around splits with <c-hjkl>
-nnoremap <c-j> <c-w>j
-nnoremap <c-k> <c-w>k
-nnoremap <c-h> <c-w>h
-nnoremap <c-l> <c-w>l
+" paste mode set, unset
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
-
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
-
-let &titlestring = expand('%:t')
-if &term == "screen"
-    set title
-    " TODO: learn how to retrieve current tmux window title to restore state
-    autocmd BufEnter * call system("tmux rename-window " . expand('%:t'))
-    autocmd VimLeave * call system("tmux rename-window zsh")
-endif
