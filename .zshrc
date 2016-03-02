@@ -73,6 +73,9 @@ then
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc-external/Media/Music/'
     alias md5sum='md5 -q'
+
+    # OPAM (OCaml)
+    . /Users/kirk/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
 fi
 
 # Per-machine settings
