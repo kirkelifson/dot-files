@@ -49,7 +49,7 @@ export SAVEHIST=1000000
 export PATH=/usr/local/bin:$HOME/bin:$PATH
 
 # rvm
-if [[ -d ~/.rvm ]];
+if [[ -d $HOME/.rvm ]];
 then
     export PATH="$HOME/.rvm/bin:$PATH"
     [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
