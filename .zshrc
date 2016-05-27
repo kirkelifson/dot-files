@@ -61,7 +61,7 @@ fi
 if [[ $(uname -s) == "Darwin" ]];
 then
     unalias ps
-    alias brew_update='brew update && brew upgrade --all && brew services cleanup && brew doctor && brew linkapps && brew cleanup && brew prune'
+    alias brew_update='brew update; brew upgrade --all; brew services cleanup; brew doctor; brew prune; brew linkapps; brew cleanup'
 
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc-external/Media/Music/'
