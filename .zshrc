@@ -64,7 +64,7 @@ then
     alias brew_update='brew update; brew upgrade --all; brew services cleanup; brew doctor; brew prune; brew linkapps; brew cleanup'
 
     # recursive, preserve times, verbose, update (only if change time greater)
-    alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc-external/Media/Music/'
+    alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Music/'
     alias md5sum='md5 -q'
 
     # OPAM (OCaml)
