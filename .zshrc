@@ -27,7 +27,7 @@ zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat ~/.ssh/known
 alias cd='cd -P'
 alias cp='cp -Rv'
 alias gdb='gdb -q'
-alias grep='grep --color=auto'
+alias grep='grep --color=always'
 alias less='less -R'
 alias ls='ls -lGhpF'
 alias mv='mv -v'
