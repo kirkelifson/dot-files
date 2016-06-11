@@ -25,3 +25,5 @@
     tool = vimdiff
 [push]
     default = current
+[core]
+    whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof
