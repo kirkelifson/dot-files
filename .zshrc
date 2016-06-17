@@ -16,6 +16,7 @@ prompt grb
 autoload -Uz compinit && compinit -u
 zstyle ':completion:*' menu select=10
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
+zstyle ':completion:*:*:vim:*:*files' ignored-patterns '(*.class|*.out|*.o)'
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
