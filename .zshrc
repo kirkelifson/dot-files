@@ -69,6 +69,8 @@ then
     alias sync_music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Music/'
     alias md5sum='md5 -q'
 
+    alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
+
     # OPAM (OCaml)
     . /Users/kirk/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
 fi
