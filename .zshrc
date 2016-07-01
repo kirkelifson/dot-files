@@ -29,7 +29,7 @@ alias cp='cp -Rv' # recursive and prints file names
 alias gdb='gdb -q' # launch without license noise
 alias grep='grep --color=always' # color even when piping into less
 alias less='less -R' # fix non-ansi colors
-alias ls='ls -lGhF' # long list, no groups, readable size, file type indicator
+alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
 alias r='bin/rails' # no system rails
@@ -57,7 +57,6 @@ then
     alias aptitude='sudo aptitude'
     alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
-    alias ls='ls -lhp --color=always'
 fi
 
 # OSX specific
