@@ -41,6 +41,8 @@ alias ta='tmux attach -t'
 alias tn='tmux new -s'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
+alias vim='vim -p'
+alias vi='vim'
 
 export EDITOR=vim
 export HISTFILE=~/.zsh_history
