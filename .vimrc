@@ -48,9 +48,9 @@ autocmd BufReadPost *
   \   exe "normal g`\"" |
   \ endif
 " Filetype specifics
-autocmd FileType * set shiftwidth=2 softtabstop=2 " default 2 spaces
+set shiftwidth=2 softtabstop=2 " default 2 spaces
 autocmd FileType python,java set shiftwidth=4 softtabstop=4 " python requires 4 spaces
-autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window %")
+"autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window %")
 " Highlight unwanted whitespace
 highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
