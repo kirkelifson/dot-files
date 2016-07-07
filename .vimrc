@@ -6,6 +6,8 @@ Plugin 'tpope/vim-surround' " CRUD w quotes, parens
 Plugin 'gregsexton/MatchTag' " highlights matching html tags
 Plugin 'ervandew/supertab' " tab completion
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
+Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
+Plugin 'scrooloose/nerdtree' " file system explorer
 call vundle#end()
 filetype plugin indent on
 
