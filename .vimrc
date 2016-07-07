@@ -77,3 +77,6 @@ nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
+" insert newline below/above in normal
+nmap oo o<Esc>k
+nmap OO O<Esc>j
