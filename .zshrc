@@ -21,7 +21,7 @@ bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
 compdef mosh=ssh # mosh completes like ssh
-zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat ~/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
+zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
 
 # Aliases
 alias cd='cd -P' # physical dir structure without sym links
@@ -45,7 +45,7 @@ alias vim='vim -p'
 alias vi='vim'
 
 export EDITOR=vim
-export HISTFILE=~/.zsh_history
+export HISTFILE=$HOME/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
 export PATH=/usr/local/bin:$PATH
@@ -78,19 +78,19 @@ then
 fi
 
 # Add tools to PATH
-if [[ -d ~/tools ]];
+if [[ -d $HOME/tools ]];
 then
   export PATH=$HOME/tools:$PATH
 fi
 
 # Add bin to PATH
-if [[ -d ~/bin ]];
+if [[ -d $HOME/bin ]];
 then
   export PATH=$HOME/bin:$PATH
 fi
 
 # Per-machine settings
-if [[ -f ~/.zshlocal ]];
+if [[ -f $HOME/.zshlocal ]];
 then
-    source ~/.zshlocal
+    source $HOME/.zshlocal
 fi
