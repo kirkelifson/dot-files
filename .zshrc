@@ -48,7 +48,7 @@ export EDITOR=vim
 export HISTFILE=~/.zsh_history
 export HISTSIZE=1000000
 export SAVEHIST=1000000
-export PATH=/usr/local/bin:$HOME/bin:$PATH
+export PATH=/usr/local/bin:$PATH
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
@@ -75,6 +75,18 @@ then
 
     # OPAM (OCaml)
     . /Users/kirk/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
+fi
+
+# Add tools to PATH
+if [[ -d ~/tools ]];
+then
+  export PATH=$HOME/tools:$PATH
+fi
+
+# Add bin to PATH
+if [[ -d ~/bin ]];
+then
+  export PATH=$HOME/bin:$PATH
 fi
 
 # Per-machine settings
