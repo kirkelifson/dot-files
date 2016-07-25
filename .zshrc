@@ -59,6 +59,7 @@ then
     alias aptitude='sudo aptitude'
     alias apt-get='sudo apt-get'
     alias ifconfig='sudo ifconfig'
+    alias open='xdg-open'
 fi
 
 # OSX specific
