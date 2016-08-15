@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 dir=$(pwd)
 
@@ -21,11 +20,6 @@ done
 # Copy bin as well
 echo -e "\t\t[>] Linking $dir/bin"
 ln -sf $dir/bin ~
-
-# Only copy update script on debian
-if [[ $(uname -s) == "Linux" ]]; then
-  ln -sf $dir/update.sh ~
-fi
 
 if [[ ! -d ~/peda ]]; then
   echo -e "\t[+] Installing peda (gdb)."
