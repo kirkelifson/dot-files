@@ -1,14 +1,7 @@
 # grb prompt theme
 # copied from wunjo prompt theme and modified
 
-autoload -U zgitinit
-zgitinit
-
-prompt_grb_help () {
-  cat << 'EOF'
-  prompt grb
-EOF
-}
+autoload -U zgitinit; zgitinit
 
 revstring() {
     git describe --always $1 2>/dev/null ||
@@ -155,17 +148,13 @@ prompt_grb_setup() {
     typeset -Ag wunjo_prompt_colors
     wunjo_prompt_colors=(${(kv)pc})
 
-    local p_date
-    p_date="$pc[date]%D{%D} $pc[time]%D{%T}$pc[reset]"
-
     PROMPT=
-    PROMPT+="$pc[scm_branch]\$(prompt_wunjo_scm_branch)$pc[reset]"
-    PROMPT+="$pc[shortpath]%1~$pc[reset]"
-    PROMPT+=" $pc[#]%(!.#.$)$pc[reset] "
+    PROMPT+="$pc[user]%n$pc[reset] $pc[shortpath]%1~$pc[reset]"
+    PROMPT+=" $pc[scm_branch]\$(prompt_wunjo_scm_branch)$pc[reset]"
+    PROMPT+="$pc[#]%(!.#.$)$pc[reset] "
 
     RPROMPT=
-    RPROMPT+="$p_date "
-    RPROMPT+="$pc[user]%n@%m$pc[reset]"
+    RPROMPT+="$pc[host]%m$pc[reset]"
 
     export PROMPT RPROMPT
     precmd_functions+='prompt_wunjo_precmd'

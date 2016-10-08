@@ -1,15 +1,10 @@
-# zsh options
-setopt autocd
 setopt complete_in_word
-setopt correct
-setopt menu_complete
 setopt prompt_subst
 setopt share_history
 setopt hist_ignore_dups
 setopt no_beep
 
-# Custom prompt
-autoload -Uz promptinit && promptinit -u
+autoload -Uz promptinit; promptinit -u
 prompt grb
 
 # Completion
@@ -58,15 +53,10 @@ if [[ $(uname -s) == "Darwin" ]];
 then
     unalias ps
     alias brew-update='brew update; brew upgrade; brew services cleanup; brew doctor; brew prune; brew linkapps; brew cleanup'
-
     # recursive, preserve times, verbose, update (only if change time greater)
     alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Music/'
     alias md5sum='md5 -q'
-
     alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
-
-    # OPAM (OCaml)
-    . /Users/kirk/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
 fi
 
 # Add tools to PATH
