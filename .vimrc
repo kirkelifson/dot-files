@@ -20,6 +20,9 @@ set backspace=indent,eol,start " otherwise backspace/delete doesn't work
 set wildmenu " wild*: command line completion
 set wildmode=full
 set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
+set autoread
+set re=1
+set autowrite
 
 " Searching
 set hlsearch " highlight
@@ -77,3 +80,5 @@ nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
+nnoremap <silent> gl "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o>/\w\+\_W\+<CR><c-l>
+nnoremap <silent> gh "_yiw?\w\+\_W\+\%#<CR>:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o><c-l>
