@@ -8,6 +8,13 @@ Plugin 'ervandew/supertab' " tab completion
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
 Plugin 'scrooloose/nerdtree' " file system explorer
+Bundle 'MarcWeber/vim-addon-mw-utils'
+Bundle 'tomtom/tlib_vim'
+Bundle 'garbas/vim-snipmate'
+Bundle 'tpope/vim-fugitive'
+Bundle 'honza/vim-snippets'
+Bundle 'vim-ruby/vim-ruby'
+Bundle 'tpope/vim-rails.git'
 call vundle#end()
 filetype plugin indent on
 
@@ -35,6 +42,7 @@ set undofile
 set undodir=~/.vim/undo
 set backupdir=~/.vim/tmp
 set directory=~/.vim/tmp
+set clipboard=unnamed
 
 " File Formatting
 set fileformat=unix
@@ -82,3 +90,5 @@ nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
 nnoremap <silent> gl "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o>/\w\+\_W\+<CR><c-l>
 nnoremap <silent> gh "_yiw?\w\+\_W\+\%#<CR>:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o><c-l>
+nnoremap <leader>c :%s/:\([^ ]*\)\(\s*\)=>/\1:/g<return>
+map <leader>q :NERDTreeToggle<CR>
