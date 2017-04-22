@@ -8,13 +8,9 @@ Plugin 'ervandew/supertab' " tab completion
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
 Plugin 'scrooloose/nerdtree' " file system explorer
-Bundle 'MarcWeber/vim-addon-mw-utils'
-Bundle 'tomtom/tlib_vim'
-Bundle 'garbas/vim-snipmate'
-Bundle 'tpope/vim-fugitive'
-Bundle 'honza/vim-snippets'
-Bundle 'vim-ruby/vim-ruby'
-Bundle 'tpope/vim-rails.git'
+Plugin 'Chiel92/vim-autoformat'
+Plugin 'tpope/vim-fugitive'
+Plugin 'leafgarland/typescript-vim'
 call vundle#end()
 filetype plugin indent on
 
