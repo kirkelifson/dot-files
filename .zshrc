@@ -18,6 +18,10 @@ bindkey '^F' history-incremental-search-forward
 compdef mosh=ssh # mosh completes like ssh
 zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
 
+bindkey -e
+bindkey '\e\e[C' forward-word
+bindkey '\e\e[D' backward-word
+
 # Aliases
 alias cd='cd -P' # physical dir structure without sym links
 alias cp='cp -Rv' # recursive and prints file names
@@ -38,6 +42,7 @@ alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
 alias vim='vim -p'
 alias vi='vim'
+alias gfortran="gfortran -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace"
 
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
