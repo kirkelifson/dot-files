@@ -1,10 +1,10 @@
 # Kirk Elifson's dot-files
 
-#Warning:
+# Warning:
 
-###The installation script is very unforgiving. If you are not me it's wise to inspect the contents and take what you like.
+### The installation script is very unforgiving. If you are not me it's wise to inspect the contents and take what you like.
 
-#Full installation:
+# Full installation:
 
 ```
 git clone https://github.com/kirkelifson/dot-files.git
@@ -12,7 +12,7 @@ cd dot-files
 ./install.sh
 ```
 
-#Recommended:
+# Recommended:
 
 * zsh 5.0.5
 * vim 4.8 `--with-features=big`
