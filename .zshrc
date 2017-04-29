@@ -9,7 +9,7 @@ prompt grb
 
 # Completion
 autoload -Uz compinit && compinit -u
-zstyle ':completion:*' menu select=10
+zstyle ':completion:*' completer _complete
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*' # case insensitive completion
 zstyle ':completion:*:*:vim:*:*files' ignored-patterns '(*.class|*.out|*.o)' # ignore these files from vim completion
 bindkey '^[[Z' reverse-menu-complete
