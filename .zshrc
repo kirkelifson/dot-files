@@ -1,14 +1,26 @@
-setopt complete_in_word
-setopt prompt_subst
-setopt share_history
-setopt hist_ignore_dups
+# Various
 setopt no_beep
+
+# History
+setopt share_history
+setopt extended_history
+setopt hist_expire_dups_first
+setopt hist_verify
+setopt hist_ignore_dups
+setopt inc_append_history
+
+# Completion
+setopt complete_in_word
+setopt always_to_end
+setopt correctall
 
 autoload -Uz promptinit; promptinit -u
 prompt grb
 
-# Completion
+setopt prompt_subst
 autoload -Uz compinit && compinit -u
+zstyle ':completion:*:descriptions' format '%U%B%d%b%u'
+zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'
 zstyle ':completion:*' completer _complete
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*' # case insensitive completion
 zstyle ':completion:*:*:vim:*:*files' ignored-patterns '(*.class|*.out|*.o)' # ignore these files from vim completion
@@ -43,6 +55,7 @@ alias strings='strings -a'
 alias vim='vim -p'
 alias vi='vim'
 alias gfortran="gfortran -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace"
+alias ssh-keygen="ssh-keygen -t rsa -d 2048"
 
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
