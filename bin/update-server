@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
 args=(update upgrade dist-upgrade autoremove autoclean)
 for arg in ${args[@]}; do

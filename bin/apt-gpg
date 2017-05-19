@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 # Adds gpg key; usage: apt-gpg KEY_HASH
 gpg --keyserver pgpkeys.mit.edu --recv-key $1
 gpg -a --export $1 | sudo apt-key add -

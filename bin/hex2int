@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo $((16#$1))

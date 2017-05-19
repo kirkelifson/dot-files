@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo -ne "Old hash syntax:\n\n"
 egrep -R ":([a-z_]+) => " .
 
