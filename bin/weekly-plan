@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+cd ~/plan
+tail -n +1 $(ls -1rt | tail -n 5)
