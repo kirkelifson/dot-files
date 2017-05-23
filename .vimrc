@@ -35,7 +35,9 @@ set undofile
 set undodir=~/.vim/undo
 set backupdir=~/.vim/tmp
 set directory=~/.vim/tmp
-set clipboard=unnamed
+if $TMUX == ''
+    set clipboard+=unnamed
+endif
 
 " File Formatting
 set fileformat=unix
