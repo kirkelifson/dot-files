@@ -12,7 +12,6 @@ setopt inc_append_history
 # Completion
 setopt complete_in_word
 setopt always_to_end
-setopt correctall
 
 autoload -Uz promptinit; promptinit -u
 prompt grb
