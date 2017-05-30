@@ -55,6 +55,7 @@ alias vim='vim -p'
 alias vi='vim'
 alias gfortran="gfortran -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace"
 alias ssh-keygen="ssh-keygen -t rsa -d 2048"
+alias migrations="rake db:migrate:status"
 
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
