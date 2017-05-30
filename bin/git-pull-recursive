@@ -3,7 +3,7 @@
 find ./ -name ".git" -print0 | while read -d $'\0' file;
 do
   (IFS="/"; token=$file;)
-  name="$(pwd)/"$(echo $file | sed -e 's/\.git//' | sed -e 's/\.\/\///');
+  name=$(echo $file | sed -e 's/\.git//' | sed -e 's/\.\/\///');
   echo "Updating: ${name}"
   (cd "$name"; git pull;)
 done
