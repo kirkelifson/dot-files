@@ -55,6 +55,7 @@ alias ta='tmux attach -t'
 alias tn='tmux new -s'
 # Python
 alias sba='source bin/activate'
+alias python='python3' # default to python3, use python2 if needed
 # Ruby
 alias r='bin/rails' # no system rails
 alias rake='bin/rake' # no system rake
