@@ -1,5 +1,9 @@
-# Various
-setopt no_beep
+# Prompt
+fpath=($fpath ~/.zsh/func)
+typeset -U fpath
+autoload -Uz promptinit; promptinit -u
+prompt grb
+setopt prompt_subst
 
 # History
 setopt share_history
@@ -10,14 +14,9 @@ setopt hist_ignore_dups
 setopt inc_append_history
 
 # Completion
+autoload -Uz compinit && compinit -u
 setopt complete_in_word
 setopt always_to_end
-
-autoload -Uz promptinit; promptinit -u
-prompt grb
-
-setopt prompt_subst
-autoload -Uz compinit && compinit -u
 zstyle ':completion:*:descriptions' format '%U%B%d%b%u'
 zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'
 zstyle ':completion:*' completer _complete
@@ -28,6 +27,9 @@ bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
 compdef mosh=ssh # mosh completes like ssh
 zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
+
+# Various
+setopt no_beep
 
 bindkey -e
 bindkey '\e\e[C' forward-word
@@ -42,20 +44,22 @@ alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
-alias r='bin/rails' # no system rails
-alias rake='bin/rake' # no system rake
-alias rspec='rspec --color spec'
-alias sba='source bin/activate'
-alias tmux='tmux -2 -u' # 256 colors, unicode
-alias ta='tmux attach -t'
-alias tn='tmux new -s'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
 alias vim='vim -p'
 alias vi='vim'
-alias gfortran="gfortran -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace"
 alias ssh-keygen="ssh-keygen -t rsa -d 2048"
+# tmux
+alias tmux='tmux -2 -u' # 256 colors, unicode
+alias ta='tmux attach -t'
+alias tn='tmux new -s'
+# Python
+alias sba='source bin/activate'
+# Ruby
+alias r='bin/rails' # no system rails
+alias rake='bin/rake' # no system rake
 alias migrations="rake db:migrate:status"
+alias rspec='rspec --color spec'
 
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
