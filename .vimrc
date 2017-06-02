@@ -1,7 +1,9 @@
 " Plugins
+filetype off
+set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
-Plugin 'gmarik/vundle' " required
+Plugin 'VundleVim/Vundle.vim' " required
 Plugin 'scrooloose/nerdtree' " file system explorer
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'ervandew/supertab' " tab completion
@@ -17,7 +19,6 @@ set autoindent
 set backspace=indent,eol,start " otherwise backspace/delete doesn't work
 set wildmenu " wild*: command line completion
 set wildmode=full
-set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
 set autoread
 set re=1
 set autowrite
