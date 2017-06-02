@@ -4,18 +4,13 @@
 [alias]
     aa = add --all
     amend = commit --amend
-    b = branch
     ci = commit --verbose
     co = checkout
     dc = diff --cached
     dh1 = diff HEAD~1
-    ds = diff --stat=160,120
     fa = fetch --all
-    ff = merge --ff-only
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-    noff = merge --no-ff
     pom = push origin master
-    pullff = pull -ff-only
     st = status
     nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
     hist = "!f() { git log -S $1 --source --all $2; }; f"
