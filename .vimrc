@@ -2,12 +2,10 @@
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'gmarik/vundle' " required
-Plugin 'tpope/vim-surround' " CRUD w quotes, parens
-Plugin 'gregsexton/MatchTag' " highlights matching html tags
-Plugin 'ervandew/supertab' " tab completion
-Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
-Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
 Plugin 'scrooloose/nerdtree' " file system explorer
+Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
+Plugin 'ervandew/supertab' " tab completion
+Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
 call vundle#end()
 filetype plugin indent on
 
@@ -36,7 +34,7 @@ set undodir=~/.vim/undo
 set backupdir=~/.vim/tmp
 set directory=~/.vim/tmp
 if $TMUX == ''
-    set clipboard+=unnamed
+  set clipboard+=unnamed
 endif
 
 " File Formatting
@@ -52,13 +50,12 @@ set t_Co=256
 set number
 " Restore previous cursor position
 autocmd BufReadPost *
-  \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-  \   exe "normal g`\"" |
-  \ endif
+      \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+      \   exe "normal g`\"" |
+      \ endif
 " Filetype specifics
 set shiftwidth=2 softtabstop=2 " default 2 spaces
 autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requires 4 spaces
-"autocmd BufReadPost,FileReadPost,BufNewFile * call system("tmux rename-window %")
 " Highlight unwanted whitespace
 highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
@@ -75,15 +72,10 @@ nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 noremap <leader><space> :nohlsearch<cr>
 " semicolon not used, no need to hold shift
 nnoremap ; :
-" escape faster
-imap jj <esc>
 " paste mode set, unset
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
-nnoremap <silent> gl "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o>/\w\+\_W\+<CR><c-l>
-nnoremap <silent> gh "_yiw?\w\+\_W\+\%#<CR>:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><c-o><c-l>
-nnoremap <leader>c :%s/:\([^ ]*\)\(\s*\)=>/\1:/g<return>
-map <leader>q :NERDTreeToggle<CR>
+map <leader>t :NERDTreeToggle<CR>
