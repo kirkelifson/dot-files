@@ -36,7 +36,6 @@ bindkey '\e\e[C' forward-word
 bindkey '\e\e[D' backward-word
 
 # Aliases
-alias cd='cd -P' # physical dir structure without sym links
 alias cp='cp -Rv' # recursive and prints file names
 alias gdb='gdb -q' # launch without license noise
 alias grep='grep --color=always' # color even when piping into less
