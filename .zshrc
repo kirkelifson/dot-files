@@ -60,6 +60,8 @@ alias r='bin/rails' # no system rails
 alias rake='bin/rake' # no system rake
 alias migrations="rake db:migrate:status"
 alias rspec='rspec --color spec'
+# Javascript
+alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
