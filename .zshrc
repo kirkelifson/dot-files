@@ -78,7 +78,7 @@ then
     unalias ps
     alias brew-update='brew update; brew upgrade; brew services cleanup; brew doctor; brew prune; brew cleanup'
     # recursive, preserve times, verbose, update (only if change time greater)
-    alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/Music/'
+    alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
     alias md5sum='md5 -q'
     alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
 fi
