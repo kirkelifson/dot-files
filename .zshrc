@@ -47,7 +47,7 @@ alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias strings='strings -a'
 alias vim='vim -p'
 alias vi='vim'
-alias ssh-keygen="ssh-keygen -t rsa -d 2048"
+alias ssh-keygen='ssh-keygen -t rsa -d 2048'
 # tmux
 alias tmux='tmux -2 -u' # 256 colors, unicode
 alias ta='tmux attach -t'
@@ -58,8 +58,9 @@ alias python='python3' # default to python3, use python2 if needed
 # Ruby
 alias r='bin/rails' # no system rails
 alias rake='bin/rake' # no system rake
-alias migrations="rake db:migrate:status"
+alias migrations='rake db:migrate:status'
 alias rspec='rspec --color spec'
+alias remove-hash-rockets="find . -name \*.rb -exec perl -p -i -e 's/([^:]):(\w+)\s*=>/\1\2:/g' {} \;"
 # Javascript
 alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 
