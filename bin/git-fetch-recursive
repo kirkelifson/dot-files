@@ -1,9 +1,0 @@
-#!/usr/bin/env zsh
-# Recursively updates (git-fetch) every directory from current
-find ./ -name ".git" -print0 | while read -d $'\0' file;
-do
-  (IFS="/"; token=$file;)
-  name="$(pwd)/"$(echo $file | sed -e 's/\.git//' | sed -e 's/\.\/\///');
-  echo "Updating: ${name}"
-  (cd "$name"; git fetch;)
-done
