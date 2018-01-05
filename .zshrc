@@ -57,7 +57,6 @@ alias sba='source bin/activate'
 alias python='python3' # default to python3, use python2 if needed
 # Ruby
 alias r='bin/rails' # no system rails
-alias rake='bin/rake' # no system rake
 alias migrations='rake db:migrate:status'
 alias rspec='rspec --color spec'
 alias remove-hash-rockets="find . -name \*.rb -exec perl -p -i -e 's/([^:]):(\w+)\s*=>/\1\2:/g' {} \;"
