@@ -11,6 +11,7 @@ Plugin 'sjl/badwolf' " main colorscheme
 Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
 Plugin 'junegunn/goyo.vim' " distraction-free writing
 Plugin 'itchyny/lightline.vim' " status bar
+Plugin 'tomtom/tcomment_vim' " comment toggling
 call vundle#end()
 filetype plugin indent on
 
