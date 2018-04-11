@@ -30,36 +30,32 @@ zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/k
 
 # Various
 setopt no_beep
+disable r # r is a built-in for replaying command, use !!
 
 bindkey -e
 bindkey '\e\e[C' forward-word
 bindkey '\e\e[D' backward-word
 
 # Aliases
+alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias gdb='gdb -q' # launch without license noise
-alias grep='grep --color=always' # color even when piping into less
+alias grep='grep --color -n -R'
 alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
-alias clbin="curl -F 'clbin=<-' https://clbin.com"
-alias strings='strings -a'
-alias vim='vim -p'
-alias vi='vim'
+alias search='grep --color -R -C3 -n' # color even when piping into less
 alias ssh-keygen='ssh-keygen -t rsa -d 2048'
+alias strings='strings -a'
+alias vi='vim -p'
+alias vim='vim -p'
 # tmux
-alias tmux='tmux -2 -u' # 256 colors, unicode
-alias ta='tmux attach -t'
-alias tn='tmux new -s'
+alias ta='tmux -2 -u attach -t'
+alias tmux='tmux -2 -u'
+alias tn='tmux -2 -u new -s'
 # Python
 alias sba='source bin/activate'
-alias python='python3' # default to python3, use python2 if needed
-# Ruby
-alias r='bin/rails' # no system rails
-alias migrations='rake db:migrate:status'
-alias rspec='rspec --color spec'
-alias remove-hash-rockets="find . -name \*.rb -exec perl -p -i -e 's/([^:]):(\w+)\s*=>/\1\2:/g' {} \;"
 # Javascript
 alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 
