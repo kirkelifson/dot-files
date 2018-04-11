@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+grep --color -Rn $1 app config features lib spec
