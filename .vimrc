@@ -63,6 +63,7 @@ match UglySpaces /\t/
 match UglySpaces /\s\+$/
 
 " Key mappings
+nnoremap ; :
 let mapleader = ","
 " ctrl+p for fuzzy file search
 let g:ctrlp_map = '<c-p>'
@@ -71,8 +72,6 @@ let g:ctrlp_cmd = 'CtrlP'
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 " ,<space> = clear highlights from search
 noremap <leader><space> :nohlsearch<cr>
-" semicolon not used, no need to hold shift
-nnoremap ; :
 " paste mode set, unset
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
@@ -80,11 +79,3 @@ nnoremap <leader>P :set nopaste<cr>
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
 map <leader>t :NERDTreeToggle<CR>
-
-" Window splits
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-nnoremap <C-H> <C-W><C-H>
-set splitbelow
-set splitright
