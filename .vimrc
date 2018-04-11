@@ -10,6 +10,7 @@ Plugin 'ervandew/supertab' " tab completion
 Plugin 'sjl/badwolf' " main colorscheme
 Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
 Plugin 'junegunn/goyo.vim' " distraction-free writing
+Plugin 'itchyny/lightline.vim' " status bar
 call vundle#end()
 filetype plugin indent on
 
@@ -24,6 +25,8 @@ set wildmode=full
 set autoread
 set re=1
 set autowrite
+set laststatus=2 " lightline requirement
+set noshowmode
 
 " Searching
 set hlsearch " highlight
