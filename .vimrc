@@ -7,7 +7,9 @@ Plugin 'VundleVim/Vundle.vim' " required
 Plugin 'scrooloose/nerdtree' " file system explorer
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'ervandew/supertab' " tab completion
-Plugin 'sjl/badwolf'
+Plugin 'sjl/badwolf' " main colorscheme
+Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
+Plugin 'junegunn/goyo.vim' " distraction-free writing
 call vundle#end()
 filetype plugin indent on
 
@@ -46,6 +48,12 @@ set termencoding=utf-8
 " Style
 syntax on
 color badwolf
+function! s:goyo_enter()
+  color pencil
+endfunction
+function! s:goyo_leave()
+  color badwolf
+endfunction
 set background=dark
 set t_Co=256
 set number
@@ -78,4 +86,7 @@ nnoremap <leader>P :set nopaste<cr>
 " Toggle hard tab highlighting
 nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
 nnoremap <leader>H :highlight clear UglySpaces<cr>
-map <leader>t :NERDTreeToggle<CR>
+map <leader>t :NERDTreeToggle<cr>
+map <leader>d :Goyo<cr>
+autocmd! User GoyoEnter nested call <SID>goyo_enter()
+autocmd! User GoyoLeave nested call <SID>goyo_leave()
