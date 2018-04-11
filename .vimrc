@@ -7,7 +7,7 @@ Plugin 'VundleVim/Vundle.vim' " required
 Plugin 'scrooloose/nerdtree' " file system explorer
 Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'ervandew/supertab' " tab completion
-Plugin 'jiangmiao/auto-pairs' " auto paren after cursor
+Plugin 'sjl/badwolf'
 call vundle#end()
 filetype plugin indent on
 
@@ -45,7 +45,7 @@ set termencoding=utf-8
 
 " Style
 syntax on
-color grb256
+color badwolf
 set background=dark
 set t_Co=256
 set number
