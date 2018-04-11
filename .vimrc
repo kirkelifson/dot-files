@@ -12,6 +12,7 @@ Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
 Plugin 'junegunn/goyo.vim' " distraction-free writing
 Plugin 'itchyny/lightline.vim' " status bar
 Plugin 'tomtom/tcomment_vim' " comment toggling
+Plugin 'airblade/vim-gitgutter' " git status in gutter
 call vundle#end()
 filetype plugin indent on
 
