@@ -1,24 +1,24 @@
 [user]
-    name = Kirk Elifson
-    email = kirk@parodybit.net
+  name = Kirk Elifson
+  email = kirk@parodybit.net
 [alias]
-    aa = add --all
-    amend = commit --amend
-    ci = commit --verbose
-    co = checkout
-    dc = diff --cached
-    dh1 = diff HEAD~1
-    fa = fetch --all
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-    pom = push origin master
-    st = status
-    nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
-    hist = "!f() { git log -S $1 --source --all $2; }; f"
+  aa = add --all
+  amend = commit --amend
+  ci = commit --verbose
+  co = checkout
+  dc = diff --cached
+  dh1 = diff HEAD~1
+  fa = fetch --all
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  pom = push origin master
+  st = status
+  nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
+  hist = "!f() { git log -S $1 --source --all $2; }; f"
 [color]
-    ui = auto
+  ui = auto
 [merge]
-    tool = vimdiff
+  tool = vimdiff
 [push]
-    default = current
+  default = current
 [core]
-    whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof
+  whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof
