@@ -74,7 +74,8 @@ autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requi
 highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
 match UglySpaces /\s\+$/
-
+highlight Todo ctermbg=red guibg=red
+match Todo /TODO/
 " Key mappings
 nnoremap ; :
 let mapleader = ","
