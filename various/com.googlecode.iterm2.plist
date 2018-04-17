@@ -510,7 +510,7 @@
 	<key>LoadPrefsFromCustomFolder</key>
 	<true/>
 	<key>NSNavLastRootDirectory</key>
-	<string>~/Downloads/mbadolato-iTerm2-Color-Schemes-de0c4c9/schemes</string>
+	<string>~/dot-files/various</string>
 	<key>NSNavPanelExpandedSizeForOpenMode</key>
 	<string>{712, 448}</string>
 	<key>NSQuotedKeystrokeBinding</key>
@@ -544,16 +544,24 @@
 	</data>
 	<key>NSTableView Supports v2 KeyBingingTable</key>
 	<true/>
-	<key>NSWindow Frame SessionsPreferences</key>
-	<string>269 369 599 388 0 0 1680 1028 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>511 580 918 401 0 0 1680 1028 </string>
+	<string>64 166 1018 447 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>151 321 1010 620 0 0 1680 1028 </string>
+	<string>521 353 890 675 0 0 1680 1028 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
-	<string>152 103 1385 800 0 0 1680 1028 </string>
+	<string>-96 1050 637 1058 -97 1050 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
-	<string>398 87 1010 620 0 0 1680 1028 </string>
+	<string>0 57 840 971 0 0 1680 1028 </string>
+	<key>NSWindow Frame iTerm Window 3</key>
+	<string>270 208 890 675 0 0 1680 1050 </string>
+	<key>NSWindow Frame iTerm Window 4</key>
+	<string>484 114 890 675 0 0 1680 1028 </string>
+	<key>NSWindow Frame iTerm Window 5</key>
+	<string>671 287 890 675 0 0 1680 1028 </string>
+	<key>NSWindow Frame iTerm Window 6</key>
+	<string>320 1571 650 525 -97 1050 1920 1058 </string>
+	<key>NSWindow Frame iTerm Window 7</key>
+	<string>276 1583 650 525 -97 1050 1920 1058 </string>
 	<key>New Bookmarks</key>
 	<array>
 		<dict>
@@ -1194,11 +1202,11 @@
 	<key>NoSyncHaveWarnedAboutPasteConfirmationChange</key>
 	<true/>
 	<key>NoSyncInstallationId</key>
-	<string>DF07CFCA-1BA9-4272-BBF8-2FF4198345B9</string>
+	<string>24835DA7-1571-40E0-9773-6D3A6747B8FA</string>
 	<key>NoSyncPermissionToShowTip</key>
 	<false/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
-	<real>536823153.61091101</real>
+	<real>541969808.34290099</real>
 	<key>OpenTmuxWindowsIn</key>
 	<integer>1</integer>
 	<key>PointerActions</key>
@@ -1241,17 +1249,19 @@
 	<key>SUFeedAlternateAppNameKey</key>
 	<string>iTerm</string>
 	<key>SUFeedURL</key>
-	<string>https://iterm2.com/appcasts/final.xml?shard=74</string>
+	<string>https://iterm2.com/appcasts/final.xml?shard=53</string>
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2018-04-12T05:00:57Z</date>
+	<date>2018-04-17T23:47:46Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>ShowBookmarkName</key>
 	<false/>
 	<key>StretchTabsToFillBar</key>
 	<true/>
+	<key>TabStyle</key>
+	<integer>1</integer>
 	<key>UseBorder</key>
 	<false/>
 	<key>WindowNumber</key>
