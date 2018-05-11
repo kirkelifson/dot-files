@@ -40,7 +40,7 @@ bindkey '\e\e[D' backward-word
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias gdb='gdb -q' # launch without license noise
-alias grep='grep --color -n -R'
+alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
