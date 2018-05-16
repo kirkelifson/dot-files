@@ -39,6 +39,7 @@ bindkey '\e\e[D' backward-word
 # Aliases
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
+alias egrep='egrep --color -n'
 alias gdb='gdb -q' # launch without license noise
 alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
@@ -96,3 +97,5 @@ if [[ -f $HOME/.zshlocal ]];
 then
     source $HOME/.zshlocal
 fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
