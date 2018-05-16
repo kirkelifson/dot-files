@@ -5,7 +5,6 @@ set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim' " required
 Plugin 'scrooloose/nerdtree' " file system explorer
-Plugin 'kien/ctrlp.vim' " fuzzy file, buf finder
 Plugin 'ervandew/supertab' " tab completion
 Plugin 'sjl/badwolf' " main colorscheme
 Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
@@ -13,6 +12,7 @@ Plugin 'junegunn/goyo.vim' " distraction-free writing
 Plugin 'itchyny/lightline.vim' " status bar
 Plugin 'tomtom/tcomment_vim' " comment toggling
 Plugin 'airblade/vim-gitgutter' " git status in gutter
+Plugin 'tpope/vim-markdown' " markdown syntax highlighting
 call vundle#end()
 filetype plugin indent on
 
@@ -29,6 +29,7 @@ set re=1
 set autowrite
 set laststatus=2 " lightline requirement
 set noshowmode
+set rtp+=/usr/local/opt/fzf
 
 " Searching
 set hlsearch " highlight
@@ -70,6 +71,7 @@ autocmd BufReadPost *
 " Filetype specifics
 set shiftwidth=2 softtabstop=2 " default 2 spaces
 autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requires 4 spaces
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 " Highlight unwanted whitespace
 highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
