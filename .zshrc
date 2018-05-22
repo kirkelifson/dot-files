@@ -105,4 +105,8 @@ then
   [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 fi
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# fuzzy finder
+if [[ -z $TMUX && -f ~/.fzf.zsh ]];
+then
+  source ~/.fzf.zsh
+fi
