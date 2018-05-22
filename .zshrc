@@ -63,39 +63,46 @@ alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
 then
-    alias aptitude='sudo aptitude'
-    alias apt-get='sudo apt-get'
-    alias ifconfig='sudo ifconfig'
-    alias open='xdg-open'
+  alias aptitude='sudo aptitude'
+  alias apt-get='sudo apt-get'
+  alias ifconfig='sudo ifconfig'
+  alias open='xdg-open'
 fi
 
 # OSX specific
 if [[ $(uname -s) == "Darwin" ]];
 then
-    unalias ps
-    alias brew-update='brew update; brew upgrade; brew services cleanup; brew doctor; brew prune; brew cleanup'
-    # recursive, preserve times, verbose, update (only if change time greater)
-    alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
-    alias md5sum='md5 -q'
-    alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
+  unalias ps
+  alias brew-update='brew update; brew upgrade; brew services cleanup; brew doctor; brew prune; brew cleanup'
+  # recursive, preserve times, verbose, update (only if change time greater)
+  alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
+  alias md5sum='md5 -q'
+  alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
 fi
 
 # Add tools to PATH
-if [[ -d $HOME/tools ]];
+if [[ -z $TMUX && -d $HOME/tools ]];
 then
   export PATH=$HOME/tools:$PATH
 fi
 
 # Add bin to PATH
-if [[ -d $HOME/bin ]];
+if [[ -z $TMUX && -d $HOME/bin ]];
 then
   export PATH=$HOME/bin:$PATH
 fi
 
 # Per-machine settings
-if [[ -f $HOME/.zshlocal ]];
+if [[ -z $TMUX && -f $HOME/.zshlocal ]];
 then
-    source $HOME/.zshlocal
+  source $HOME/.zshlocal
+fi
+
+# rvm
+if [[ -z $TMUX && -d $HOME/.rvm ]];
+then
+  export PATH="$HOME/.rvm/bin:$PATH"
+  [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
