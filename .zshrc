@@ -92,6 +92,12 @@ then
   export PATH=$HOME/bin:$PATH
 fi
 
+# Add sbin to PATH
+if [[ -z $TMUX && -d /usr/local/sbin ]];
+then
+  export PATH=/usr/local/sbin:$PATH
+fi
+
 # Per-machine settings
 if [[ -z $TMUX && -f $HOME/.zshlocal ]];
 then
@@ -99,14 +105,14 @@ then
 fi
 
 # rvm
-if [[ -z $TMUX && -d $HOME/.rvm ]];
-then
-  export PATH="$HOME/.rvm/bin:$PATH"
-fi
-
 if [[ -d $HOME/.rvm ]];
 then
-  [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+  if [[ -z $TMUX ]];
+  then
+    export PATH="$HOME/.rvm/bin:$PATH"
+  fi
+
+  source "$HOME/.rvm/scripts/rvm"
 fi
 
 # fuzzy finder
