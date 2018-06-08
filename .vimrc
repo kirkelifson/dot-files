@@ -13,6 +13,7 @@ Plugin 'itchyny/lightline.vim' " status bar
 Plugin 'tomtom/tcomment_vim' " comment toggling
 Plugin 'airblade/vim-gitgutter' " git status in gutter
 Plugin 'tpope/vim-markdown' " markdown syntax highlighting
+Plugin 'leafgarland/typescript-vim' " typescript syntax highlighting
 call vundle#end()
 filetype plugin indent on
 
