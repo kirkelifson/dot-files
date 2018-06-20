@@ -31,6 +31,7 @@ set autowrite
 set laststatus=2 " lightline requirement
 set noshowmode
 set rtp+=/usr/local/opt/fzf
+set mouse=a
 
 " Searching
 set hlsearch " highlight
