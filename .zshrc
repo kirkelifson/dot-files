@@ -116,7 +116,7 @@ then
 fi
 
 # fuzzy finder
-if [[ -z $TMUX && -f ~/.fzf.zsh ]];
+if [[ -f ~/.fzf.zsh ]];
 then
   source ~/.fzf.zsh
 fi
