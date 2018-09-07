@@ -74,6 +74,7 @@ autocmd BufReadPost *
 set shiftwidth=2 softtabstop=2 " default 2 spaces
 autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requires 4 spaces
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+autocmd BufNewFile,BufReadPost *.plan set filetype=markdown
 " Highlight unwanted whitespace
 highlight UglySpaces ctermbg=red guibg=red
 match UglySpaces /\t/
