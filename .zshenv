@@ -10,3 +10,7 @@ export LANGUAGE=en_US.UTF-8
 
 # Various
 export EDITOR=vim
+
+# fzf + fd / quick fuzzy finder
+export FZF_DEFAULT_COMMAND='fd --type f'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
