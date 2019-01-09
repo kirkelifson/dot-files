@@ -47,7 +47,6 @@ alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file t
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
 alias search='grep --color -R -C3 -n' # color even when piping into less
-alias ssh-keygen='ssh-keygen -t rsa -d 2048'
 alias strings='strings -a'
 alias vi='vim -p'
 alias vim='vim -p'
