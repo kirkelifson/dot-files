@@ -36,6 +36,6 @@ if [[ ! -d ~/.vim/bundle/vundle ]]; then
 fi
 
 echo -e "\t[+] Installing new vundles."
-vim +PluginInstall +qall
+vim +PluginInstall +PluginUpdate +qall
 
 echo -e "[!] Restart terminal session for changes to take effect."
