@@ -75,11 +75,16 @@ autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requi
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 autocmd BufNewFile,BufReadPost *.plan set filetype=markdown
 " Highlight unwanted whitespace
-highlight UglySpaces ctermbg=red guibg=red
-match UglySpaces /\t/
-match UglySpaces /\s\+$/
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
+autocmd InsertLeave * match ExtraWhitespace /\s\+$/
+autocmd BufWinLeave * call clearmatches()
+" Highlight todo
 highlight Todo ctermbg=red guibg=red
-match Todo /TODO/
+match TODO /\s\+$/
+autocmd BufWinEnter * match TODO /TODO/
 " Key mappings
 nnoremap ; :
 let mapleader = ","
@@ -93,9 +98,6 @@ noremap <leader><space> :nohlsearch<cr>
 " paste mode set, unset
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
-" Toggle hard tab highlighting
-nnoremap <leader>h :highlight UglySpaces ctermbg=red<cr>
-nnoremap <leader>H :highlight clear UglySpaces<cr>
 map <leader>t :NERDTreeToggle<cr>
 map <leader>d :Goyo<cr>
 autocmd! User GoyoEnter nested call <SID>goyo_enter()
