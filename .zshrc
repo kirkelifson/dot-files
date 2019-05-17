@@ -37,6 +37,7 @@ bindkey '\e\e[C' forward-word
 bindkey '\e\e[D' backward-word
 
 # Aliases
+alias cats='highlight -O ansi --force'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias egrep='egrep --color -n'
