@@ -6,7 +6,7 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim' " required
 Plugin 'scrooloose/nerdtree' " file system explorer
 Plugin 'ervandew/supertab' " tab completion
-Plugin 'sjl/badwolf' " main colorscheme
+Plugin 'AlessandroYorba/Sierra'
 Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
 Plugin 'junegunn/goyo.vim' " distraction-free writing
 Plugin 'itchyny/lightline.vim' " status bar
@@ -54,7 +54,7 @@ set termencoding=utf-8
 
 " Style
 syntax on
-color badwolf
+color sierra
 function! s:goyo_enter()
   color pencil
 endfunction
