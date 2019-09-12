@@ -4,15 +4,10 @@ set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
 set runtimepath+=~/.vim/bundle/vundle
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim' " required
-Plugin 'scrooloose/nerdtree' " file system explorer
 Plugin 'ervandew/supertab' " tab completion
 Plugin 'AlessandroYorba/Sierra'
-Plugin 'reedes/vim-colors-pencil' " goyo colorscheme
-Plugin 'junegunn/goyo.vim' " distraction-free writing
 Plugin 'itchyny/lightline.vim' " status bar
-Plugin 'tomtom/tcomment_vim' " comment toggling
 Plugin 'airblade/vim-gitgutter' " git status in gutter
-Plugin 'tpope/vim-markdown' " markdown syntax highlighting
 call vundle#end()
 filetype plugin indent on
 
@@ -55,12 +50,6 @@ set termencoding=utf-8
 " Style
 syntax on
 color sierra
-function! s:goyo_enter()
-  color pencil
-endfunction
-function! s:goyo_leave()
-  color badwolf
-endfunction
 set background=dark
 set t_Co=256
 set number
@@ -99,9 +88,6 @@ noremap <leader><space> :nohlsearch<cr>
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
 map <leader>t :NERDTreeToggle<cr>
-map <leader>d :Goyo<cr>
-autocmd! User GoyoEnter nested call <SID>goyo_enter()
-autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
 set splitbelow
 set splitright
