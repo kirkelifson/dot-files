@@ -26,6 +26,7 @@ set laststatus=2 " lightline requirement
 set noshowmode
 set rtp+=/usr/local/opt/fzf
 set mouse=a
+set mmp=5000
 
 " Searching
 set hlsearch " highlight
