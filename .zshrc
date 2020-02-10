@@ -47,10 +47,6 @@ alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
-if [[ -d /Applications/RubyMine.app ]];
-then
-  alias rubymine='/Applications/RubyMine.app/Contents/MacOS/rubymine'
-fi
 alias search='grep --color -R -C3 -n' # color even when piping into less
 alias strings='strings -a'
 alias vi='vim -p'
@@ -58,7 +54,6 @@ alias vim='vim -p'
 # tmux
 alias ta='tmux -2 -u attach -t'
 alias tmux='tmux -2 -u'
-alias tn='tmux -2 -u new -s'
 # Python
 alias sba='source bin/activate'
 # Javascript
@@ -102,18 +97,6 @@ then
   export PATH=/usr/local/opt/curl/bin:$PATH
 fi
 
-# Add homebrew sbin to PATH
-if [[ -z $TMUX && -d /usr/local/sbin ]];
-then
-  export PATH=/usr/local/sbin:$PATH
-fi
-
-# Per-machine settings
-if [[ -z $TMUX && -f $HOME/.zshlocal ]];
-then
-  source $HOME/.zshlocal
-fi
-
 # rvm
 if [[ -d $HOME/.rvm ]];
 then
@@ -130,3 +113,10 @@ if [[ -f ~/.fzf.zsh ]];
 then
   source ~/.fzf.zsh
 fi
+
+# Per-machine settings
+if [[ -z $TMUX && -f $HOME/.zshlocal ]];
+then
+  source $HOME/.zshlocal
+fi
+
