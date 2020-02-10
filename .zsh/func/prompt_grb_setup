@@ -109,13 +109,19 @@ prompt_grb_setup() {
 
     RPROMPT=
     PROMPT=
-    PROMPT+="$pc[host]%m$pc[reset] $attcode[blink] aaaaaa👽 aaaaa $attcode[no-blink] $pc[shortpath]%2~$pc[reset]"
+    PROMPT+="$pc[host]%m$pc[reset] \$(alien) $pc[shortpath]%2~$pc[reset]"
     PROMPT+=" $pc[scm_branch]\$(prompt_wunjo_scm_branch)$pc[reset]"
     PROMPT+="$pc[#]%(!.#.$)$pc[reset] "
 
     export PROMPT
     export RPROMPT
     precmd_functions+='prompt_wunjo_precmd'
+}
+
+alien() {
+  local -A pc
+  pc=(${(kv)wunjo_prompt_colors})
+  echo -e "\033[5m👽\033[0m"
 }
 
 prompt_wunjo_precmd() {
