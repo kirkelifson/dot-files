@@ -6,30 +6,26 @@ prompt grb
 setopt prompt_subst
 
 # History
-setopt share_history
-setopt extended_history
-setopt hist_expire_dups_first
-setopt hist_verify
-setopt hist_ignore_dups
+setopt hist_ignore_all_dups
 setopt inc_append_history
 
 # Completion
 autoload -Uz compinit && compinit -u
-setopt complete_in_word
-setopt always_to_end
-zstyle ':completion:*:descriptions' format '%U%B%d%b%u'
-zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'
-zstyle ':completion:*' completer _complete
-zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*' # case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' # case-insensitive completion
 zstyle ':completion:*:*:vim:*:*files' ignored-patterns '(*.class|*.out|*.o)' # ignore these files from vim completion
+zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
+zstyle ':completion:*' list-suffixes
+zstyle ':completion:*' expand prefix suffix
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
 compdef mosh=ssh # mosh completes like ssh
-zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
 
 # Various
-setopt no_beep
+setopt autocd autopushd pushdminus pushdsilent pushdtohome cdablevars
+DIRSTACKSIZE=5
+setopt extendedglob
+unsetopt nomatch # allow [, ]
 disable r # r is a built-in for replaying command, use !!
 
 bindkey -e
