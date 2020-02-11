@@ -108,8 +108,7 @@ prompt_grb_setup() {
     wunjo_prompt_colors=(${(kv)pc})
 
     RPROMPT=
-    PROMPT=
-    PROMPT+="$pc[host]%m$pc[reset] $pc[shortpath]%2~$pc[reset]"
+    PROMPT="$pc[host]%m$pc[reset] $pc[shortpath]%2~$pc[reset]"
     PROMPT+=" $pc[scm_branch]\$(prompt_wunjo_scm_branch)$pc[reset]"
     PROMPT+="$pc[#]%(!.#.$)$pc[reset] "
 
