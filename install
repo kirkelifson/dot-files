@@ -18,7 +18,19 @@ for dotfile in $(find $dir -maxdepth 1 -name ".*" | sed '/.git$/d'); do
 done
 
 # Prevent rvm from being loaded twice
-rm -f ~/.zlogin
+if [[ -f ~/.zlogin ]];
+then
+  mv ~/.zlogin $dir/.zlogin.backup
+fi
+
+# Sublime text
+if [[ -d "/Applications/Sublime Text.app" ]];
+then
+  if [[ ! -f $dir/subl ]];
+  then
+    ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" $dir/bin/subl
+  fi
+fi
 
 # Copy bin as well
 echo -e "\t\t[>] Linking $dir/bin"
