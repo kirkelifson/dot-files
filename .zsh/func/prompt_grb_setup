@@ -140,13 +140,15 @@ prompt_wunjo_scm_branch() {
   local -A pc
   local -a dirty
   pc=(${(kv)wunjo_prompt_colors})
+  local -A status_prompt
 
-  echo -n "$pc[scm_branch]$(zgit_head) "
+
+  status_prompt="$pc[scm_branch]$(zgit_head) "
 
   if zgit_inworktree; then
     if ! zgit_isindexclean;
     then
-      echo -n "$pc[scm_status_staged]+"
+      status_prompt+="$pc[scm_status_staged]+"
     fi
 
     if ! zgit_isworktreeclean;
@@ -166,9 +168,11 @@ prompt_wunjo_scm_branch() {
 
     if [ $#dirty -gt 0 ];
     then
-      echo -n "$pc[scm_status_dirty]${(j::)dirty} "
+      status_prompt+="$pc[scm_status_dirty]${(j::)dirty}"
     fi
   fi
+
+  echo -ne "${status_prompt} "
 }
 
 prompt_grb_setup "$@"
