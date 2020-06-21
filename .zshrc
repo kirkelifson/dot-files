@@ -115,6 +115,26 @@ then
   export PATH=/usr/local/opt/curl/bin:$PATH
 fi
 
+# fuzzy finder
+if [[ -f ~/.fzf.zsh ]];
+then
+  source ~/.fzf.zsh
+fi
+
+# nvm
+if [[ -d ~/.nvm ]];
+then
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
+
+# Per-machine settings
+if [[ -z $TMUX && -f $HOME/.zshlocal ]];
+then
+  source $HOME/.zshlocal
+fi
+
 # rvm
 if [[ -d $HOME/.rvm ]];
 then
@@ -124,16 +144,4 @@ then
   fi
 
   source "$HOME/.rvm/scripts/rvm"
-fi
-
-# fuzzy finder
-if [[ -f ~/.fzf.zsh ]];
-then
-  source ~/.fzf.zsh
-fi
-
-# Per-machine settings
-if [[ -z $TMUX && -f $HOME/.zshlocal ]];
-then
-  source $HOME/.zshlocal
 fi
