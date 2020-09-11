@@ -89,6 +89,12 @@ then
   alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
   alias md5sum='md5 -q'
   alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
+
+  # vscode
+  if [[ -d "/Applications/Visual Studio Code.app" ]];
+  then
+    export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+  fi
 fi
 
 # Add tools to PATH
