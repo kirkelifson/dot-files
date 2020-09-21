@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+cat $HOME/.ssh/config | grep "Host " | awk '{print $2}'
