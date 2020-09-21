@@ -97,12 +97,6 @@ then
   fi
 fi
 
-# Add tools to PATH
-if [[ -z $TMUX && -d $HOME/tools ]];
-then
-  export PATH=$HOME/tools:$PATH
-fi
-
 # Add bin to PATH
 if [[ -z $TMUX && -d $HOME/bin ]];
 then
