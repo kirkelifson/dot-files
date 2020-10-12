@@ -50,7 +50,7 @@ set termencoding=utf-8
 
 " Style
 syntax on
-color sierra
+silent! color sierra
 set background=dark
 set t_Co=256
 set number
