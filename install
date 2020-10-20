@@ -7,7 +7,7 @@ echo -e "Installing dot-files:"
 echo -e "\t[+] Creating soft-links to dot-files."
 
 # fix compaudit on new machines
-if [[ -d /usr/local/share/zsh ]]; then
+if [[ -d /usr/local/share/zsh && ! -z $(compaudit) ]]; then
   chmod 755 /usr/local/share/zsh
   chmod 755 /usr/local/share/zsh/site-functions
 fi
