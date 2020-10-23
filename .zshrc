@@ -1,9 +1,7 @@
-# Prompt
-fpath=($fpath ~/.zsh/func)
-typeset -U fpath
 autoload -Uz promptinit; promptinit -u
-prompt grb
 setopt prompt_subst
+RPROMPT=
+PROMPT="; "
 
 # History
 setopt hist_ignore_all_dups
