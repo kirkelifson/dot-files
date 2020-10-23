@@ -9,12 +9,9 @@ setopt inc_append_history
 
 # Completion
 
-# load our own completion functions
 fpath=(~/.zsh/completion /usr/local/share/zsh/site-functions $fpath)
-
-# completion; use cache if updated within 24h
 autoload -Uz compinit
-if [[ -n $HOME/.zcompdump(#qN.mh+24) ]]; then
+if [[ -n $HOME/.zcompdump(#qN.mh+24) ]]; then # use cache if updated within 24h
   compinit -d $HOME/.zcompdump;
 else
   compinit -C;
@@ -49,6 +46,7 @@ alias cats='highlight -O ansi --force'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias egrep='egrep --color -n'
+alias fetch-all='for i in `/bin/ls`; do cd $i; git fap; cd ..; done'
 alias gdb='gdb -q' # launch without license noise
 alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
@@ -86,7 +84,7 @@ then
   # recursive, preserve times, verbose, update (only if change time greater)
   alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
   alias md5sum='md5 -q'
-  alias ls='ls -GlohF' # color, long, omit group, human sizes, file type symbols
+  alias ls='ls -Goh' # colorized, user but no group info, human readable file sizes
 
   # vscode
   if [[ -d "/Applications/Visual Studio Code.app" ]];
@@ -120,7 +118,7 @@ then
 fi
 
 # nvm
-if [[ -d ~/.nvm ]];
+if [[ -d ~/.nvm && $LOAD_NVM == "true" ]];
 then
   export NVM_DIR="$HOME/.nvm"
   [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
