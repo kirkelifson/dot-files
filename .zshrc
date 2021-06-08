@@ -53,6 +53,7 @@ alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
+alias pull-all='for i in `/bin/ls`; do cd $i; git pull; cd ..; done'
 alias search='grep --color -R -C3 -n' # color even when piping into less
 alias strings='strings -a'
 alias vi='vim -p'
