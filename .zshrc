@@ -42,6 +42,7 @@ bindkey '\e\e[C' forward-word
 bindkey '\e\e[D' backward-word
 
 # Aliases
+alias be='bundle exec'
 alias cats='highlight -O ansi --force'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
@@ -119,7 +120,7 @@ then
 fi
 
 # nvm
-if [[ -d ~/.nvm && $LOAD_NVM == "true" ]];
+if [[ -d ~/.nvm ]];
 then
   export NVM_DIR="$HOME/.nvm"
   [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
