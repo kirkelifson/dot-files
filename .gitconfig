@@ -9,10 +9,12 @@
   co = checkout
   dc = diff --cached
   dom = diff origin/master
+  domain = diff origin/main
   fa = fetch --all
   fap = fetch --all --prune
   lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   rom = rebase origin/master
+  romain = rebase origin/main
   st = status
   nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
   change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ \\\"$`echo $VAR`\\\" = '$OLD' ]]; then export $VAR='$NEW'; fi\" $@; }; f "
