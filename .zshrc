@@ -1,7 +1,14 @@
-autoload -Uz promptinit; promptinit -u
 setopt prompt_subst
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git*' formats "(%b)"
+autoload -Uz promptinit; promptinit -u
+precmd() {
+  vcs_info
+}
+
 RPROMPT=
-PROMPT="; "
+PROMPT='%B%F{44}%m%f%b %B%F{240}%2~%f%b %B%F{216}${vcs_info_msg_0_}%f%b %# '
 
 # History
 setopt hist_ignore_all_dups
@@ -11,7 +18,7 @@ setopt inc_append_history
 
 fpath=(~/.zsh/completion /usr/local/share/zsh/site-functions $fpath)
 autoload -Uz compinit
-if [[ -n $HOME/.zcompdump(#qN.mh+24) ]]; then # use cache if updated within 24h
+if [[ -n $HOME/.zcompdump(#qN.mh+72) ]]; then # use cache if updated within 72h
   compinit -d $HOME/.zcompdump;
 else
   compinit -C;
@@ -72,6 +79,7 @@ alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 # Linux specific
 if [[ $(uname -s) == "Linux" ]];
 then
+  alias apt='sudo apt'
   alias aptitude='sudo aptitude'
   alias apt-get='sudo apt-get'
   alias ifconfig='sudo ifconfig'
