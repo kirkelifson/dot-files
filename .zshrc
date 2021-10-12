@@ -54,14 +54,14 @@ alias cats='highlight -O ansi --force'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias egrep='egrep --color -n'
-alias fetch-all='for i in `/bin/ls`; do cd $i; git fap; cd ..; done'
+alias fetch-all='for i in `/bin/ls`; do cd $i; echo "Fetching and pruning $i"; git fap -q; cd ..; done'
 alias gdb='gdb -q' # launch without license noise
 alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
-alias pull-all='for i in `/bin/ls`; do cd $i; git pull; cd ..; done'
+alias pull-all='for i in `/bin/ls`; do cd $i; echo "Pulling $i"; git pull -q; cd ..; done'
 alias search='grep --color -R -C3 -n' # color even when piping into less
 alias strings='strings -a'
 alias vi='vim -p'
