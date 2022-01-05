@@ -2574,12 +2574,16 @@
 			</dict>
 			<key>Ansi 15 Color (Light)</key>
 			<dict>
+				<key>Alpha Component</key>
+				<real>1</real>
 				<key>Blue Component</key>
-				<real>1</real>
+				<real>0.823089599609375</real>
+				<key>Color Space</key>
+				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>1</real>
+				<real>0.823089599609375</real>
 				<key>Red Component</key>
-				<real>1</real>
+				<real>0.823089599609375</real>
 			</dict>
 			<key>Ansi 2 Color</key>
 			<dict>
@@ -2768,12 +2772,16 @@
 			</dict>
 			<key>Ansi 7 Color (Light)</key>
 			<dict>
+				<key>Alpha Component</key>
+				<real>1</real>
 				<key>Blue Component</key>
-				<real>1</real>
+				<real>0.645355224609375</real>
+				<key>Color Space</key>
+				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>1</real>
+				<real>0.645355224609375</real>
 				<key>Red Component</key>
-				<real>1</real>
+				<real>0.645355224609375</real>
 			</dict>
 			<key>Ansi 8 Color</key>
 			<dict>
