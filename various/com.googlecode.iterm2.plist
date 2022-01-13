@@ -2866,12 +2866,16 @@
 			</dict>
 			<key>Background Color (Dark)</key>
 			<dict>
+				<key>Alpha Component</key>
+				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.11759774386882782</real>
+				<real>0.0</real>
+				<key>Color Space</key>
+				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>0.11759574711322784</real>
+				<real>0.0</real>
 				<key>Red Component</key>
-				<real>0.11759926378726959</real>
+				<real>0.0</real>
 			</dict>
 			<key>Background Color (Light)</key>
 			<dict>
@@ -2961,6 +2965,8 @@
 				<real>0.78823530673980713</real>
 			</dict>
 			<key>Brighten Bold Text</key>
+			<false/>
+			<key>Brighten Bold Text (Dark)</key>
 			<false/>
 			<key>Character Encoding</key>
 			<integer>4</integer>
@@ -3659,7 +3665,7 @@
 			<key>Title Components</key>
 			<integer>512</integer>
 			<key>Transparency</key>
-			<real>0.093514300407247342</real>
+			<real>0.0</real>
 			<key>Unlimited Scrollback</key>
 			<true/>
 			<key>Use Bold Font</key>
