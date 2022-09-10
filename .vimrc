@@ -56,9 +56,9 @@ set t_Co=256
 set number
 " Restore previous cursor position
 autocmd BufReadPost *
-      \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-      \   exe "normal g`\"" |
-      \ endif
+      \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+      \ |   exe "normal! g`\""
+      \ | endif
 " Filetype specifics
 set shiftwidth=2 softtabstop=2 " default 2 spaces
 autocmd FileType python,java,c,cpp set shiftwidth=4 softtabstop=4 " python requires 4 spaces
