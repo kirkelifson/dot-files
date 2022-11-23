@@ -57,6 +57,7 @@ alias dev='bin/dev' # Rails 7+ foreman launcher
 alias egrep='egrep --color -n'
 alias fetch-all='for i in `/bin/ls`; do cd $i; echo "Fetching and pruning $i"; git fap -q; cd ..; done'
 alias gdb='gdb -q' # launch without license noise
+alias goodcop='rubocop -Pfs' # parallelize, format=simple
 alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
 alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
