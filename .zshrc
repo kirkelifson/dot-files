@@ -50,10 +50,10 @@ bindkey '\e\e[D' backward-word
 
 # Aliases
 alias be='bundle exec'
-alias cats='highlight -O ansi --force'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
 alias cp='cp -Rv' # recursive and prints file names
 alias dev='bin/dev' # Rails 7+ foreman launcher
+alias dog="pygmentize -g"
 alias egrep='egrep --color -n'
 alias fetch-all='for i in `/bin/ls`; do cd $i; echo "Fetching and pruning $i"; git fap -q; cd ..; done'
 alias gdb='gdb -q' # launch without license noise
