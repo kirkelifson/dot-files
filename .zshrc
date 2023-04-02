@@ -72,8 +72,6 @@ alias vim='vim -p'
 alias ta='tmux -2 -u attach -t'
 alias tmux='tmux -2 -u'
 # Python
-alias python='python3'
-alias pip='pip3'
 alias sba='source bin/activate'
 # Javascript
 alias jsc="env NODE_NO_READLINE=1 rlwrap node"
