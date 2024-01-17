@@ -51,6 +51,7 @@ bindkey '\e\e[D' backward-word
 # Aliases
 alias be='bundle exec'
 alias clbin="curl -F 'clbin=<-' https://clbin.com"
+alias coverage-web="ruby -run -e httpd coverage -p 3005"
 alias cp='cp -Rv' # recursive and prints file names
 alias dev='bin/dev' # Rails 7+ foreman launcher
 alias dog="pygmentize -g"
@@ -69,10 +70,7 @@ alias strings='strings -a'
 alias vi='vim -p'
 alias vim='vim -p'
 # tmux
-alias ta='tmux -2 -u attach -t'
 alias tmux='tmux -2 -u'
-# Python
-alias sba='source bin/activate'
 # Javascript
 alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 
@@ -134,14 +132,8 @@ fi
 if [[ -d ~/.nvm ]];
 then
   export NVM_DIR="$HOME/.nvm"
-  if [[ -d /opt/homebrew/opt/nvm ]];
-  then
-    [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-    [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-  else
-    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-    [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-  fi
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 fi
 
 # Per-machine settings

@@ -19,13 +19,20 @@
   nuke = "!f() { git branch -D $1; git push origin :$1; }; f"
   change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ \\\"$`echo $VAR`\\\" = '$OLD' ]]; then export $VAR='$NEW'; fi\" $@; }; f "
   recent = branch --sort=-committerdate --format=\"%(committerdate:relative)%09%(refname:short)\"
+  set-upstream = !git branch --set-upstream-to=origin/$(git symbolic-ref --short HEAD)
 [color]
   ui = auto
 [merge]
   tool = vimdiff
 [push]
   default = current
+  autoSetupRemote = true
 [core]
-  whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof
+  whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof,cr-at-eol
 [pull]
   ff = only
+[filter "lfs"]
+  required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
