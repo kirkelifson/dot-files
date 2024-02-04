@@ -1,15 +1,5 @@
-" Plugins
-filetype off
-set nocompatible " helps if testing this vimrc using $ vim -u vimrc_file
-set runtimepath+=~/.vim/bundle/vundle
-call vundle#begin()
-Plugin 'VundleVim/Vundle.vim' " required
-Plugin 'ervandew/supertab' " tab completion
-Plugin 'AlessandroYorba/Sierra'
-Plugin 'itchyny/lightline.vim' " status bar
-Plugin 'airblade/vim-gitgutter' " git status in gutter
-call vundle#end()
 filetype plugin indent on
+syntax on
 
 " Whitespace
 set expandtab " converts tabs to spaces
