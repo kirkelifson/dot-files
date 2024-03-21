@@ -15,3 +15,6 @@ export VISUAL=$EDITOR
 # fzf + fd / quick fuzzy finder
 export FZF_DEFAULT_COMMAND='fd --type f'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# Rails
+export DISABLE_SPRING=1
