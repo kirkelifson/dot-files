@@ -110,18 +110,6 @@ then
   export PATH=$HOME/bin:$PATH
 fi
 
-# Add homebrew sbin to PATH
-if [[ -z $TMUX && -d /usr/local/sbin ]];
-then
-  export PATH=/usr/local/sbin:$PATH
-fi
-
-# Add homebrew curl to PATH
-if [[ -z $TMUX && -d /usr/local/opt/curl/bin ]];
-then
-  export PATH=/usr/local/opt/curl/bin:$PATH
-fi
-
 # fuzzy finder
 if [[ -f ~/.fzf.zsh ]];
 then
