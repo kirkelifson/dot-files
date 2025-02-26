@@ -17,12 +17,6 @@ for dotfile in $(find $dir -maxdepth 1 -name ".*" | sed '/.git$/d'); do
   fi
 done
 
-# Prevent rvm from being loaded twice
-if [[ -f ~/.zlogin ]];
-then
-  mv ~/.zlogin $dir/.zlogin.backup
-fi
-
 # Sublime text
 if [[ -d "/Applications/Sublime Text.app" ]];
 then
