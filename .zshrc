@@ -15,8 +15,7 @@ setopt hist_ignore_all_dups
 setopt inc_append_history
 
 # Completion
-
-fpath=(~/.zsh/completion /usr/local/share/zsh/site-functions $fpath)
+fpath=($HOME/.zsh/completion /usr/local/share/zsh/site-functions $fpath)
 autoload -Uz compinit
 if [[ -n $HOME/.zcompdump(#qN.mh+72) ]]; then # use cache if updated within 72h
   compinit -d $HOME/.zcompdump;
@@ -24,14 +23,14 @@ else
   compinit -C;
 fi
 
-setopt nobanghist # allow unescaped ! in arguments
+setopt nobanghist # allow unescaped ! in arguments (TODO)
 
 zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' # case-insensitive completion
 zstyle ':completion:*:*:vim:*:*files' ignored-patterns '(*.class|*.out|*.o)' # ignore these files from vim completion
 zstyle -e ':completion::*:*:*:hosts' hosts 'reply=(${=${${(f)"$(cat $HOME/.ssh/known_hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })' # ssh completion for hosts file
 zstyle ':completion:*' list-suffixes
 zstyle ':completion:*' expand prefix suffix
-zstyle ':completion:*:*:git:*' script ~/.zsh/completion/bash/git-completion.bash
+zstyle ':completion:*:*:git:*' script $HOME/.zsh/completion/bash/git-completion.bash
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^R' history-incremental-search-backward
 bindkey '^F' history-incremental-search-forward
@@ -96,38 +95,40 @@ then
   alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
   alias md5sum='md5 -q'
   alias ls='ls -Goh' # colorized, user but no group info, human readable file sizes
+fi
 
-  # vscode
-  if [[ -d "/Applications/Visual Studio Code.app" ]];
+if [[ -z $TMUX ]];
+then
+  # Add bin to PATH
+  if [[ -d $HOME/bin ]];
   then
-    export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
-  fi
-fi
-
-# Add bin to PATH
-if [[ -z $TMUX && -d $HOME/bin ]];
-then
-  export PATH=$HOME/bin:$PATH
-fi
-
-# fuzzy finder
-if [[ -f ~/.fzf.zsh ]];
-then
-  source ~/.fzf.zsh
-fi
-# Per-machine settings
-if [[ -z $TMUX && -f $HOME/.zshlocal ]];
-then
-  source $HOME/.zshlocal
-fi
-
-# rvm
-if [[ -d $HOME/.rvm ]];
-then
-  if [[ -z $TMUX ]];
-  then
-    export PATH="$HOME/.rvm/bin:$PATH"
+    export PATH=$HOME/bin:$PATH
   fi
 
-  source "$HOME/.rvm/scripts/rvm"
+  # fuzzy finder
+  if [[ -f $HOME/.fzf.zsh ]];
+  then
+    source $HOME/.fzf.zsh
+  fi
+
+  # Per-machine settings
+  if [[ -f $HOME/.zshlocal ]];
+  then
+    source $HOME/.zshlocal
+  fi
+
+  # python
+  if [[ -d "$HOME/.pyenv" ]];
+  then
+    export PYENV_ROOT="$HOME/.pyenv"
+    [ -d $PYENV_ROOT/bin ] && export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init - zsh)"
+  fi
+
+  # rvm
+  # if [[ -d $HOME/.rvm ]];
+  # then
+  #   export PATH="$HOME/.rvm/bin:$PATH"
+  #   source "$HOME/.rvm/scripts/rvm"
+  # fi
 fi
