@@ -10,8 +10,6 @@
   dc = diff --cached
   dom = diff origin/master
   domain = diff origin/main
-  fa = fetch --all
-  fap = fetch --all --prune
   lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   rom = rebase origin/master
   romain = rebase origin/main
@@ -25,8 +23,9 @@
 [merge]
   tool = vimdiff
 [push]
-  default = current
+  default = simple
   autoSetupRemote = true
+  followTags = true
 [core]
   whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof,cr-at-eol
 [pull]
@@ -36,3 +35,23 @@
   clean = git-lfs clean -- %f
   smudge = git-lfs smudge -- %f
   process = git-lfs filter-process
+[column]
+  ui = auto
+[branch]
+  sort = -committerdate
+[tag]
+  sort = version:refname
+[diff]
+  algorithm = histogram
+  colorMoved = plain
+  mnemonicPrefix = true
+  renames = true
+[fetch]
+  prune = true
+  pruneTags = true
+  all = true
+[commit]
+  verbose = true
+[rerere]
+  enabled = true
+  autoupdate = true
