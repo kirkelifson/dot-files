@@ -11,6 +11,7 @@ export LANGUAGE=en_US.UTF-8
 # Various
 export EDITOR=vim
 export VISUAL=$EDITOR
+export BUNDLER_EDITOR=code
 
 # fzf + fd / quick fuzzy finder
 export FZF_DEFAULT_COMMAND='fd --type f'
