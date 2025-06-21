@@ -12,6 +12,7 @@ export LANGUAGE=en_US.UTF-8
 export EDITOR=vim
 export VISUAL=$EDITOR
 export BUNDLER_EDITOR=code
+export PS_FORMAT="pid,user:20,cmd:200,etime,pcpu,rss"
 
 # fzf + fd / quick fuzzy finder
 export FZF_DEFAULT_COMMAND='fd --type f'
