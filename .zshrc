@@ -124,11 +124,4 @@ then
     [ -d $PYENV_ROOT/bin ] && export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init - zsh)"
   fi
-
-  # rvm
-  # if [[ -d $HOME/.rvm ]];
-  # then
-  #   export PATH="$HOME/.rvm/bin:$PATH"
-  #   source "$HOME/.rvm/scripts/rvm"
-  # fi
 fi
