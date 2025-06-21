@@ -2546,13 +2546,15 @@
 	<key>EnableProxyIcon</key>
 	<true/>
 	<key>FlashTabBarInFullscreen</key>
-	<false/>
+	<true/>
 	<key>HapticFeedbackForEsc</key>
 	<false/>
 	<key>HideActivityIndicator</key>
 	<false/>
+	<key>HideFromDockAndAppSwitcher</key>
+	<false/>
 	<key>HideMenuBarInFullscreen</key>
-	<true/>
+	<false/>
 	<key>HideScrollbar</key>
 	<false/>
 	<key>HideTab</key>
@@ -2593,6 +2595,8 @@
 			<key>Allow Title Setting</key>
 			<true/>
 			<key>Ambiguous Double Width</key>
+			<false/>
+			<key>Animate Movement</key>
 			<false/>
 			<key>Ansi 0 Color</key>
 			<dict>
@@ -3187,7 +3191,7 @@
 				<real>0.58039215686274515</real>
 			</dict>
 			<key>BM Growl</key>
-			<false/>
+			<true/>
 			<key>Background Color</key>
 			<dict>
 				<key>Alpha Component</key>
@@ -3403,6 +3407,10 @@
 				<key>Red Component</key>
 				<real>0.85490196078431369</real>
 			</dict>
+			<key>Cursor Hidden When Unfocused</key>
+			<true/>
+			<key>Cursor Shadow</key>
+			<false/>
 			<key>Cursor Text Color</key>
 			<dict>
 				<key>Alpha Component</key>
@@ -3567,7 +3575,7 @@
 				<real>0.1137254901960784</real>
 			</dict>
 			<key>Load Shell Integration Automatically</key>
-			<true/>
+			<false/>
 			<key>Match Background Color</key>
 			<dict>
 				<key>Alpha Component</key>
@@ -3630,7 +3638,7 @@
 			<key>Rows</key>
 			<integer>35</integer>
 			<key>Screen</key>
-			<integer>-1</integer>
+			<integer>-2</integer>
 			<key>Scrollback Lines</key>
 			<integer>100000</integer>
 			<key>Selected Text Color</key>
@@ -3708,11 +3716,11 @@
 				<real>0.67843137254901964</real>
 			</dict>
 			<key>Send Bell Alert</key>
-			<false/>
+			<true/>
 			<key>Send Code When Idle</key>
 			<false/>
 			<key>Send New Output Alert</key>
-			<true/>
+			<false/>
 			<key>Send Session Ended Alert</key>
 			<false/>
 			<key>Shortcut</key>
