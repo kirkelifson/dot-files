@@ -60,7 +60,7 @@ alias gdb='gdb -q' # launch without license noise
 alias goodcop='rubocop -Pfs' # parallelize, format=simple
 alias grep='grep --color -n'
 alias less='less -R' # fix non-ansi colors
-alias ls='ls -lGhF --color=always' # long list, no groups, readable size, file type indicator, always color
+alias ls='ls -ltrGh' # long list, no groups, readable size, file type indicator
 alias mv='mv -v' # list files
 alias ps='ps aux --forest' # pretty print w tree
 alias pull-all='for i in `/bin/ls`; do cd $i; echo "Pulling $i"; git pull -q; cd ..; done'
@@ -87,12 +87,11 @@ fi
 if [[ $(uname -s) == "Darwin" ]];
 then
   unalias ps
+  alias ps="ps -eo pid,args,etime,%cpu,rss"
   alias brew-restart='brew services restart'
   alias brew-start='brew services start'
   alias brew-stop='brew services stop'
   alias brew-update='brew update; brew upgrade; brew services cleanup; brew doctor; brew cleanup'
-  # recursive, preserve times, verbose, update (only if change time greater)
-  alias sync-music='rsync -rtvu --delete "/Users/kirk/Music/iTunes/iTunes Media/Music/" /Volumes/xtc/media/Music/'
   alias md5sum='md5 -q'
   alias ls='ls -Goh' # colorized, user but no group info, human readable file sizes
 fi
