@@ -1,0 +1,38 @@
+# Ghostty Configuration
+
+# Theme - minimal, clean dark theme
+background = 1c1c1c
+foreground = d4d4d4
+
+# Cursor
+cursor-style-blink = true
+
+# Font
+font-family = "SF Mono"
+font-size = 14
+
+# Mouse
+mouse-hide-while-typing = true
+copy-on-select = clipboard
+
+# Scrollback
+scrollback-limit = 1000000
+
+# Window behavior
+confirm-close-surface = false
+window-padding-x = 0
+window-padding-y = 0
+
+# Visual effects - matching iTerm2 blur and transparency
+background-opacity = 0.833
+background-blur-radius = 20
+
+# Bell behavior - matching iTerm2
+shell-integration-features = cursor,sudo,title
+
+# Option key sends Meta/Escape (like iTerm2)
+macos-option-as-alt = true
+
+# Keybindings
+keybind = super+left=previous_tab
+keybind = super+right=next_tab

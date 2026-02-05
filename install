@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 set -e
 dir=$(pwd)
 
@@ -6,9 +6,9 @@ dir=$(pwd)
 echo -e "Installing dot-files:"
 echo -e "[+] Creating soft-links to dot-files."
 
-# Soft-link all files and directories (except .git of course)
-for dotfile in $(find $dir -maxdepth 1 -name ".*" | sed '/.git$/d'); do
-  if [[ -d $dotfile ]]; then
+# Soft-link all files and directories (except .git and .config)
+for dotfile in $(find $dir -maxdepth 1 -name ".*" | grep -v '\.git$' | grep -v '\.config$'); do
+  if [ -d $dotfile ]; then
     echo -e "\t[>] Copying $dotfile"
     cp -r $dotfile ~
   else
@@ -18,25 +18,47 @@ for dotfile in $(find $dir -maxdepth 1 -name ".*" | sed '/.git$/d'); do
 done
 
 # Sublime text
-if [[ -d "/Applications/Sublime Text.app" ]];
-then
-  if [[ ! -f $dir/bin/subl ]];
-  then
+if [ -d "/Applications/Sublime Text.app" ]; then
+  if [ ! -f $dir/bin/subl ]; then
     ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" $dir/bin/subl
   fi
 fi
 
 # Copy bin as well
 echo -e "\t[>] Linking $dir/bin"
-ln -sf $dir/bin ~
+ln -sfn $dir/bin ~
 
-if [[ ! -d ~/peda ]]; then
+# Link fish and ghostty configs
+echo -e "[+] Setting up fish and ghostty configs."
+mkdir -p ~/.config
+
+# Handle fish config
+if [ -d $dir/.config/fish ]; then
+  if [ -e ~/.config/fish ] && [ ! -L ~/.config/fish ]; then
+    echo -e "\t[>] Backing up existing fish config to ~/.config/fish-backup"
+    mv ~/.config/fish ~/.config/fish-backup
+  fi
+  echo -e "\t[>] Linking fish config"
+  ln -sfn $dir/.config/fish ~/.config/fish
+fi
+
+# Handle ghostty config
+if [ -d $dir/.config/ghostty ]; then
+  if [ -e ~/.config/ghostty ] && [ ! -L ~/.config/ghostty ]; then
+    echo -e "\t[>] Backing up existing ghostty config to ~/.config/ghostty-backup"
+    mv ~/.config/ghostty ~/.config/ghostty-backup
+  fi
+  echo -e "\t[>] Linking ghostty config"
+  ln -sfn $dir/.config/ghostty ~/.config/ghostty
+fi
+
+if [ ! -d ~/peda ]; then
   echo -e "[+] Installing peda (gdb)."
   git clone https://github.com/longld/peda.git ~/peda &> /dev/null
 fi
 
 # Install vim packages
-if [[ ! -d ~/.vim/pack/bundle/start ]]; then
+if [ ! -d ~/.vim/pack/bundle/start ]; then
   echo -e "[+] Adding vim packages."
   mkdir -p ~/.vim/pack/bundle/start
   cd ~/.vim/pack/bundle/start
@@ -48,8 +70,46 @@ else
   echo -e "[+] Updating vim packages."
   for package in $(ls ~/.vim/pack/bundle/start); do
     cd ~/.vim/pack/bundle/start/$package
-    git pull  &> /dev/null
+    git pull &> /dev/null
   done
+fi
+
+# Setup fish shell
+if command -v fish > /dev/null 2>&1; then
+  fish_path=$(command -v fish)
+  echo -e "[+] Setting up fish shell."
+
+  # Add fish to /etc/shells if not present
+  if ! grep -q "^${fish_path}$" /etc/shells 2>/dev/null; then
+    echo -e "\t[>] Adding fish to /etc/shells (requires sudo)"
+    echo "$fish_path" | sudo tee -a /etc/shells > /dev/null
+  fi
+
+  # Change default shell to fish if not already
+  current_shell=$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)
+  if [ -z "$current_shell" ]; then
+    # Fallback for macOS (getent may not work)
+    current_shell=$(finger "$USER" 2>/dev/null | grep 'Shell:' | cut -d: -f3 | tr -d ' ')
+  fi
+  if [ -z "$current_shell" ]; then
+    # Final fallback
+    current_shell="$SHELL"
+  fi
+
+  if [ "$current_shell" != "$fish_path" ]; then
+    echo -e "\t[>] Changing default shell to fish"
+    chsh -s "$fish_path"
+    echo -e "\t[!] Default shell changed. Please restart your terminal."
+  else
+    echo -e "\t[>] Fish is already the default shell"
+  fi
+else
+  echo -e "[!] Fish shell not found. Install it first:"
+  if [ "$(uname -s)" = "Darwin" ]; then
+    echo -e "\t brew install fish"
+  else
+    echo -e "\t sudo apt install fish"
+  fi
 fi
 
 echo -e "[!] Restart terminal session for changes to take effect."
