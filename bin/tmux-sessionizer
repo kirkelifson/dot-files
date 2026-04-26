@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Fuzzy-find a project directory and create/attach a tmux session for it.
+# Usage: tmux-sessionizer [directory]
+#
+# If a directory is passed, use it directly. Otherwise, use fzf to pick one.
+# Searches common project directories for repos.
+
+# Directories to search for projects (add your own)
+search_dirs=(
+  ~/code
+  ~/projects
+  ~/work
+  ~/src
+  ~/dot-files
+)
+
+# Filter to only existing directories
+existing_dirs=()
+for d in "${search_dirs[@]}"; do
+  [ -d "$d" ] && existing_dirs+=("$d")
+done
+
+if [ ${#existing_dirs[@]} -eq 0 ]; then
+  echo "No project directories found. Edit search_dirs in $(basename "$0")."
+  exit 1
+fi
+
+if [ -n "$1" ]; then
+  selected="$1"
+else
+  selected=$(find "${existing_dirs[@]}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | fzf --prompt="project> ")
+fi
+
+if [ -z "$selected" ]; then
+  exit 0
+fi
+
+# Session name from directory basename, replacing dots with underscores
+session_name=$(basename "$selected" | tr . _)
+
+# Create session if it doesn't exist
+if ! tmux has-session -t="$session_name" 2>/dev/null; then
+  tmux new-session -ds "$session_name" -c "$selected"
+fi
+
+# Attach or switch depending on whether we're in tmux
+if [ -n "$TMUX" ]; then
+  tmux switch-client -t "$session_name"
+else
+  tmux attach-session -t "$session_name"
+fi
