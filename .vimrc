@@ -14,7 +14,11 @@ set re=1
 set autowrite
 set laststatus=2 " lightline requirement
 set noshowmode
-set rtp+=/usr/local/opt/fzf
+if isdirectory('/opt/homebrew/opt/fzf')
+  set rtp+=/opt/homebrew/opt/fzf
+elseif isdirectory('/usr/local/opt/fzf')
+  set rtp+=/usr/local/opt/fzf
+endif
 set mouse=a
 set mmp=5000
 
@@ -61,16 +65,13 @@ autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
 autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
 autocmd InsertLeave * match ExtraWhitespace /\s\+$/
 autocmd BufWinLeave * call clearmatches()
-" Highlight todo
+" Highlight TODO/FIXME/HACK/NOTE
 highlight Todo ctermbg=red guibg=red
-match TODO /\s\+$/
-autocmd BufWinEnter * match TODO /TODO/
+2match Todo /\<\(TODO\|FIXME\|HACK\|NOTE\)\>/
+autocmd BufWinEnter * 2match Todo /\<\(TODO\|FIXME\|HACK\|NOTE\)\>/
 " Key mappings
 nnoremap ; :
 let mapleader = ","
-" ctrl+p for fuzzy file search
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
 " ,ev = edit vimrc
 nnoremap <leader>ev <C-w><C-v><C-l>:e $MYVIMRC<cr>
 " ,<space> = clear highlights from search
@@ -78,8 +79,6 @@ noremap <leader><space> :nohlsearch<cr>
 " paste mode set, unset
 nnoremap <leader>p :set paste<cr>
 nnoremap <leader>P :set nopaste<cr>
-map <leader>t :NERDTreeToggle<cr>
-
 set splitbelow
 set splitright
 
