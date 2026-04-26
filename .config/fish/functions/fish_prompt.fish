@@ -9,7 +9,7 @@ function fish_prompt
     echo -n ' '
 
     # Last 2 directories in gray
-    set_color brblack
+    set_color fff
     echo -n (prompt_pwd --full-length-dirs 2)
     set_color normal
     echo -n ' '
@@ -25,10 +25,10 @@ function fish_prompt
         # Check for staged and unstaged changes
         set -l git_status ""
         if not git diff --quiet 2>/dev/null
-            set git_status "*"  # Unstaged changes
+            set git_status "*" # Unstaged changes
         end
         if not git diff --cached --quiet 2>/dev/null
-            set git_status "$git_status+"  # Staged changes
+            set git_status "$git_status+" # Staged changes
         end
 
         # Display branch with status indicators

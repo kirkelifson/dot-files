@@ -26,56 +26,22 @@ set -l os (uname -s)
 
 # --- PATH Management ---
 
-# Homebrew (macOS only)
-if test "$os" = Darwin
-    if test -d /opt/homebrew/bin
-        fish_add_path -p /opt/homebrew/bin /opt/homebrew/sbin
-
-        if test -d /opt/homebrew/opt/openjdk/bin
-            fish_add_path /opt/homebrew/opt/openjdk/bin
-        end
-    end
-
-    if test -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-        fish_add_path "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-    end
-end
-
-# Tool-specific paths (cross-platform)
+# Common paths
+fish_add_path $HOME/bin
 fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.cargo/bin
 fish_add_path $HOME/.bun/bin
-fish_add_path $HOME/.opencode/bin
 fish_add_path $HOME/.docker/bin
 
-# Only load other PATH modifications and integrations outside of tmux
-# (tmux inherits environment from parent shell)
-if not set -q TMUX
-    if test -d $HOME/bin
-        fish_add_path -p $HOME/bin
-    end
-
-    # pyenv (installed via Homebrew)
-    if type -q pyenv
-        set -gx PYENV_ROOT "$HOME/.pyenv"
-        pyenv init - fish | source
-    end
-
-    # fzf integration
-    if test -f $HOME/.fzf.fish
-        source $HOME/.fzf.fish
-    end
-
-    # LM Studio CLI
-    if test -d $HOME/.lmstudio/bin
-        fish_add_path -a $HOME/.lmstudio/bin
-    end
-
-    # Per-machine settings
-    if test -f $HOME/.config/fish/local.fish
-        source $HOME/.config/fish/local.fish
-    end
+# Homebrew (macOS only)
+if test "$os" = Darwin
+    fish_add_path /opt/homebrew/bin /opt/homebrew/sbin
+    fish_add_path /opt/homebrew/opt/openjdk/bin
+    fish_add_path "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 end
+
+fish_add_path $HOME/.opencode/bin
+fish_add_path -a $HOME/.lmstudio/bin
 
 # ASDF - only load if devenv is not active
 if not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
@@ -91,27 +57,11 @@ if not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
     set --erase _asdf_shims
 end
 
-# --- Aliases ---
+# --- Command aliases (available in scripts and interactive shells) ---
 
 alias be='bundle exec'
-alias clbin="curl -F 'clbin=<-' https://clbin.com"
-alias coverage-web="ruby -run -e httpd coverage -p 3005"
-alias cp='cp -Rv'
-alias dev='bin/dev'
-alias dog="pygmentize -g"
-alias egrep='egrep --color -n'
-alias gdb='gdb -q'
 alias goodcop='rubocop -Pfs'
-alias grep='grep --color -n'
-alias less='less -R'
-alias mv='mv -v'
-alias search='grep --color -R -C3 -n'
-alias strings='strings -a'
-alias vim='nvim'
-alias tmux='tmux -2 -u'
-alias jsc="env NODE_NO_READLINE=1 rlwrap node"
 
-# Platform-specific aliases
 switch $os
     case Linux
         alias apt='sudo apt'
@@ -119,14 +69,91 @@ switch $os
         alias apt-get='sudo apt-get'
         alias ifconfig='sudo ifconfig'
         alias open='xdg-open'
-        alias ls='ls -ltrGh'
-        alias ps='ps aux --forest'
     case Darwin
-        alias ps="ps -eo pid,args,etime,%cpu,rss"
         alias brew-restart='brew services restart'
         alias brew-start='brew services start'
         alias brew-stop='brew services stop'
         alias brew-update='brew update; brew upgrade; brew doctor; brew cleanup -s --prune=all'
         alias md5sum='md5 -q'
-        alias ls='ls -Goh'
+end
+
+# --- Interactive only ---
+if status is-interactive
+    # fzf keybindings and completion
+    if type -q fzf
+        fzf --fish | source
+    end
+
+    # direnv
+    if type -q direnv
+        direnv hook fish | source
+    end
+
+    # zoxide (smarter cd)
+    if type -q zoxide
+        zoxide init fish | source
+    end
+
+    # Increase open file limit (default 256 on macOS is too low for dev)
+    if test (ulimit -n) -lt 4096
+        ulimit -n 4096
+    end
+
+    # Per-machine settings
+    if test -f $HOME/.config/fish/local.fish
+        source $HOME/.config/fish/local.fish
+    end
+
+    # --- Abbreviations (expand inline so you see the full command) ---
+    abbr -a g git
+    abbr -a gst git status
+    abbr -a gd git diff
+    abbr -a gdc git diff --cached
+    abbr -a gl git lg
+    abbr -a gco git checkout
+    abbr -a gpu git push
+    abbr -a gpl git pull
+    abbr -a ga git add
+    abbr -a gci git commit --verbose
+    abbr -a gca git commit --amend
+    abbr -a gcane git commit --amend --no-edit
+
+    abbr -a ts tmux-sessionizer
+    abbr -a bi bundle install
+    abbr -a rc bin/rails console
+    abbr -a rs bin/rails server
+    abbr -a rr bin/rails routes
+    abbr -a rdb bin/rails db
+
+    # --- Aliases ---
+
+    alias clbin="curl -F 'clbin=<-' https://clbin.com"
+    alias coverage-web="ruby -run -e httpd coverage -p 3005"
+    alias cp='cp -Rv'
+    alias dev='bin/dev'
+    alias dog="pygmentize -g"
+    alias egrep='egrep --color=auto -n'
+    alias gdb='gdb -q'
+    alias grep='grep --color=auto -n'
+    alias less='less -R'
+    alias mv='mv -v'
+    alias search='grep --color=auto -R -C3 -n'
+    alias strings='strings -a'
+    # alias vim='nvim'
+    alias tmux='tmux -2 -u'
+    alias jsc="env NODE_NO_READLINE=1 rlwrap node"
+
+    # Batch git operations across repos in current directory
+    alias fetch-all='find . -maxdepth 2 -name .git -type d -execdir git fetch --all --prune \;'
+    alias pull-all='find . -maxdepth 2 -name .git -type d -execdir git pull \;'
+
+    # Platform-specific display aliases
+    switch $os
+        case Linux
+            alias ls='ls -ltrGh'
+            alias ps='ps aux --forest'
+        case Darwin
+            alias ps="ps -eo pid,args,etime,%cpu,rss"
+            alias ls='ls -Goh'
+    end
 end
