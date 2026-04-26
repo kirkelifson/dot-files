@@ -1,0 +1,72 @@
+# Essential packages for Linux (Debian/Ubuntu)
+# Install with: xargs -a packages-apt.txt sudo apt-get install -y
+
+# Core CLI tools
+coreutils
+curl
+wget
+git
+git-lfs
+jq
+tree
+htop
+ncdu
+ripgrep
+fd-find
+fzf
+entr
+dos2unix
+p7zip-full
+gawk
+cloc
+bat
+eza
+zoxide
+tldr
+duf
+curlie
+bandwhich
+
+# Shell & Terminal
+fish
+tmux
+mosh
+
+# Editors
+vim
+neovim
+
+# Build essentials (needed for asdf/ruby/python compilation)
+build-essential
+autoconf
+automake
+libssl-dev
+libreadline-dev
+zlib1g-dev
+libyaml-dev
+libffi-dev
+libgdbm-dev
+libncurses-dev
+libsqlite3-dev
+uuid-dev
+
+# Ruby / Rails dependencies
+libpq-dev
+libvips-dev
+imagemagick
+redis-server
+postgresql
+
+# Networking & Security
+nmap
+mtr
+gnupg
+qrencode
+
+# Containers
+podman
+
+# Other
+graphviz
+ffmpeg
+direnv
