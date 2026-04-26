@@ -11,9 +11,6 @@ set -gx LC_ALL en_US.UTF-8
 set -gx LANG en_US.UTF-8
 set -gx LANGUAGE en_US.UTF-8
 
-# Rails
-set -gx DISABLE_SPRING 1
-
 # fzf + fd
 set -gx FZF_DEFAULT_COMMAND 'fd --type f'
 set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
