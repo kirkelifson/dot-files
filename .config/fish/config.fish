@@ -18,6 +18,12 @@ set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 # Disable greeting
 set -g fish_greeting
 
+# Secret environment variables (API keys, tokens) — kept outside the repo
+# Create ~/.fish_secrets and add: set -gx MY_API_KEY "value"
+if test -f $HOME/.fish_secrets
+    source $HOME/.fish_secrets
+end
+
 # Detect platform once
 set -l os (uname -s)
 

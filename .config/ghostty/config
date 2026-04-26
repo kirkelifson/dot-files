@@ -4,11 +4,39 @@
 background = 1c1c1c
 foreground = d4d4d4
 
+# ANSI colors - slightly warmer than defaults
+palette = 0=#1c1c1c
+palette = 1=#d75f5f
+palette = 2=#87af87
+palette = 3=#d7af5f
+palette = 4=#5f87af
+palette = 5=#af5faf
+palette = 6=#5fafaf
+palette = 7=#d4d4d4
+palette = 8=#808080
+palette = 9=#ff8787
+palette = 10=#afd7af
+palette = 11=#ffd787
+palette = 12=#87afd7
+palette = 13=#d787d7
+palette = 14=#87d7d7
+palette = 15=#ffffff
+
 # Cursor
+cursor-style = block
 cursor-style-blink = true
 
 # Font
-font-family = "SF Mono"
+# Install via: ./install (downloads GohuFont 14 Nerd Font Mono from nerd-fonts releases)
+# Multiple font-family entries are codepoint-coverage fallbacks (not "font not found" fallbacks).
+font-family = "GohuFont 14 Nerd Font Mono"
+font-family = "GohuFont 11 Nerd Font Mono"
+font-family = "GohuFont"
+font-family = "Menlo"             # macOS built-in
+font-family = "SF Mono"           # macOS built-in
+font-family = "DejaVu Sans Mono"  # common on Linux/Arch
+font-family = "monospace"         # system default
+font-synthetic-style = false
 font-size = 14
 
 # Mouse
@@ -16,19 +44,24 @@ mouse-hide-while-typing = true
 copy-on-select = clipboard
 
 # Scrollback
-scrollback-limit = 1000000
+scrollback-limit = 10000000
 
 # Window behavior
 confirm-close-surface = false
-window-padding-x = 0
-window-padding-y = 0
+window-padding-x = 4
+window-padding-y = 2
+window-theme = auto
 
-# Visual effects - matching iTerm2 blur and transparency
+# Visual effects
 background-opacity = 0.833
 background-blur-radius = 20
 
-# Bell behavior - matching iTerm2
+# Shell integration
 shell-integration-features = cursor,sudo,title
+
+# Clipboard - allow programs (tmux, vim) to read/write clipboard via OSC 52
+clipboard-read = allow
+clipboard-write = allow
 
 # Option key sends Meta/Escape (like iTerm2)
 macos-option-as-alt = true
