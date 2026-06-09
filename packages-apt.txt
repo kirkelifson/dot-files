@@ -16,16 +16,13 @@ fd-find
 fzf
 entr
 dos2unix
-p7zip-full
+7zip
 gawk
 cloc
 bat
 eza
 zoxide
-tldr
 duf
-curlie
-bandwhich
 
 # Shell & Terminal
 fish
