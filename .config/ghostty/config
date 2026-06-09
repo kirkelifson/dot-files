@@ -29,9 +29,8 @@ cursor-style-blink = true
 # Font
 # Install via: ./install (downloads GohuFont 14 Nerd Font Mono from nerd-fonts releases)
 # Multiple font-family entries are codepoint-coverage fallbacks (not "font not found" fallbacks).
+font-family = "Hack Nerd Font Mono
 font-family = "GohuFont 14 Nerd Font Mono"
-font-family = "GohuFont 11 Nerd Font Mono"
-font-family = "GohuFont"
 font-family = "Menlo"             # macOS built-in
 font-family = "SF Mono"           # macOS built-in
 font-family = "DejaVu Sans Mono"  # common on Linux/Arch
