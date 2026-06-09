@@ -107,6 +107,49 @@ if status is-interactive
         source $HOME/.config/fish/local.fish
     end
 
+    # Commands whose non-zero exit is expected — skip prompt repopulation for these.
+    # Each entry is a regex matched against the full command string.
+    set -g __failed_cmd_no_reload \
+        '^bundle outdated'
+
+    # Log failed commands to a separate file for analysis, then remove from fish history.
+    # Prior successful runs of the same command are preserved: we collect all timestamps
+    # before deleting, then write back every entry except the most recent (failed) one.
+    # The failed command is pre-populated in the next prompt so you can edit and retry.
+    # Exit code 130 (Ctrl+C) is intentional and skipped.
+    function __log_failed_commands --on-event fish_postexec
+        set -l exit_code $status  # capture before any other command overwrites it
+        set -l cmd $argv[1]
+        if test $exit_code -ne 0; and test -n "$cmd"; and test $exit_code -ne 130
+            printf "%s\t%d\t%s\n" (date -u +"%Y-%m-%dT%H:%M:%SZ") $exit_code "$cmd" \
+                >> $HOME/.local/share/fish/failed_history
+
+            # Collect timestamps of every occurrence, most recent first
+            set -l timestamps (builtin history search --exact --case-sensitive --show-time="%s " -- "$cmd" 2>/dev/null \
+                | string replace -r ' .*' '')
+
+            builtin history delete --exact --case-sensitive -- "$cmd"
+
+            # Restore all occurrences except the most recent (the failed one)
+            if test (count $timestamps) -gt 1
+                for ts in $timestamps[2..]
+                    printf "- cmd: %s\n  when: %s\n" "$cmd" "$ts" \
+                        >> $HOME/.local/share/fish/fish_history
+                end
+                builtin history merge
+            end
+
+            # Skip repopulation for commands whose failure is expected
+            for pattern in $__failed_cmd_no_reload
+                if string match -rq -- $pattern $cmd
+                    return
+                end
+            end
+
+            commandline -r -- "$cmd"
+        end
+    end
+
     # --- Abbreviations (expand inline so you see the full command) ---
     abbr -a g git
     abbr -a gst git status
