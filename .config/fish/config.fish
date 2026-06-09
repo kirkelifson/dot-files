@@ -203,3 +203,7 @@ if status is-interactive
             alias ls='ls -Goh'
     end
 end
+
+# >>> grok installer >>>
+fish_add_path $HOME/.grok/bin
+# <<< grok installer <<<
