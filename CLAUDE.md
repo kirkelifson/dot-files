@@ -24,7 +24,6 @@ The install script:
 - Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
 - Links the `bin/` directory to `~/bin` for custom utilities
 - Links `.config/fish/` and `.config/ghostty/` configurations
-- Installs peda (Python Exploit Development Assistance for GDB) if not present
 - Installs/updates vim packages in `~/.vim/pack/bundle/start/`
 - Creates a symlink to Sublime Text's `subl` command if the app is installed (macOS only)
 - **Installs and configures fish shell**:

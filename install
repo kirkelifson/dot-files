@@ -114,12 +114,6 @@ if [ -d "$dir/.config/ghostty" ]; then
   fi
 fi
 
-# --- peda (GDB) ---
-if [ ! -d ~/peda ]; then
-  echo -e "[+] Installing peda (gdb)."
-  git clone https://github.com/longld/peda.git ~/peda &> /dev/null
-fi
-
 # --- Vim setup ---
 mkdir -p ~/.vim/tmp ~/.vim/undo
 
