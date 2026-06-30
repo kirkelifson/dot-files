@@ -2,3 +2,4 @@
 bin/subl
 .config/fish/fish_variables
 .config/fish/local.fish
+.config/fish/config.fish.bak.*
