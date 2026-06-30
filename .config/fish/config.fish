@@ -76,7 +76,7 @@ switch $os
         alias brew-restart='brew services restart'
         alias brew-start='brew services start'
         alias brew-stop='brew services stop'
-        alias brew-update='brew update; brew upgrade; brew doctor; brew cleanup -s --prune=all'
+        alias brew-update='brew update; brew upgrade -y; brew doctor; brew cleanup -s --prune=all'
         alias md5sum='md5 -q'
 end
 
