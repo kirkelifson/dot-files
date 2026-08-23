@@ -50,6 +50,8 @@ confirm-close-surface = false
 window-padding-x = 4
 window-padding-y = 2
 window-theme = auto
+window-width = 160
+window-height = 45
 
 # Visual effects
 background-opacity = 0.833
