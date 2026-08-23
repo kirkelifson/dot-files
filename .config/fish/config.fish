@@ -207,3 +207,5 @@ end
 # >>> grok installer >>>
 fish_add_path $HOME/.grok/bin
 # <<< grok installer <<<
+
+/Users/kronk/.local/bin/mise activate fish | source
