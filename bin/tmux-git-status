@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Compact git status for the tmux status bar: branch, ahead/behind, dirty
+# counts, and a loud warning for unmerged conflicts so a rebase/merge stuck
+# in an agent's pane never goes unnoticed.
+# Usage: tmux-git-status [path]
+
+dir="${1:-$PWD}"
+
+git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
+
+status="$(git -C "$dir" status --porcelain=v2 --branch 2>/dev/null)" || exit 0
+
+branch="$(printf '%s\n' "$status" | awk '/^# branch\.head /{print $3}')"
+[ "$branch" = "(detached)" ] && branch="detached"
+
+ab="$(printf '%s\n' "$status" | awk '/^# branch\.ab /{print $3, $4}')"
+ahead=0
+behind=0
+if [ -n "$ab" ]; then
+  ahead="${ab%% *}"
+  behind="${ab##* }"
+  ahead="${ahead#+}"
+  behind="${behind#-}"
+fi
+
+conflicts="$(printf '%s\n' "$status" | grep -c '^u ')"
+changed="$(printf '%s\n' "$status" | grep -c '^[12] ')"
+untracked="$(printf '%s\n' "$status" | grep -c '^? ')"
+
+out="#[fg=colour73]${branch}"
+[ "$ahead" != "0" ] && out+=" #[fg=colour214]up${ahead}"
+[ "$behind" != "0" ] && out+=" #[fg=colour214]dn${behind}"
+[ "$changed" != "0" ] && out+=" #[fg=colour248]*${changed}"
+[ "$untracked" != "0" ] && out+=" #[fg=colour244]?${untracked}"
+[ "$conflicts" != "0" ] && out+=" #[fg=red,bold]CONFLICT(${conflicts})"
+
+printf '%s#[default]' "$out"

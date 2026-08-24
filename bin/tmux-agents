@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Build a tmux session laid out for working with coding agents: a main
+# agent pane, a grid for comparing multiple agent CLIs side by side, a git
+# window for watching the working tree for conflicts, a resource monitor,
+# and a scratch/debug window.
+#
+# Usage: tmux-agents [directory]
+# (defaults to $PWD; pair with `bind A` in .tmux.conf to launch for
+# whatever project you're currently sitting in)
+
+selected="${1:-$PWD}"
+
+session_name="$(basename "$selected" | tr . _)-agents"
+
+if ! tmux has-session -t="$session_name" 2>/dev/null; then
+  # Commands run as each pane's actual process (rather than typed in via
+  # send-keys) so there's no race with the new pane's shell finishing its
+  # own startup before the keystrokes arrive.
+  tmux new-session -ds "$session_name" -c "$selected" -n agent 'claude'
+
+  # agents: one pane per CLI so you can compare or hand off work between them
+  tmux new-window -d -t "$session_name" -n agents -c "$selected" 'claude'
+  tmux split-window -d -t "${session_name}:agents.1" -h -c "$selected" 'opencode'
+  tmux split-window -d -t "${session_name}:agents.1" -v -c "$selected" 'gemini'
+  tmux split-window -d -t "${session_name}:agents.2" -v -c "$selected" 'grok'
+  tmux split-window -d -t "${session_name}:agents.3" -v -c "$selected" 'hermes'
+  tmux select-layout -t "${session_name}:agents" tiled
+
+  # git: lazygit for resolving things, plus a live status/conflict watcher
+  tmux new-window -d -t "$session_name" -n git -c "$selected" 'lazygit'
+  tmux split-window -d -t "${session_name}:git.1" -h -l 40 -c "$selected" \
+    "watch -n 2 -c 'git -c color.status=always status -sb'"
+
+  # monitor: resource usage while agents chew through work
+  tmux new-window -d -t "$session_name" -n monitor -c "$selected" 'btop'
+
+  # debug: free shells for logs, test runs, scratch commands
+  tmux new-window -d -t "$session_name" -n debug -c "$selected"
+  tmux split-window -d -t "${session_name}:debug" -h -c "$selected"
+
+  tmux select-window -t "${session_name}:agent"
+fi
+
+if [ -n "$TMUX" ]; then
+  tmux switch-client -t "$session_name"
+else
+  tmux attach-session -t "$session_name"
+fi

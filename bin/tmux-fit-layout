@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Auto-fit the agents window's grid to the attaching client's width: a wide
+# external/ultrawide display gets the full tiled grid, a laptop's built-in
+# screen gets one focused pane plus a stacked strip of the rest. Wired to
+# the client-attached hook in .tmux.conf, which passes both args from
+# format variables at the moment a client attaches.
+#
+# Usage: tmux-fit-layout <session_name> <client_width>
+
+session="$1"
+width="$2"
+
+case "$session" in
+  *-agents) ;;
+  *) exit 0 ;;
+esac
+
+if [ "$width" -ge 180 ]; then
+  tmux select-layout -t "${session}:agents" tiled
+else
+  tmux select-layout -t "${session}:agents" main-vertical
+fi

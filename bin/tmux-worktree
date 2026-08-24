@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Create (or reuse) a git worktree for a branch and open a dedicated
+# multi-agent tmux session pointed at it, so multiple agents/branches on
+# the same repo each get their own checkout instead of fighting over one
+# working tree.
+#
+# Usage: tmux-worktree <branch> [base-branch]
+#   tmux-worktree feature-x            # new branch off current HEAD
+#   tmux-worktree feature-x main       # new branch off main
+#   tmux-worktree existing-branch      # reuses the branch if it exists
+
+branch="$1"
+base="${2:-}"
+
+if [ -z "$branch" ]; then
+  echo "Usage: tmux-worktree <branch> [base-branch]" >&2
+  exit 1
+fi
+
+repo_root="$(git rev-parse --show-toplevel)" || exit 1
+repo_name="$(basename "$repo_root")"
+worktrees_dir="$(dirname "$repo_root")/${repo_name}-worktrees"
+worktree_path="${worktrees_dir}/${branch}"
+
+mkdir -p "$worktrees_dir"
+
+if [ ! -d "$worktree_path" ]; then
+  if git -C "$repo_root" show-ref --verify --quiet "refs/heads/$branch"; then
+    git -C "$repo_root" worktree add "$worktree_path" "$branch" || exit 1
+  else
+    git -C "$repo_root" worktree add -b "$branch" "$worktree_path" "${base:-HEAD}" || exit 1
+  fi
+fi
+
+exec tmux-agents "$worktree_path"
