@@ -1,0 +1,68 @@
+name: Package Existence Check
+
+# Confirms every name in Brewfile / packages-apt.txt still resolves against
+# the real apt index / Homebrew API. No packages are installed — only
+# metadata lookups (apt-cache show, brew info).
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # weekly — catches upstream removals even with no commits
+  workflow_dispatch:
+
+jobs:
+  apt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: apt-get update
+        run: sudo apt-get update
+      - name: Check every package in packages-apt.txt resolves
+        run: |
+          missing=0
+          while IFS= read -r pkg; do
+            case "$pkg" in
+              ""|"#"*) continue ;;
+            esac
+            if ! apt-cache show "$pkg" > /dev/null 2>&1; then
+              echo "::error::apt package not found: $pkg"
+              missing=1
+            fi
+          done < packages-apt.txt
+          exit "$missing"
+
+  brew:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: brew update
+        run: brew update
+      - name: Tap required taps
+        run: |
+          while IFS= read -r t; do
+            [ -z "$t" ] && continue
+            brew tap "$t"
+          done < <(awk -F'"' '/^tap /{print $2}' Brewfile)
+      - name: Check every formula resolves
+        run: |
+          missing=0
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            if ! brew info --formula "$name" > /dev/null 2>&1; then
+              echo "::error::formula not found: $name"
+              missing=1
+            fi
+          done < <(awk -F'"' '/^brew /{print $2}' Brewfile)
+          exit "$missing"
+      - name: Check every cask resolves
+        run: |
+          missing=0
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            if ! brew info --cask "$name" > /dev/null 2>&1; then
+              echo "::error::cask not found: $name"
+              missing=1
+            fi
+          done < <(awk -F'"' '/^cask /{print $2}' Brewfile)
+          exit "$missing"

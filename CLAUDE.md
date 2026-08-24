@@ -30,14 +30,14 @@ The install script:
   - Installs fish if not present (via brew or apt)
   - Adds fish to `/etc/shells` if not already present (requires sudo)
   - Changes default shell to fish if not already set
-- **Installs asdf language versions** from `.tool-versions` (Ruby, Node, Python, Go, Elixir, Rust)
+- **Installs language runtimes via mise** from `.config/mise/config.toml` (Ruby, Node, Python, Go, Elixir, Rust)
 
 **Idempotent behavior**: The script can be run multiple times safely:
 - Symlinks are recreated with `-f` flag (overwrite existing)
 - Vim packages are updated via `git pull` if already present
 - Fish shell setup is skipped if fish is already the default shell
 - System packages only install what's missing
-- asdf versions are skipped if already installed
+- mise versions are skipped if already installed
 - All checks prevent duplicate installations
 
 ## Key Configuration Files
@@ -51,7 +51,7 @@ The fish configuration is split into two sections:
 **Always loaded** (top of file — runs for all shells including non-interactive like `fish -c "..."`):
 - Environment variables (EDITOR, VISUAL, BUNDLER_EDITOR, PS_FORMAT, locales)
 - PATH management via `fish_add_path` (which auto-deduplicates)
-- asdf shim setup (when devenv is not active)
+- mise activation (when devenv is not active)
 
 **Interactive only** (inside `if status is-interactive` block):
 - Abbreviations for git (`gst`, `gd`, `gco`, `gpu`, `gpl`, `ga`, `gci`, etc.) and Rails (`rc`, `rs`, `rr`, `rdb`, `bi`)
@@ -141,11 +141,11 @@ Vim is configured with:
 
 ### Package Management
 
-**macOS (Brewfile)**: Curated Homebrew packages organized by category — core CLI tools, shell/terminal, git, editors, version managers, Ruby/Rails deps, languages, infrastructure, networking, media, AI tools, casks, and VS Code extensions. Install with `brew bundle`.
+**macOS (Brewfile)**: Curated Homebrew packages organized by category — core CLI tools, shell/terminal, git, editors, Ruby/Rails deps, languages, infrastructure, networking, media, AI tools, casks, and VS Code extensions. Install with `brew bundle`.
 
-**Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for asdf to compile languages. Install with `xargs -a packages-apt.txt sudo apt-get install -y`.
+**Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for mise to compile languages. Install with `xargs -a packages-apt.txt sudo apt-get install -y`.
 
-**Language versions (.tool-versions)**: Global asdf defaults for Ruby, Node.js, Python, Go, Elixir, and Rust. The install script automatically adds asdf plugins and installs these versions.
+**Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. mise also auto-detects idiomatic per-project version files (`.nvmrc`, `.ruby-version`, `go.mod`, etc.), which take precedence over the global config.
 
 ## Custom Utilities (bin/)
 
@@ -202,5 +202,5 @@ For machine-specific settings that shouldn't be committed:
 PATH is managed to avoid duplicates:
 - `fish_add_path` automatically deduplicates when adding paths — no tmux guards needed
 - All PATH entries are set unconditionally in the top (non-interactive) section of `config.fish`
-- **asdf shims** are only loaded when devenv is NOT active (checked via `$DEVENV_PROFILE` or `$DEVENV_ROOT` variables)
-  - When devenv is active, it manages tool versions and asdf should not interfere
+- **mise** is only activated when devenv is NOT active (checked via `$DEVENV_PROFILE` or `$DEVENV_ROOT` variables)
+  - When devenv is active, it manages tool versions and mise should not interfere

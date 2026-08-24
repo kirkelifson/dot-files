@@ -1,0 +1,71 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Find bash scripts by shebang
+        id: scripts
+        run: |
+          files=""
+          for f in install bin/*; do
+            [ -f "$f" ] || continue
+            case "$(head -n1 "$f")" in
+              *bash*) files="$files $f" ;;
+            esac
+          done
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+      - name: Run shellcheck
+        # info/style findings are excluded — see e.g. SC1091 on scripts that
+        # source machine-local files (~/.opam, /usr/local/bin/virtualenvwrapper.sh)
+        # that legitimately don't exist on the CI runner.
+        run: shellcheck --severity=warning ${{ steps.scripts.outputs.files }}
+
+  fish-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install fish
+        run: sudo apt-get update && sudo apt-get install -y fish
+      - name: Syntax-check all fish files
+        run: |
+          status=0
+          while IFS= read -r -d '' f; do
+            echo "Checking $f"
+            fish -n "$f" || status=1
+          done < <(find .config/fish -name '*.fish' -print0)
+          exit $status
+
+  brewfile-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ruby syntax check (Brewfile is a Ruby DSL)
+        run: ruby -c Brewfile
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install actionlint
+        run: bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+      - name: Run actionlint
+        run: ./actionlint -color
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

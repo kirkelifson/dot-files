@@ -46,18 +46,9 @@ end
 fish_add_path $HOME/.opencode/bin
 fish_add_path -a $HOME/.lmstudio/bin
 
-# ASDF - only load if devenv is not active
+# mise - only load if devenv is not active
 if not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
-    if test -z $ASDF_DATA_DIR
-        set _asdf_shims "$HOME/.asdf/shims"
-    else
-        set _asdf_shims "$ASDF_DATA_DIR/shims"
-    end
-
-    if not contains $_asdf_shims $PATH
-        set -gx --prepend PATH $_asdf_shims
-    end
-    set --erase _asdf_shims
+    mise activate fish | source
 end
 
 # --- Command aliases (available in scripts and interactive shells) ---
@@ -207,5 +198,3 @@ end
 # >>> grok installer >>>
 fish_add_path $HOME/.grok/bin
 # <<< grok installer <<<
-
-/Users/kronk/.local/bin/mise activate fish | source

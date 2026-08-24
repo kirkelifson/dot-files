@@ -16,8 +16,10 @@ The install script is idempotent — safe to run multiple times. It will:
 - Symlink dotfiles and configs to your home directory
 - Install GohuFont Nerd Font (required for Ghostty config)
 - Install and set Fish as default shell
-- Install language runtimes via asdf (Ruby, Node, Python, Go, Elixir, Rust)
+- Install language runtimes via mise (Ruby, Node, Python, Go, Elixir, Rust)
 - Install vim packages
+
+`DOTFILES_CI=1 ./install` skips the slow, network-heavy steps (Homebrew/apt bulk install, `mise install`) — useful for a quick local relink. CI runs skip them automatically, since `install` also honors the standard `$CI` variable.
 
 ### What's Included
 
@@ -33,7 +35,7 @@ The install script is idempotent — safe to run multiple times. It will:
 | `bin/` | Utility scripts (tmux-sessionizer, password, etc.) |
 | `Brewfile` | Homebrew packages (macOS) |
 | `packages-apt.txt` | apt packages (Linux) |
-| `.tool-versions` | asdf language versions |
+| `.config/mise/config.toml` | mise language versions |
 
 ### Machine-Specific Config
 
@@ -61,7 +63,9 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 
 **`fish_postexec` removes failed commands from history** and restores them to the command line so you can fix and re-run. This means typos and broken commands won't pollute your history, but it can feel surprising the first time a failed command "comes back."
 
-**`nodejs lts` in `.tool-versions`** is a special token that resolves to the current LTS version at install time. If you reinstall later, you may get a different Node version than what's currently active. Pin to a specific version if reproducibility matters.
+**`node = "lts"` or `"latest"` in `.config/mise/config.toml`** resolves dynamically at install time. If you reinstall later, you may get a different version than what's currently active. Pin to a specific version (like the other tools already are) if reproducibility matters.
+
+**mise auto-detects idiomatic version files** (`.nvmrc`, `.ruby-version`, `Gemfile`, `go.mod`, etc.) inside a project directory and prefers them over `~/.config/mise/config.toml`. No per-project `.tool-versions`/`mise.toml` needed — dropping a `.ruby-version` file in a repo is enough to pin that project's Ruby.
 
 **GohuFont Nerd Font is required** for the Ghostty config. The install script downloads it automatically, but if you configure Ghostty before running `./install`, it will fall back through the font stack (`SF Mono` → `DejaVu Sans Mono` → `monospace`). Nerd Font glyphs (used by some prompts/tools) won't render without it.
 
@@ -73,4 +77,4 @@ The repo stores the config at `.config/ghostty/config` — don't edit the symlin
 
 **`ulimit -n 4096`** is raised in interactive shells to avoid "too many open files" errors in Rails/dev. It does not affect non-interactive shells or scripts.
 
-**asdf shims are skipped when devenv is active.** If `$DEVENV_PROFILE` or `$DEVENV_ROOT` is set, asdf is not loaded. This prevents conflicts when using Nix/devenv for per-project tooling.
+**mise is skipped when devenv is active.** If `$DEVENV_PROFILE` or `$DEVENV_ROOT` is set, `mise activate` is not loaded. This prevents conflicts when using Nix/devenv for per-project tooling.

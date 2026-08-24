@@ -1,0 +1,109 @@
+name: Test Install
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+    # install auto-detects CI via GitHub Actions' standard $CI var — no
+    # env vars needed here to skip the package/mise installs.
+    steps:
+      # Test scaffolding only — fish/vim/tmux are needed to exercise the
+      # install script and its config files. This is not the ~90-package
+      # Brewfile/apt-get sweep, which stays skipped (see packages.yml for
+      # a no-install check that those package names still resolve).
+      - name: Install test prerequisites
+        run: |
+          apt-get update
+          apt-get install -y git curl sudo ca-certificates fish vim tmux
+
+      - uses: actions/checkout@v4
+
+      - name: Run install
+        run: ./install
+
+      - name: Verify symlinks point into the repo
+        run: |
+          set -e
+          for target in "$HOME/.vimrc" "$HOME/.tmux.conf" "$HOME/.gitconfig" "$HOME/.config/fish" "$HOME/bin"; do
+            if [ ! -L "$target" ]; then
+              echo "::error::$target is not a symlink"
+              exit 1
+            fi
+            resolved=$(readlink -f "$target")
+            case "$resolved" in
+              "$GITHUB_WORKSPACE"*) echo "OK: $target -> $resolved" ;;
+              *) echo "::error::$target points outside the repo: $resolved"; exit 1 ;;
+            esac
+          done
+
+      - name: Re-run install (idempotency check)
+        run: |
+          ./install
+          if find "$HOME" -maxdepth 2 -name '*-backup*' 2>/dev/null | grep -q .; then
+            echo "::error::install created backup files on a second run (not idempotent)"
+            find "$HOME" -maxdepth 2 -name '*-backup*'
+            exit 1
+          fi
+
+      - name: Vimrc sanity check (headless)
+        run: vim -Nu "$HOME/.vimrc" -es -c quit
+
+      - name: tmux config sanity check
+        run: tmux -f "$HOME/.tmux.conf" -L citest start-server \; kill-server
+
+      - name: gitconfig sanity check
+        run: git config -f "$HOME/.gitconfig" -l > /dev/null
+
+      - name: fish runtime sanity check
+        run: fish -c 'true'
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      # Same scaffolding rationale as the linux job above.
+      - name: Install test prerequisites
+        run: brew install fish tmux
+
+      - uses: actions/checkout@v4
+
+      - name: Run install
+        run: ./install
+
+      - name: Verify symlinks point into the repo
+        run: |
+          set -e
+          for target in "$HOME/.vimrc" "$HOME/.tmux.conf" "$HOME/.gitconfig" "$HOME/bin"; do
+            if [ ! -L "$target" ]; then
+              echo "::error::$target is not a symlink"
+              exit 1
+            fi
+          done
+          ghostty_config="$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+          if [ ! -L "$ghostty_config" ]; then
+            echo "::error::ghostty config not linked at $ghostty_config"
+            exit 1
+          fi
+
+      - name: Re-run install (idempotency check)
+        run: |
+          ./install
+          if find "$HOME" -maxdepth 2 -name '*-backup*' 2>/dev/null | grep -q .; then
+            echo "::error::install created backup files on a second run (not idempotent)"
+            find "$HOME" -maxdepth 2 -name '*-backup*'
+            exit 1
+          fi
+
+      - name: Vimrc sanity check (headless)
+        run: vim -Nu "$HOME/.vimrc" -es -c quit
+
+      - name: tmux config sanity check
+        run: tmux -f "$HOME/.tmux.conf" -L citest start-server \; kill-server
+
+      - name: gitconfig sanity check
+        run: git config -f "$HOME/.gitconfig" -l > /dev/null

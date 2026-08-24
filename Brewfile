@@ -47,9 +47,6 @@ brew "lazygit"          # Terminal UI for git
 brew "vim"
 brew "neovim"
 
-# --- Version Managers ---
-brew "asdf"             # Multi-runtime version manager
-
 # --- Ruby / Rails ---
 brew "vips"             # Image processing (Rails ActiveStorage)
 brew "imagemagick"      # Image manipulation

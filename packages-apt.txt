@@ -33,7 +33,7 @@ mosh
 vim
 neovim
 
-# Build essentials (needed for asdf/ruby/python compilation)
+# Build essentials (needed for mise/ruby/python compilation)
 build-essential
 autoconf
 automake

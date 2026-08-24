@@ -3,86 +3,95 @@ set -e
 dir="$(cd "$(dirname "$0")" && pwd)"
 os="$(uname -s)"
 
-# --- Safety check: warn if repo has uncommitted changes ---
-if command -v git > /dev/null 2>&1 && [ -d "$dir/.git" ]; then
-  if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
-    echo -e "[!] Warning: dot-files repo has uncommitted changes."
-    echo -e "    You may want to commit or stash before running install."
-    read -p "    Continue anyway? [y/N] " answer
-    if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
-      echo -e "[!] Aborting."
-      exit 0
+# --- CI detection ---
+# A CI run skips the slow/heavy steps below: bulk Homebrew/apt package
+# installs and mise's language-runtime compilation. Auto-detected via the
+# standard $CI variable (set by GitHub Actions and most other CI systems);
+# set DOTFILES_CI=1 to force it elsewhere (e.g. a fast local relink).
+is_ci() {
+  [ -n "$CI" ] || [ -n "$DOTFILES_CI" ]
+}
+
+check_uncommitted_changes() {
+  if command -v git > /dev/null 2>&1 && [ -d "$dir/.git" ]; then
+    if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+      echo -e "[!] Warning: dot-files repo has uncommitted changes."
+      echo -e "    You may want to commit or stash before running install."
+      read -r -p "    Continue anyway? [y/N] " answer
+      if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
+        echo -e "[!] Aborting."
+        exit 0
+      fi
     fi
   fi
-fi
+}
 
-# --- Begin installation ---
-echo -e "Installing dot-files:"
-
-# --- System packages ---
-if [ "$os" = "Darwin" ] && ! command -v brew > /dev/null 2>&1; then
-  echo -e "[+] Homebrew not found. Installing..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-if [ "$os" = "Darwin" ] && command -v brew > /dev/null 2>&1; then
-  if [ -f "$dir/Brewfile" ]; then
-    echo -e "[+] Installing Homebrew packages from Brewfile."
-    brew bundle --file="$dir/Brewfile" --no-lock
+# OS decides the package manager once, here. Homebrew on Darwin, apt
+# elsewhere; every other step just asks "$os" and never re-checks for brew.
+install_system_packages() {
+  if is_ci; then
+    echo -e "[+] CI detected, skipping Homebrew/apt package installation."
+    return
   fi
-elif command -v apt-get > /dev/null 2>&1; then
-  if [ -f "$dir/packages-apt.txt" ]; then
-    echo -e "[+] Installing apt packages from packages-apt.txt."
-    grep -v '^#' "$dir/packages-apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
+
+  if [ "$os" = "Darwin" ]; then
+    if ! command -v brew > /dev/null 2>&1; then
+      echo -e "[+] Homebrew not found. Installing..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+    if [ -f "$dir/Brewfile" ]; then
+      echo -e "[+] Installing Homebrew packages from Brewfile."
+      brew bundle --file="$dir/Brewfile" --no-lock
+    fi
+  elif command -v apt-get > /dev/null 2>&1; then
+    if [ -f "$dir/packages-apt.txt" ]; then
+      echo -e "[+] Installing apt packages from packages-apt.txt."
+      grep -v '^#' "$dir/packages-apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
+    fi
   fi
-fi
+}
 
-# --- Soft-link dotfiles ---
-echo -e "[+] Creating soft-links to dot-files."
+# Soft-link all dotfiles/bin into $HOME. (.vim is handled separately below —
+# it has runtime dirs (pack/, tmp/, undo/) that shouldn't live in the repo.)
+link_dotfiles() {
+  echo -e "[+] Creating soft-links to dot-files."
 
-# Soft-link all files and directories (except .git, .config, .github, .vim)
-# .vim is handled separately because it has runtime dirs (pack/, tmp/, undo/)
-# that should not live inside the repo
-for dotfile in $(find "$dir" -maxdepth 1 -name ".*" \
-  | grep -v '\.git$' \
-  | grep -v '\.github$' \
-  | grep -v '\.config$' \
-  | grep -v '\.vim$'); do
-  basename="$(basename "$dotfile")"
-  target="$HOME/$basename"
-  # Back up existing non-symlink files/directories before linking
-  if [ -e "$target" ] && [ ! -L "$target" ]; then
-    echo -e "\t[>] Backing up existing $basename to ~/${basename}-backup"
-    mv "$target" "${target}-backup"
+  local dotfile basename target
+  for dotfile in $(find "$dir" -maxdepth 1 -name ".*" \
+    | grep -v '\.git$' \
+    | grep -v '\.github$' \
+    | grep -v '\.config$' \
+    | grep -v '\.vim$'); do
+    basename="$(basename "$dotfile")"
+    target="$HOME/$basename"
+    # Back up existing non-symlink files/directories before linking
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      echo -e "\t[>] Backing up existing $basename to ~/${basename}-backup"
+      mv "$target" "${target}-backup"
+    fi
+    echo -e "\t[>] Linking $dotfile"
+    ln -sfn "$dotfile" "$target"
+  done
+
+  # .vim: copy repo contents (syntax files) and ensure runtime dirs exist
+  if [ -d "$dir/.vim" ]; then
+    echo -e "\t[>] Setting up ~/.vim"
+    mkdir -p ~/.vim
+    cp -r "$dir/.vim/syntax" ~/.vim/ 2>/dev/null || true
   fi
-  echo -e "\t[>] Linking $dotfile"
-  ln -sfn "$dotfile" "$target"
-done
 
-# .vim: copy repo contents (syntax files) and ensure runtime dirs exist
-if [ -d "$dir/.vim" ]; then
-  echo -e "\t[>] Setting up ~/.vim"
-  mkdir -p ~/.vim
-  cp -r "$dir/.vim/syntax" ~/.vim/ 2>/dev/null || true
-fi
-
-# Sublime Text
-if [ -d "/Applications/Sublime Text.app" ]; then
-  if [ ! -f "$dir/bin/subl" ]; then
-    ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" "$dir/bin/subl"
+  # Sublime Text
+  if [ -d "/Applications/Sublime Text.app" ]; then
+    if [ ! -f "$dir/bin/subl" ]; then
+      ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" "$dir/bin/subl"
+    fi
   fi
-fi
 
-# Link bin
-echo -e "\t[>] Linking $dir/bin"
-ln -sfn "$dir/bin" ~
+  echo -e "\t[>] Linking $dir/bin"
+  ln -sfn "$dir/bin" ~
+}
 
-# --- .config directories ---
-echo -e "[+] Setting up .config directories."
-mkdir -p ~/.config
-
-# Generic function to link a .config subdirectory
 link_config_dir() {
   local name="$1"
   if [ -d "$dir/.config/$name" ]; then
@@ -95,61 +104,72 @@ link_config_dir() {
   fi
 }
 
-link_config_dir fish
+link_config_dirs() {
+  echo -e "[+] Setting up .config directories."
+  mkdir -p ~/.config
 
-# Ghostty: macOS uses ~/Library/Application Support/com.mitchellh.ghostty/
-# Linux uses ~/.config/ghostty/
-if [ -d "$dir/.config/ghostty" ]; then
-  if [ "$os" = "Darwin" ]; then
-    ghostty_dir="$HOME/Library/Application Support/com.mitchellh.ghostty"
-    mkdir -p "$ghostty_dir"
-    if [ -e "$ghostty_dir/config" ] && [ ! -L "$ghostty_dir/config" ]; then
-      echo -e "\t[>] Backing up existing ghostty config"
-      mv "$ghostty_dir/config" "$ghostty_dir/config.backup"
+  link_config_dir fish
+  link_config_dir mise
+
+  # Ghostty: macOS uses ~/Library/Application Support/com.mitchellh.ghostty/
+  # Linux uses ~/.config/ghostty/
+  if [ -d "$dir/.config/ghostty" ]; then
+    if [ "$os" = "Darwin" ]; then
+      local ghostty_dir="$HOME/Library/Application Support/com.mitchellh.ghostty"
+      mkdir -p "$ghostty_dir"
+      if [ -e "$ghostty_dir/config" ] && [ ! -L "$ghostty_dir/config" ]; then
+        echo -e "\t[>] Backing up existing ghostty config"
+        mv "$ghostty_dir/config" "$ghostty_dir/config.backup"
+      fi
+      echo -e "\t[>] Linking ghostty config (macOS)"
+      ln -sf "$dir/.config/ghostty/config" "$ghostty_dir/config"
+    else
+      link_config_dir ghostty
     fi
-    echo -e "\t[>] Linking ghostty config (macOS)"
-    ln -sf "$dir/.config/ghostty/config" "$ghostty_dir/config"
-  else
-    link_config_dir ghostty
   fi
-fi
+}
 
-# --- Vim setup ---
-mkdir -p ~/.vim/tmp ~/.vim/undo
+setup_vim_packages() {
+  mkdir -p ~/.vim/tmp ~/.vim/undo
 
-# Vim packages
-if [ ! -d ~/.vim/pack/bundle/start ]; then
-  echo -e "[+] Adding vim packages."
-  mkdir -p ~/.vim/pack/bundle/start
-  git clone https://github.com/AlessandroYorba/Sierra ~/.vim/pack/bundle/start/Sierra &> /dev/null
-  git clone https://github.com/itchyny/lightline.vim ~/.vim/pack/bundle/start/lightline.vim &> /dev/null
-  git clone https://github.com/ervandew/supertab.git ~/.vim/pack/bundle/start/supertab &> /dev/null
-  git clone https://github.com/airblade/vim-gitgutter ~/.vim/pack/bundle/start/vim-gitgutter &> /dev/null
-else
-  echo -e "[+] Updating vim packages."
-  for package in ~/.vim/pack/bundle/start/*/; do
-    git -C "$package" pull &> /dev/null
-  done
-fi
+  if [ ! -d ~/.vim/pack/bundle/start ]; then
+    echo -e "[+] Adding vim packages."
+    mkdir -p ~/.vim/pack/bundle/start
+    git clone https://github.com/AlessandroYorba/Sierra ~/.vim/pack/bundle/start/Sierra &> /dev/null
+    git clone https://github.com/itchyny/lightline.vim ~/.vim/pack/bundle/start/lightline.vim &> /dev/null
+    git clone https://github.com/ervandew/supertab.git ~/.vim/pack/bundle/start/supertab &> /dev/null
+    git clone https://github.com/airblade/vim-gitgutter ~/.vim/pack/bundle/start/vim-gitgutter &> /dev/null
+  else
+    echo -e "[+] Updating vim packages."
+    local package
+    for package in ~/.vim/pack/bundle/start/*/; do
+      git -C "$package" pull &> /dev/null
+    done
+  fi
+}
 
-# --- Fonts ---
-# Install GohuFont Nerd Font (TTF, works on macOS + Linux)
-NERD_FONTS_VERSION="v3.4.0"
-GOHU_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/${NERD_FONTS_VERSION}/Gohu.tar.xz"
+install_fonts() {
+  # GohuFont Nerd Font (TTF, works on macOS + Linux)
+  local nerd_fonts_version="v3.4.0"
+  local gohu_url="https://github.com/ryanoasis/nerd-fonts/releases/download/${nerd_fonts_version}/Gohu.tar.xz"
+  local font_dir
 
-if [ "$os" = "Darwin" ]; then
-  font_dir="$HOME/Library/Fonts"
-else
-  font_dir="$HOME/.local/share/fonts"
-  mkdir -p "$font_dir"
-fi
+  if [ "$os" = "Darwin" ]; then
+    font_dir="$HOME/Library/Fonts"
+  else
+    font_dir="$HOME/.local/share/fonts"
+    mkdir -p "$font_dir"
+  fi
 
-if ls "$font_dir"/GohuFont*NerdFontMono* > /dev/null 2>&1; then
-  echo -e "[+] GohuFont Nerd Font already installed."
-else
+  if ls "$font_dir"/GohuFont*NerdFontMono* > /dev/null 2>&1; then
+    echo -e "[+] GohuFont Nerd Font already installed."
+    return
+  fi
+
   echo -e "[+] Installing GohuFont Nerd Font..."
+  local tmpdir
   tmpdir=$(mktemp -d)
-  if curl -fsSL "$GOHU_URL" -o "$tmpdir/Gohu.tar.xz"; then
+  if curl -fsSL "$gohu_url" -o "$tmpdir/Gohu.tar.xz"; then
     tar -xJf "$tmpdir/Gohu.tar.xz" \
       -C "$tmpdir" \
       GohuFont11NerdFontMono-Regular.ttf \
@@ -162,32 +182,34 @@ else
     echo -e "\t[!] Could not download GohuFont. Install manually from https://font.gohu.org/"
   fi
   rm -rf "$tmpdir"
-fi
+}
 
-# --- Fish shell setup ---
-
-# Install fish if missing
-if ! command -v fish > /dev/null 2>&1; then
-  # Homebrew may have just installed it but it's not in this bash session's PATH
-  if [ "$os" = "Darwin" ] && [ -x /opt/homebrew/bin/fish ]; then
-    export PATH="/opt/homebrew/bin:$PATH"
+setup_fish_shell() {
+  # Install fish if missing
+  if ! command -v fish > /dev/null 2>&1; then
+    # Homebrew may have just installed it but it's not in this bash session's PATH
+    if [ "$os" = "Darwin" ] && [ -x /opt/homebrew/bin/fish ]; then
+      export PATH="/opt/homebrew/bin:$PATH"
+    fi
   fi
-fi
 
-if ! command -v fish > /dev/null 2>&1; then
-  echo -e "[+] Fish shell not found. Installing..."
-  if [ "$os" = "Darwin" ] && command -v brew > /dev/null 2>&1; then
-    brew install fish
-    export PATH="/opt/homebrew/bin:$PATH"
-  elif command -v apt-get > /dev/null 2>&1; then
-    sudo apt-get install -y fish
-  else
-    echo -e "[!] Could not install fish. Install it manually and re-run."
+  if ! command -v fish > /dev/null 2>&1; then
+    echo -e "[+] Fish shell not found. Installing..."
+    if [ "$os" = "Darwin" ] && command -v brew > /dev/null 2>&1; then
+      brew install fish
+      export PATH="/opt/homebrew/bin:$PATH"
+    elif command -v apt-get > /dev/null 2>&1; then
+      sudo apt-get install -y fish
+    else
+      echo -e "[!] Could not install fish. Install it manually and re-run."
+    fi
   fi
-fi
 
-# Configure fish as default shell
-if command -v fish > /dev/null 2>&1; then
+  if ! command -v fish > /dev/null 2>&1; then
+    return
+  fi
+
+  local fish_path
   fish_path=$(command -v fish)
   echo -e "[+] Setting up fish shell ($fish_path)."
 
@@ -198,7 +220,7 @@ if command -v fish > /dev/null 2>&1; then
   fi
 
   # Detect current shell (macOS uses dscl, Linux uses getent)
-  current_shell=""
+  local current_shell=""
   if [ "$os" = "Darwin" ]; then
     current_shell=$(dscl . -read /Users/"$USER" UserShell 2>/dev/null | awk '{print $2}')
   else
@@ -213,26 +235,38 @@ if command -v fish > /dev/null 2>&1; then
   else
     echo -e "\t[>] Fish is already the default shell"
   fi
-fi
+}
 
-# --- asdf: install plugins and versions from .tool-versions ---
-if command -v asdf > /dev/null 2>&1 && [ -f "$dir/.tool-versions" ]; then
-  echo -e "[+] Setting up asdf language versions."
-  while read -r plugin version; do
-    # Skip comments and blank lines
-    [ -z "$plugin" ] && continue
-    [[ "$plugin" = \#* ]] && continue
-    if ! asdf plugin list 2>/dev/null | grep -q "^${plugin}$"; then
-      echo -e "\t[>] Adding asdf plugin: $plugin"
-      asdf plugin add "$plugin"
-    fi
-    if ! asdf list "$plugin" 2>/dev/null | grep -q "$version"; then
-      echo -e "\t[>] Installing $plugin $version"
-      asdf install "$plugin" "$version"
+install_mise_runtimes() {
+  if ! command -v mise > /dev/null 2>&1; then
+    if [ -x "$HOME/.local/bin/mise" ]; then
+      export PATH="$HOME/.local/bin:$PATH"
     else
-      echo -e "\t[>] $plugin $version already installed"
+      echo -e "[+] mise not found. Installing..."
+      curl -fsSL https://mise.run | sh
+      export PATH="$HOME/.local/bin:$PATH"
     fi
-  done < "$dir/.tool-versions"
-fi
+  fi
 
+  if is_ci; then
+    echo -e "[+] CI detected, skipping mise language runtime installation."
+    return
+  fi
+
+  if command -v mise > /dev/null 2>&1; then
+    echo -e "[+] Installing language runtimes via mise (from ~/.config/mise/config.toml)."
+    mise install
+  fi
+}
+
+# --- Main ---
+check_uncommitted_changes
+echo -e "Installing dot-files:"
+install_system_packages
+link_dotfiles
+link_config_dirs
+setup_vim_packages
+install_fonts
+setup_fish_shell
+install_mise_runtimes
 echo -e "[!] Restart terminal session for changes to take effect."
