@@ -188,7 +188,13 @@ Common abbreviations and aliases for development:
 
 ## Testing and Building
 
-This repository does not contain code that needs building or testing - it's purely configuration files and shell scripts.
+There's no application build, but CI (`.github/workflows/`) verifies the shell scripts, fish config, and the installer itself:
+
+- `lint.yml` — shellcheck on all bash scripts (discovered by shebang, not a hardcoded list), `fish -n` syntax-checks every `.config/fish/**/*.fish`, `ruby -c` on the Brewfile (it's a Ruby DSL), actionlint on the workflows, gitleaks over the repo.
+- `test-install.yml` — runs `./install` for real on Linux (root inside an `ubuntu:24.04` container, so `chsh` doesn't hit a PAM password prompt) and macOS (`macos-latest`), asserts the resulting symlinks resolve into the repo, re-runs `install` to confirm idempotency (no `*-backup` files on the second pass), and sanity-checks `.vimrc`/`.tmux.conf`/`.gitconfig`/fish by actually loading them headless. `install` auto-detects CI via the standard `$CI` variable (which GitHub Actions sets), so the run stays fast and doesn't touch the Brewfile/apt-get bulk installs or compile language runtimes — no extra env vars needed in the workflow.
+- `packages.yml` — confirms every name in `Brewfile`/`packages-apt.txt` still resolves (`brew info`, `apt-cache show`) without installing anything; runs on push and weekly, since upstream removals (e.g. a formula dropped from homebrew-core) aren't triggered by a commit here.
+
+`install` is organized as a linear sequence of named stage functions (`install_system_packages`, `link_dotfiles`, `setup_fish_shell`, etc.) called in order at the bottom of the file — skim that final block to see the whole flow. `DOTFILES_CI=1 ./install` forces the same CI-skip behavior locally (e.g. for a fast relink).
 
 ## Machine-Specific Configuration
 

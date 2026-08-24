@@ -5,6 +5,7 @@
 
 # --- Taps ---
 tap "coursier/formulas"
+tap "terraform-linters/tap"
 
 # --- Core CLI Tools ---
 brew "coreutils"        # GNU core utilities (gdate, gls, etc.)
@@ -43,6 +44,10 @@ brew "git-lfs"
 brew "gh"               # GitHub CLI
 brew "lazygit"          # Terminal UI for git
 
+# --- CI / Linters ---
+brew "shellcheck"       # Bash linter, used by .github/workflows/lint.yml
+brew "actionlint"       # GitHub Actions workflow linter
+
 # --- Editors ---
 brew "vim"
 brew "neovim"
@@ -54,23 +59,41 @@ brew "postgresql@18"    # PostgreSQL database
 brew "redis"            # Key-value store
 
 # --- Languages & Runtimes ---
-brew "rust"
+# Rust itself is NOT listed here — mise (.config/mise/config.toml) is the
+# single source of truth for it on both macOS and Linux. A brew formula here
+# would install a second, competing rustc/cargo.
 brew "elixir"
 brew "crystal"
 brew "ghc"              # Haskell compiler
+brew "cabal-install"    # Haskell build tool / package manager
+brew "haskell-language-server" # Haskell LSP
 brew "sbcl"             # Common Lisp
 brew "minimal-racket"   # Racket/Scheme
+brew "lua"              # Lua interpreter
 brew "luarocks"         # Lua package manager
 brew "coursier/formulas/coursier"  # Scala/JVM launcher
 brew "openjdk"          # Java runtime
 brew "pipx"             # Python CLI tool installer
+brew "uv"               # Fast Python package/venv manager
+
+# --- Go Tooling ---
+brew "gopls"            # Go LSP
+brew "golangci-lint"    # Go meta-linter
+brew "delve"            # Go debugger (dlv)
+
+# --- C / C++ Tooling ---
+brew "ninja"            # Fast build system (used by many CMake projects)
+brew "gdb"              # Debugger (macOS requires codesigning to attach: https://sourceware.org/gdb/wiki/PermissionsDarwin)
+brew "clang-format"     # C/C++ formatter
+
+# --- Node / Frontend ---
+brew "pnpm"             # Fast, disk-efficient Node package manager
 
 # --- Infrastructure & DevOps ---
 brew "awscli"
 brew "aws-vault"        # AWS credential management
 brew "terraform-docs"
 brew "tfenv"            # Terraform version manager
-brew "tflint"           # Terraform linter
 brew "tfsec"            # Terraform security scanner
 brew "direnv"           # Per-directory environment variables
 brew "podman"           # Container engine (Docker alternative)
@@ -120,6 +143,7 @@ cask "gqrx"            # Software defined radio
 cask "mitmproxy"        # HTTP proxy for debugging
 cask "neohtop"          # System monitor (GUI)
 cask "ngrok"            # Tunnel to localhost
+cask "terraform-linters/tap/tflint" # Terraform linter (moved out of homebrew-core)
 cask "vlc"              # Media player
 
 # --- VS Code Extensions ---

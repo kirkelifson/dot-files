@@ -33,6 +33,29 @@ mosh
 vim
 neovim
 
+# Languages & Runtimes not covered by mise (see .config/mise/config.toml
+# for Ruby, Node, Python, Go, Elixir, Rust)
+ghc
+cabal-install
+haskell-language-server
+lua5.4
+luarocks
+uv
+
+# Go Tooling
+gopls
+golangci-lint
+delve
+
+# C / C++ Tooling
+cmake
+ninja-build
+gdb
+clang-format
+
+# Node / Frontend
+pnpm
+
 # Build essentials (needed for mise/ruby/python compilation)
 build-essential
 autoconf
