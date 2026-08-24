@@ -1,3 +1,6 @@
-#!/usr/bin/env zsh
-cd ~/plan
-tail -n +1 $(ls -1rt | tail -n 5)
+#!/usr/bin/env bash
+cd ~/plan || exit 1
+# filenames here are always MM-DD-YY.plan, safe to parse with ls
+# shellcheck disable=SC2012
+mapfile -t files < <(ls -1rt | tail -n 5)
+tail -n +1 "${files[@]}"

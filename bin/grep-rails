@@ -1,2 +1,2 @@
-#!/usr/bin/env zsh
-grep --color -Rn $1 app config lib spec
+#!/usr/bin/env bash
+grep --color -Rn "$1" app config lib spec

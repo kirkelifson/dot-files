@@ -1,8 +1,8 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 args=(update upgrade dist-upgrade autoremove autoclean)
-for arg in ${args[@]}; do
-    sudo apt-get -y $arg
+for arg in "${args[@]}"; do
+    sudo apt-get -y "$arg"
 done
 
 # Purge packages marked for uninstall

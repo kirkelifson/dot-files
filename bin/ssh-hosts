@@ -1,2 +1,2 @@
-#!/usr/bin/env zsh
-cat $HOME/.ssh/config | grep "Host " | awk '{print $2}'
+#!/usr/bin/env bash
+grep "Host " "$HOME/.ssh/config" | awk '{print $2}'

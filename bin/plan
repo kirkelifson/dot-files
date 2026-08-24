@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 mkdir -p ~/plan
-vim ~/plan/$(date +%m-%d-%y).plan
+vim ~/plan/"$(date +%m-%d-%y)".plan
