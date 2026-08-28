@@ -229,6 +229,10 @@ setup_fish_shell() {
   current_shell="${current_shell:-$SHELL}"
 
   if [ "$current_shell" != "$fish_path" ]; then
+    if is_ci; then
+      echo -e "\t[>] CI detected, skipping chsh (no valid account password to authenticate it)."
+      return
+    fi
     echo -e "\t[>] Changing default shell to fish"
     chsh -s "$fish_path"
     echo -e "\t[!] Default shell changed. Please restart your terminal."

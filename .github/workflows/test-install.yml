@@ -22,7 +22,7 @@ jobs:
           apt-get update
           apt-get install -y git curl sudo ca-certificates fish vim tmux
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run install
         run: ./install
@@ -70,7 +70,7 @@ jobs:
       - name: Install test prerequisites
         run: brew install fish tmux
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run install
         run: ./install

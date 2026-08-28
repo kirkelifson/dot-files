@@ -15,7 +15,7 @@ jobs:
   apt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: apt-get update
         run: sudo apt-get update
       - name: Check every package in packages-apt.txt resolves
@@ -35,20 +35,27 @@ jobs:
   brew:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: brew update
         run: brew update
-      - name: Tap required taps
+      - name: Trust taps (brew 6.0 tap-trust)
+        # GitHub's macOS runner pre-taps aws/tap; the Brewfile also declares
+        # taps. Homebrew 6.0 requires explicit trust for non-official taps
+        # before it will resolve formulas/casks from them.
         run: |
-          while IFS= read -r t; do
+          taps="aws/tap $(awk -F'"' '/^tap /{print $2}' Brewfile)"
+          for t in $taps; do
             [ -z "$t" ] && continue
-            brew tap "$t"
-          done < <(awk -F'"' '/^tap /{print $2}' Brewfile)
+            brew tap "$t" >/dev/null 2>&1 || true
+            brew trust "$t" >/dev/null 2>&1 || true
+          done
       - name: Check every formula resolves
         run: |
           missing=0
           while IFS= read -r name; do
             [ -z "$name" ] && continue
+            # `coursier/formulas/coursier` is a fully-qualified brew formula and
+            # validates fine with --formula once its tap is trusted above.
             if ! brew info --formula "$name" > /dev/null 2>&1; then
               echo "::error::formula not found: $name"
               missing=1
@@ -60,6 +67,8 @@ jobs:
           missing=0
           while IFS= read -r name; do
             [ -z "$name" ] && continue
+            # Fully-qualified entries (user/tap/name) are real casks in a tap;
+            # `brew info --cask` resolves them directly (tap already trusted).
             if ! brew info --cask "$name" > /dev/null 2>&1; then
               echo "::error::cask not found: $name"
               missing=1

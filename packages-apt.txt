@@ -37,14 +37,14 @@ neovim
 # for Ruby, Node, Python, Go, Elixir, Rust)
 ghc
 cabal-install
-haskell-language-server
+# haskell-language-server: not in apt — install via ghcup or `cabal install haskell-language-server` (brew on macOS)
 lua5.4
 luarocks
-uv
+# uv: not in apt — `pipx install uv` or Astral's install script (brew on macOS)
 
 # Go Tooling
 gopls
-golangci-lint
+# golangci-lint: not in apt — `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest` (brew on macOS)
 delve
 
 # C / C++ Tooling
@@ -54,7 +54,7 @@ gdb
 clang-format
 
 # Node / Frontend
-pnpm
+# pnpm: not in apt — `corepack enable` + `corepack prepare pnpm@latest --activate`, or `npm i -g pnpm` (brew on macOS)
 
 # Build essentials (needed for mise/ruby/python compilation)
 build-essential

@@ -67,6 +67,7 @@ brew "crystal"
 brew "ghc"              # Haskell compiler
 brew "cabal-install"    # Haskell build tool / package manager
 brew "haskell-language-server" # Haskell LSP
+brew "ghidra"           # Reverse engineering (formula, was a cask until ~2025)
 brew "sbcl"             # Common Lisp
 brew "minimal-racket"   # Racket/Scheme
 brew "lua"              # Lua interpreter
@@ -138,8 +139,8 @@ brew "internetarchive"  # Internet Archive CLI
 # --- Casks (GUI Applications) ---
 cask "calibre"          # E-book manager
 cask "codex"            # OpenAI Codex CLI
-cask "ghidra"           # Reverse engineering
-cask "gqrx"            # Software defined radio
+# ghidra is a formula now (not a cask): `brew "ghidra"` — reverse engineering
+cask "gqrx"             # Software defined radio
 cask "mitmproxy"        # HTTP proxy for debugging
 cask "neohtop"          # System monitor (GUI)
 cask "ngrok"            # Tunnel to localhost
