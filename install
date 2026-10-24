@@ -83,7 +83,9 @@ install_freebsd_packages() {
   while IFS= read -r package; do
     case "$package" in ""|\#*) continue ;; esac
     # Availability varies by FreeBSD release, architecture and pkg branch.
-    if matches=$(pkg search -q -e "$package" 2>/dev/null) && [ -n "$matches" ]; then
+    # rquery matches the bare package name exactly; `pkg search -e` compares
+    # against name-version (e.g. fish-4.0.2), so it never matched anything.
+    if matches=$(pkg rquery '%n' "$package" 2>/dev/null) && [ -n "$matches" ]; then
       packages+=("$package")
     else
       echo "[!] FreeBSD package unavailable in this repository: $package (skipped)"

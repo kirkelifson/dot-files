@@ -103,7 +103,7 @@ class InstallTests(unittest.TestCase):
             pkg() {
                 case "$1" in
                     update) return 0 ;;
-                    search) [ "$4" = fish ] && echo fish-1.0; return 0 ;;
+                    rquery) [ "$2" = '%n' ] && [ "$3" = fish ] && echo fish; return 0 ;;
                     install) printf '%s\\n' "$*" > "$HOME/installed" ;;
                 esac
             }
