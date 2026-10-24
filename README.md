@@ -66,7 +66,13 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 
 **`node = "lts"` or `"latest"` in `.config/mise/config.toml`** resolves dynamically at install time. If you reinstall later, you may get a different version than what's currently active. Pin to a specific version (like the other tools already are) if reproducibility matters.
 
-**mise auto-detects idiomatic version files** (`.nvmrc`, `.ruby-version`, `Gemfile`, `go.mod`, etc.) inside a project directory and prefers them over `~/.config/mise/config.toml`. No per-project `.tool-versions`/`mise.toml` needed — dropping a `.ruby-version` file in a repo is enough to pin that project's Ruby.
+**mise can detect idiomatic version files** (`.nvmrc`, `.ruby-version`, `Gemfile`, `go.mod`, etc.) inside a project directory and prefers them over `~/.config/mise/config.toml`. Enable the relevant tools with `mise settings set idiomatic_version_file_enable_tools ruby,node,python,go`, or use an explicit project `mise.toml`.
+
+**mise manages runtime selection.** Repo defaults are linked at
+`~/.config/mise/conf.d/dot-files.toml`, preserving an existing `config.toml` such
+as Omarchy's. `mise use` writes project settings; `mise use -g` may edit the
+linked repo fragment when it declares that tool. These repo changes are allowed;
+review them before committing. No rbenv, RVM, or asdf initialization is used.
 
 **Backups are retained.** Replaced configs use the usual backup name, then `.1`,
 `.2`, and so on when that name already exists. Omarchy tmux backups follow the

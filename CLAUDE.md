@@ -147,7 +147,7 @@ Vim is configured with:
 
 **Arch/Omarchy (packages-pacman.txt)**: Same set with Arch names, official repos only. `install` runs `sudo pacman -S --needed`, so packages Omarchy already ships are skipped.
 
-**Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. mise also auto-detects idiomatic per-project version files (`.nvmrc`, `.ruby-version`, `go.mod`, etc.), which take precedence over the global config.
+**Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. Use project `mise.toml` files for local development. Idiomatic version files require enabling the relevant tools via `idiomatic_version_file_enable_tools`; see README.md.
 
 ## Custom Utilities (bin/)
 
@@ -203,7 +203,7 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 `install` detects Omarchy (`/usr/share/omarchy` or the `omarchy` command) and avoids clobbering files Omarchy manages. Omarchy's `refresh` commands use `cp -f` (writes *through* symlinks into this repo) and its font/text-size commands use `sed -i` (replaces symlinks), so:
 - **Ghostty**: not linked. Omarchy's `~/.config/ghostty/config` includes the active theme and is edited by `omarchy font set`. Put personal tweaks there by hand.
 - **tmux**: `~/.tmux.conf` is linked as usual (tmux reads it before `~/.config/tmux/tmux.conf`). `~/.config/tmux/tmux.conf` is replaced with a one-line regular file, `source-file ~/.tmux.conf`, so `omarchy restart tmux` and update migrations reload this config instead of layering Omarchy's bindings on top. The original is saved as `tmux.conf.omarchy-default`; subsequent backups get numbered suffixes and never replace earlier backups. Super+Alt+K (tmux keybinding menu) will show little, since it parses that file.
-- **mise**: linked into `conf.d/` on every platform, so `mise use -g` (used by Omarchy's `claude`/`codex` launchers in `~/.local/bin`) writes to Omarchy's own `config.toml`, not the repo. `config.toml` takes precedence over `conf.d` for tools pinned in both (e.g. Omarchy's `node = "latest"`).
+- **mise**: repo defaults are linked into `conf.d/`, preserving Omarchy's `config.toml`. mise manages global and project runtime selection. `mise use -g` may update the linked repo fragment when it declares the tool; that is intentional. Review those changes before committing. No rbenv, RVM, or asdf initialization is used.
 - **git**: `~/.gitconfig` and Omarchy's `~/.config/git/config` are both read; `~/.gitconfig` wins on conflicts. Omarchy sets `pull.rebase = true`, this repo sets `pull.ff = only`; together, a diverged `git pull` aborts instead of rebasing.
 
 ## Machine-Specific Configuration

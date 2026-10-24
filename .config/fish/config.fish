@@ -47,7 +47,7 @@ fish_add_path $HOME/.opencode/bin
 fish_add_path -a $HOME/.lmstudio/bin
 
 # mise - only load if devenv is not active
-if not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
+if type -q mise; and not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
     mise activate fish | source
 end
 

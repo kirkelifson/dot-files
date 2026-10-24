@@ -158,9 +158,9 @@ link_config_dirs() {
 }
 
 # The repo's mise versions go in conf.d instead of replacing the whole
-# ~/.config/mise dir. `mise use -g` (used by Omarchy's AI-agent launchers and
-# by you) writes to ~/.config/mise/config.toml, so this keeps those writes out
-# of the repo. config.toml wins over conf.d when both pin the same tool.
+# ~/.config/mise dir, preserving Omarchy and local settings. mise owns tool
+# selection; global writes may update this linked repo fragment. Project
+# mise.toml files remain local to their projects.
 link_mise_config() {
   local mise_dir="$HOME/.config/mise"
   [ -f "$dir/.config/mise/config.toml" ] || return
@@ -328,7 +328,7 @@ install_mise_runtimes() {
   fi
 
   if command -v mise > /dev/null 2>&1; then
-    echo -e "[+] Installing language runtimes via mise (from ~/.config/mise/config.toml)."
+    echo -e "[+] Installing language runtimes via mise (merged global and project configs)."
     mise install
   fi
 }

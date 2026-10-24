@@ -62,7 +62,7 @@ brew "redis"            # Key-value store
 # Rust itself is NOT listed here — mise (.config/mise/config.toml) is the
 # single source of truth for it on both macOS and Linux. A brew formula here
 # would install a second, competing rustc/cargo.
-brew "elixir"
+# elixir is managed by mise
 brew "crystal"
 brew "ghc"              # Haskell compiler
 brew "cabal-install"    # Haskell build tool / package manager
