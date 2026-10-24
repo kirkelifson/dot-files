@@ -226,8 +226,8 @@ install_fonts() {
     font_dir="$HOME/Library/Fonts"
   else
     font_dir="$HOME/.local/share/fonts"
-    mkdir -p "$font_dir"
   fi
+  mkdir -p "$font_dir"
 
   if ls "$font_dir"/GohuFont*NerdFontMono* > /dev/null 2>&1; then
     echo -e "[+] GohuFont Nerd Font already installed."
