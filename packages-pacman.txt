@@ -26,6 +26,9 @@ zoxide
 duf
 wl-clipboard
 
+# Clipboard (Wayland and X11)
+xclip
+
 # Shell & Terminal
 fish
 tmux

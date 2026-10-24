@@ -24,6 +24,10 @@ eza
 zoxide
 duf
 
+# Clipboard (Wayland and X11)
+wl-clipboard
+xclip
+
 # Shell & Terminal
 fish
 tmux
