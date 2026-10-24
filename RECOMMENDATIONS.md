@@ -26,13 +26,13 @@ Improvements identified during dotfiles review. Checked off as completed.
 
 ## Tmux
 
-- [ ] **Wayland clipboard** — `.tmux.conf` detects Darwin vs. Linux and uses `xclip` on Linux. On modern Wayland sessions (common on Arch, newer Ubuntu) `xclip` doesn't reach the compositor. Add a nested check: if `$WAYLAND_DISPLAY` is set, use `wl-copy` (from `wl-clipboard`) instead of `xclip`.
+- [x] **Wayland clipboard** — tmux chooses wl-copy for Wayland and xclip for X11; apt, pacman, and FreeBSD package lists include both helpers.
 
 ## Install Script
 
-- [ ] **Arch Linux / pacman support** — The install script handles Darwin (brew) and Debian/Ubuntu (apt-get) but falls through silently on Arch. Since you have a local Arch machine, add a `pacman` branch. An `else` that checks `command -v pacman` and installs from a `packages-pacman.txt` (or just core tools inline) would make the script usable there.
+- [x] **Arch Linux / pacman support** — install uses packages-pacman.txt and preserves Omarchy-managed terminal configuration.
 
-- [ ] **FreeBSD / pkg support** — You SSH into FreeBSD servers. The install script has no `pkg` path. At minimum, detect `command -v pkg` and print a list of equivalents rather than silently skipping.
+- [x] **FreeBSD / pkg support** — install uses a smaller packages-freebsd.txt set, reports unavailable packages, and preserves the shared shell/editor/tmux configuration. Limitations are documented in README.md.
 
 - [ ] **`packages-apt.txt` has packages not in default repos** — `eza`, `curlie`, and `bandwhich` are not available in default Debian/Ubuntu apt repos (they're Rust-ecosystem tools distributed via GitHub releases or cargo). The install script will silently fail on them on a fresh server. Either remove them from the apt list and add a cargo-install fallback, or add a note/link to their install instructions.
 
