@@ -1,0 +1,94 @@
+# Essential packages for Arch Linux (including Omarchy)
+# Install with: grep -v '^#' packages-pacman.txt | grep -v '^$' | sudo pacman -S --needed -
+# Official repos only (no AUR). Omarchy already ships many of these; --needed skips them.
+
+# Core CLI tools
+coreutils
+curl
+wget
+git
+git-lfs
+jq
+tree
+htop
+ncdu
+ripgrep
+fd
+fzf
+entr
+dos2unix
+7zip
+gawk
+cloc
+bat
+eza
+zoxide
+duf
+wl-clipboard
+
+# Shell & Terminal
+fish
+tmux
+mosh
+
+# Editors
+vim
+neovim
+
+# Languages & Runtimes not covered by mise (see .config/mise/config.toml
+# for Ruby, Node, Python, Go, Elixir, Rust)
+ghc
+cabal-install
+haskell-language-server
+lua
+luarocks
+uv
+
+# Go Tooling
+gopls
+golangci-lint
+delve
+
+# C / C++ Tooling (clang provides clang-format)
+cmake
+ninja
+gdb
+clang
+
+# Node / Frontend
+pnpm
+
+# Build essentials (needed for mise/ruby/python compilation)
+base-devel
+autoconf
+automake
+openssl
+readline
+zlib
+libyaml
+libffi
+gdbm
+ncurses
+sqlite
+util-linux-libs
+
+# Ruby / Rails dependencies (valkey replaced redis in the Arch repos)
+postgresql-libs
+libvips
+imagemagick
+valkey
+postgresql
+
+# Networking & Security
+nmap
+mtr
+gnupg
+qrencode
+
+# Containers
+podman
+
+# Other
+graphviz
+ffmpeg
+direnv

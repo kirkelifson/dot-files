@@ -49,6 +49,11 @@ install_system_packages() {
       echo -e "[+] Installing apt packages from packages-apt.txt."
       grep -v '^#' "$dir/packages-apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
     fi
+  elif command -v pacman > /dev/null 2>&1; then
+    if [ -f "$dir/packages-pacman.txt" ]; then
+      echo -e "[+] Installing pacman packages from packages-pacman.txt."
+      grep -v '^#' "$dir/packages-pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
+    fi
   fi
 }
 
@@ -200,6 +205,8 @@ setup_fish_shell() {
       export PATH="/opt/homebrew/bin:$PATH"
     elif command -v apt-get > /dev/null 2>&1; then
       sudo apt-get install -y fish
+    elif command -v pacman > /dev/null 2>&1; then
+      sudo pacman -S --needed --noconfirm fish
     else
       echo -e "[!] Could not install fish. Install it manually and re-run."
     fi
