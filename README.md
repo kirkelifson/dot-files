@@ -12,7 +12,7 @@ cd dot-files
 
 The install script is idempotent — safe to run multiple times. It will:
 
-- Install system packages (Brewfile on macOS, packages-apt.txt on Linux)
+- Install system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy)
 - Symlink dotfiles and configs to your home directory
 - Install GohuFont Nerd Font (required for Ghostty config)
 - Install and set Fish as default shell
@@ -34,7 +34,8 @@ The install script is idempotent — safe to run multiple times. It will:
 | `.gitconfig` | Git aliases and settings |
 | `bin/` | Utility scripts (tmux-sessionizer, password, etc.) |
 | `Brewfile` | Homebrew packages (macOS) |
-| `packages-apt.txt` | apt packages (Linux) |
+| `packages-apt.txt` | apt packages (Debian/Ubuntu) |
+| `packages-pacman.txt` | pacman packages (Arch/Omarchy) |
 | `.config/mise/config.toml` | mise language versions |
 
 ### Machine-Specific Config
@@ -71,7 +72,7 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 
 **Ghostty config location differs by platform:**
 - macOS: `~/Library/Application Support/com.mitchellh.ghostty/config` (symlinked by install)
-- Linux: `~/.config/ghostty/config` (symlinked by install)
+- Linux: `~/.config/ghostty/config` (symlinked by install, except on Omarchy, where Omarchy's own themed config is left in place)
 
 The repo stores the config at `.config/ghostty/config` — don't edit the symlink target directly on macOS.
 

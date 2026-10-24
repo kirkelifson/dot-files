@@ -20,14 +20,14 @@ cd dot-files
 
 The install script:
 - **Safety check**: Warns if the repo has uncommitted changes before proceeding
-- Installs system packages (Brewfile on macOS, packages-apt.txt on Linux)
+- Installs system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy)
 - Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
 - Links the `bin/` directory to `~/bin` for custom utilities
-- Links `.config/fish/` and `.config/ghostty/` configurations
+- Links `.config/fish/` and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
 - Installs/updates vim packages in `~/.vim/pack/bundle/start/`
 - Creates a symlink to Sublime Text's `subl` command if the app is installed (macOS only)
 - **Installs and configures fish shell**:
-  - Installs fish if not present (via brew or apt)
+  - Installs fish if not present (via brew, apt, or pacman)
   - Adds fish to `/etc/shells` if not already present (requires sudo)
   - Changes default shell to fish if not already set
 - **Installs language runtimes via mise** from `.config/mise/config.toml` (Ruby, Node, Python, Go, Elixir, Rust)
@@ -145,6 +145,8 @@ Vim is configured with:
 
 **Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for mise to compile languages. Install with `xargs -a packages-apt.txt sudo apt-get install -y`.
 
+**Arch/Omarchy (packages-pacman.txt)**: Same set with Arch names, official repos only. `install` runs `sudo pacman -S --needed`, so packages Omarchy already ships are skipped.
+
 **Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. mise also auto-detects idiomatic per-project version files (`.nvmrc`, `.ruby-version`, `go.mod`, etc.), which take precedence over the global config.
 
 ## Custom Utilities (bin/)
@@ -195,6 +197,14 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 - `packages.yml` — confirms every name in `Brewfile`/`packages-apt.txt` still resolves (`brew info`, `apt-cache show`) without installing anything; runs on push and weekly, since upstream removals (e.g. a formula dropped from homebrew-core) aren't triggered by a commit here.
 
 `install` is organized as a linear sequence of named stage functions (`install_system_packages`, `link_dotfiles`, `setup_fish_shell`, etc.) called in order at the bottom of the file — skim that final block to see the whole flow. `DOTFILES_CI=1 ./install` forces the same CI-skip behavior locally (e.g. for a fast relink).
+
+## Omarchy (Arch + Hyprland)
+
+`install` detects Omarchy (`/usr/share/omarchy` or the `omarchy` command) and avoids clobbering files Omarchy manages. Omarchy's `refresh` commands use `cp -f` (writes *through* symlinks into this repo) and its font/text-size commands use `sed -i` (replaces symlinks), so:
+- **Ghostty**: not linked. Omarchy's `~/.config/ghostty/config` includes the active theme and is edited by `omarchy font set`. Put personal tweaks there by hand.
+- **tmux**: `~/.tmux.conf` is linked as usual (tmux reads it before `~/.config/tmux/tmux.conf`). `~/.config/tmux/tmux.conf` is replaced with a one-line regular file, `source-file ~/.tmux.conf`, so `omarchy restart tmux` and update migrations reload this config instead of layering Omarchy's bindings on top. The original is saved as `tmux.conf.omarchy-default`. Super+Alt+K (tmux keybinding menu) will show little, since it parses that file.
+- **mise**: linked into `conf.d/` on every platform, so `mise use -g` (used by Omarchy's `claude`/`codex` launchers in `~/.local/bin`) writes to Omarchy's own `config.toml`, not the repo. `config.toml` takes precedence over `conf.d` for tools pinned in both (e.g. Omarchy's `node = "latest"`).
+- **git**: `~/.gitconfig` and Omarchy's `~/.config/git/config` are both read; `~/.gitconfig` wins on conflicts. Omarchy sets `pull.rebase = true`, this repo sets `pull.ff = only`; together, a diverged `git pull` aborts instead of rebasing.
 
 ## Machine-Specific Configuration
 
