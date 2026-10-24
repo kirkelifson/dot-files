@@ -68,6 +68,10 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 
 **mise auto-detects idiomatic version files** (`.nvmrc`, `.ruby-version`, `Gemfile`, `go.mod`, etc.) inside a project directory and prefers them over `~/.config/mise/config.toml`. No per-project `.tool-versions`/`mise.toml` needed — dropping a `.ruby-version` file in a repo is enough to pin that project's Ruby.
 
+**Backups are retained.** Replaced configs use the usual backup name, then `.1`,
+`.2`, and so on when that name already exists. Omarchy tmux backups follow the
+same rule (`tmux.conf.omarchy-default`, `.omarchy-default.1`, ...).
+
 **GohuFont Nerd Font is required** for the Ghostty config. The install script downloads it automatically, but if you configure Ghostty before running `./install`, it will fall back through the font stack (`SF Mono` → `DejaVu Sans Mono` → `monospace`). Nerd Font glyphs (used by some prompts/tools) won't render without it.
 
 **Ghostty config location differs by platform:**

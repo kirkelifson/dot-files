@@ -66,6 +66,17 @@ install_system_packages() {
   fi
 }
 
+# Preserve every previous backup, including dangling symlinks.
+backup_path() {
+  local source="$1" backup="$2" candidate="$2" index=1
+  while [ -e "$candidate" ] || [ -L "$candidate" ]; do
+    candidate="$backup.$index"
+    index=$((index + 1))
+  done
+  echo "[>] Saving $source to $candidate"
+  mv "$source" "$candidate"
+}
+
 # Soft-link all dotfiles/bin into $HOME. (.vim is handled separately below —
 # it has runtime dirs (pack/, tmp/, undo/) that shouldn't live in the repo.)
 link_dotfiles() {
@@ -81,8 +92,7 @@ link_dotfiles() {
     target="$HOME/$basename"
     # Back up existing non-symlink files/directories before linking
     if [ -e "$target" ] && [ ! -L "$target" ]; then
-      echo -e "\t[>] Backing up existing $basename to ~/${basename}-backup"
-      mv "$target" "${target}-backup"
+      backup_path "$target" "${target}-backup"
     fi
     echo -e "\t[>] Linking $dotfile"
     ln -sfn "$dotfile" "$target"
@@ -110,8 +120,7 @@ link_config_dir() {
   local name="$1"
   if [ -d "$dir/.config/$name" ]; then
     if [ -e "$HOME/.config/$name" ] && [ ! -L "$HOME/.config/$name" ]; then
-      echo -e "\t[>] Backing up existing $name config to ~/.config/$name-backup"
-      mv "$HOME/.config/$name" "$HOME/.config/$name-backup"
+      backup_path "$HOME/.config/$name" "$HOME/.config/$name-backup"
     fi
     echo -e "\t[>] Linking $name config"
     ln -sfn "$dir/.config/$name" "$HOME/.config/$name"
@@ -136,8 +145,7 @@ link_config_dirs() {
       local ghostty_dir="$HOME/Library/Application Support/com.mitchellh.ghostty"
       mkdir -p "$ghostty_dir"
       if [ -e "$ghostty_dir/config" ] && [ ! -L "$ghostty_dir/config" ]; then
-        echo -e "\t[>] Backing up existing ghostty config"
-        mv "$ghostty_dir/config" "$ghostty_dir/config.backup"
+        backup_path "$ghostty_dir/config" "$ghostty_dir/config.backup"
       fi
       echo -e "\t[>] Linking ghostty config (macOS)"
       ln -sf "$dir/.config/ghostty/config" "$ghostty_dir/config"
@@ -183,8 +191,7 @@ setup_omarchy_tmux() {
 
   mkdir -p "$(dirname "$cfg")"
   if [ -e "$cfg" ] || [ -L "$cfg" ]; then
-    echo -e "\t[>] Saving Omarchy tmux config to $cfg.omarchy-default"
-    mv "$cfg" "$cfg.omarchy-default"
+    backup_path "$cfg" "$cfg.omarchy-default"
   fi
   echo -e "\t[>] Pointing Omarchy's tmux config at ~/.tmux.conf"
   printf '# Managed by dot-files/install: Omarchy tools source this file.\n%s\n' "$stub" > "$cfg"
