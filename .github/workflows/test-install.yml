@@ -47,10 +47,17 @@ jobs:
 
       - name: Re-run install (idempotency check)
         run: |
+          # The first run may back up files the runner image already had;
+          # only backups created by this second run mean it isn't idempotent.
+          list_backups() {
+            find "$HOME" -maxdepth 4 \( -name '*-backup*' -o -name '*.backup*' \) 2>/dev/null | sort
+          }
+          list_backups > "$RUNNER_TEMP/backups-before"
+          echo "Backups from the first run:"; cat "$RUNNER_TEMP/backups-before"
           ./install
-          if find "$HOME" -maxdepth 2 -name '*-backup*' 2>/dev/null | grep -q .; then
+          list_backups > "$RUNNER_TEMP/backups-after"
+          if ! diff -u "$RUNNER_TEMP/backups-before" "$RUNNER_TEMP/backups-after"; then
             echo "::error::install created backup files on a second run (not idempotent)"
-            find "$HOME" -maxdepth 2 -name '*-backup*'
             exit 1
           fi
 
@@ -98,10 +105,17 @@ jobs:
 
       - name: Re-run install (idempotency check)
         run: |
+          # The first run may back up files the runner image already had;
+          # only backups created by this second run mean it isn't idempotent.
+          list_backups() {
+            find "$HOME" -maxdepth 4 \( -name '*-backup*' -o -name '*.backup*' \) 2>/dev/null | sort
+          }
+          list_backups > "$RUNNER_TEMP/backups-before"
+          echo "Backups from the first run:"; cat "$RUNNER_TEMP/backups-before"
           ./install
-          if find "$HOME" -maxdepth 2 -name '*-backup*' 2>/dev/null | grep -q .; then
+          list_backups > "$RUNNER_TEMP/backups-after"
+          if ! diff -u "$RUNNER_TEMP/backups-before" "$RUNNER_TEMP/backups-after"; then
             echo "::error::install created backup files on a second run (not idempotent)"
-            find "$HOME" -maxdepth 2 -name '*-backup*'
             exit 1
           fi
 
