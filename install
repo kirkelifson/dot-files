@@ -12,6 +12,14 @@ is_ci() {
   [ -n "$CI" ] || [ -n "$DOTFILES_CI" ]
 }
 
+# Omarchy (Arch + Hyprland) manages its own terminal, tmux, and mise configs
+# and rewrites them during `omarchy update`/`omarchy refresh`/theme changes.
+# Several of those use `cp -f` or `sed -i`, which follow or break symlinks, so
+# we avoid symlinking repo files over Omarchy-owned paths.
+is_omarchy() {
+  [ -d /usr/share/omarchy ] || command -v omarchy > /dev/null 2>&1
+}
+
 check_uncommitted_changes() {
   if command -v git > /dev/null 2>&1 && [ -d "$dir/.git" ]; then
     if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
@@ -114,12 +122,16 @@ link_config_dirs() {
   mkdir -p ~/.config
 
   link_config_dir fish
-  link_config_dir mise
+  link_mise_config
 
   # Ghostty: macOS uses ~/Library/Application Support/com.mitchellh.ghostty/
   # Linux uses ~/.config/ghostty/
   if [ -d "$dir/.config/ghostty" ]; then
-    if [ "$os" = "Darwin" ]; then
+    if is_omarchy; then
+      # Omarchy's ghostty config pulls in the active theme and is edited in
+      # place by `omarchy font set` / text-size. Replacing it breaks theming.
+      echo -e "\t[>] Omarchy detected, leaving its ghostty config alone"
+    elif [ "$os" = "Darwin" ]; then
       local ghostty_dir="$HOME/Library/Application Support/com.mitchellh.ghostty"
       mkdir -p "$ghostty_dir"
       if [ -e "$ghostty_dir/config" ] && [ ! -L "$ghostty_dir/config" ]; then
@@ -132,6 +144,49 @@ link_config_dirs() {
       link_config_dir ghostty
     fi
   fi
+
+  setup_omarchy_tmux
+}
+
+# The repo's mise versions go in conf.d instead of replacing the whole
+# ~/.config/mise dir. `mise use -g` (used by Omarchy's AI-agent launchers and
+# by you) writes to ~/.config/mise/config.toml, so this keeps those writes out
+# of the repo. config.toml wins over conf.d when both pin the same tool.
+link_mise_config() {
+  local mise_dir="$HOME/.config/mise"
+  [ -f "$dir/.config/mise/config.toml" ] || return
+
+  # Migrate from the old layout where ~/.config/mise was a symlink to the repo
+  if [ -L "$mise_dir" ]; then
+    rm "$mise_dir"
+  fi
+  mkdir -p "$mise_dir/conf.d"
+  echo -e "\t[>] Linking mise config (conf.d/dot-files.toml)"
+  ln -sfn "$dir/.config/mise/config.toml" "$mise_dir/conf.d/dot-files.toml"
+}
+
+# tmux reads ~/.tmux.conf before ~/.config/tmux/tmux.conf, so the repo config
+# already wins. But Omarchy's tooling (`omarchy restart tmux`, update
+# migrations) sources ~/.config/tmux/tmux.conf into the running server, which
+# would layer Omarchy's bindings on top of ours. Point that file at ours with a
+# one-line regular file (not a symlink: `omarchy refresh tmux` does `cp -f`,
+# which would write through a symlink into the repo).
+setup_omarchy_tmux() {
+  is_omarchy || return 0
+  local cfg="$HOME/.config/tmux/tmux.conf"
+  local stub="source-file ~/.tmux.conf"
+
+  if [ -f "$cfg" ] && [ ! -L "$cfg" ] && grep -qxF "$stub" "$cfg"; then
+    return
+  fi
+
+  mkdir -p "$(dirname "$cfg")"
+  if [ -e "$cfg" ] || [ -L "$cfg" ]; then
+    echo -e "\t[>] Saving Omarchy tmux config to $cfg.omarchy-default"
+    mv "$cfg" "$cfg.omarchy-default"
+  fi
+  echo -e "\t[>] Pointing Omarchy's tmux config at ~/.tmux.conf"
+  printf '# Managed by dot-files/install: Omarchy tools source this file.\n%s\n' "$stub" > "$cfg"
 }
 
 setup_vim_packages() {
