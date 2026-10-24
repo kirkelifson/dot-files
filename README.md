@@ -72,7 +72,8 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 `~/.config/mise/conf.d/dot-files.toml`, preserving an existing `config.toml` such
 as Omarchy's. `mise use` writes project settings; `mise use -g` may edit the
 linked repo fragment when it declares that tool. These repo changes are allowed;
-review them before committing. No rbenv, RVM, or asdf initialization is used.
+review them before committing. No rbenv, RVM, or asdf initialization is used. The legacy virtualenvwrapper
+loader has been removed; use project virtual environments with mise/uv instead.
 
 **Backups are retained.** Replaced configs use the usual backup name, then `.1`,
 `.2`, and so on when that name already exists. Omarchy tmux backups follow the

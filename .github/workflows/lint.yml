@@ -25,7 +25,7 @@ jobs:
           echo "files=$files" >> "$GITHUB_OUTPUT"
       - name: Run shellcheck
         # info/style findings are excluded — see e.g. SC1091 on scripts that
-        # source machine-local files (~/.opam, /usr/local/bin/virtualenvwrapper.sh)
+        # source machine-local files (e.g. ~/.opam)
         # that legitimately don't exist on the CI runner.
         run: shellcheck --severity=warning ${{ steps.scripts.outputs.files }}
 

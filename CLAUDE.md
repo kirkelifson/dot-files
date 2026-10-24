@@ -157,7 +157,7 @@ The `bin/` directory contains various utility scripts:
 - `oldest-line`: Find oldest line in a file
 - `git-top-contributors`: Show top contributors to a git repository
 - `grep-rails`: Grep through Rails code
-- `load-virtualenv`, `load-ocaml`: Environment loaders
+- `load-ocaml`: OCaml environment loader (machine-specific OPAM path)
 - `osx-restart-*`: Scripts to restart macOS system components (Dock, Finder, menubar)
 - `plan`, `weekly-plan`: Planning utilities
 - `ssh-hosts`: List SSH hosts from known_hosts
