@@ -20,14 +20,14 @@ cd dot-files
 
 The install script:
 - **Safety check**: Warns if the repo has uncommitted changes before proceeding
-- Installs system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy)
+- Installs system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy, packages-freebsd.txt on FreeBSD)
 - Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
 - Links the `bin/` directory to `~/bin` for custom utilities
 - Links `.config/fish/` and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
 - Installs/updates vim packages in `~/.vim/pack/bundle/start/`
 - Creates a symlink to Sublime Text's `subl` command if the app is installed (macOS only)
 - **Installs and configures fish shell**:
-  - Installs fish if not present (via brew, apt, or pacman)
+  - Installs fish if not present (via brew, apt, pacman, or FreeBSD pkg)
   - Adds fish to `/etc/shells` if not already present (requires sudo)
   - Changes default shell to fish if not already set
 - **Installs language runtimes via mise** from `.config/mise/config.toml` (Ruby, Node, Python, Go, Elixir, Rust)
@@ -205,6 +205,10 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 - **tmux**: `~/.tmux.conf` is linked as usual (tmux reads it before `~/.config/tmux/tmux.conf`). `~/.config/tmux/tmux.conf` is replaced with a one-line regular file, `source-file ~/.tmux.conf`, so `omarchy restart tmux` and update migrations reload this config instead of layering Omarchy's bindings on top. The original is saved as `tmux.conf.omarchy-default`; subsequent backups get numbered suffixes and never replace earlier backups. Super+Alt+K (tmux keybinding menu) will show little, since it parses that file.
 - **mise**: repo defaults are linked into `conf.d/`, preserving Omarchy's `config.toml`. mise manages global and project runtime selection. `mise use -g` may update the linked repo fragment when it declares the tool; that is intentional. Review those changes before committing. No rbenv, RVM, or asdf initialization is used.
 - **git**: `~/.gitconfig` and Omarchy's `~/.config/git/config` are both read; `~/.gitconfig` wins on conflicts. Omarchy sets `pull.rebase = true`, this repo sets `pull.ff = only`; together, a diverged `git pull` aborts instead of rebasing.
+
+## FreeBSD
+
+See README.md for bootstrap instructions and the support matrix. `packages-freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Development extras, databases, media tools, containers, and GUI apps are not installed by this smaller bootstrap.
 
 ## Machine-Specific Configuration
 

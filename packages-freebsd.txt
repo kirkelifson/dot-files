@@ -1,0 +1,43 @@
+# Small FreeBSD workstation/server set. Availability is checked with pkg search.
+# Packages missing from the configured ABI/repository are reported and skipped.
+# See README.md for runtime, desktop, and container limitations.
+
+# Bootstrap and core configuration
+bash
+sudo
+ca_root_nss
+curl
+git
+git-lfs
+fish
+vim
+tmux
+fzf
+fd-find
+ripgrep
+mise
+
+# Everyday CLI tools
+jq
+tree
+htop
+btop
+lazygit
+ncdu
+bat
+eza
+zoxide
+direnv
+mosh
+
+# Clipboard and fonts (optional on headless/SSH servers)
+xclip
+wl-clipboard
+fontconfig
+
+# Common source-build helpers; base FreeBSD supplies cc, make, and tar
+# Runtime-specific headers/libraries should be installed per project.
+gmake
+pkgconf
+autoconf
+automake

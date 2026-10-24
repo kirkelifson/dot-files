@@ -34,11 +34,10 @@ check_uncommitted_changes() {
   fi
 }
 
-# OS decides the package manager once, here. Homebrew on Darwin, apt
-# elsewhere; every other step just asks "$os" and never re-checks for brew.
+# OS decides the package manager: Homebrew, FreeBSD pkg, apt, or pacman.
 install_system_packages() {
   if is_ci; then
-    echo -e "[+] CI detected, skipping Homebrew/apt package installation."
+    echo -e "[+] CI detected, skipping system package installation."
     return
   fi
 
@@ -53,6 +52,8 @@ install_system_packages() {
       # No --no-lock: Homebrew dropped Brewfile.lock.json and now rejects the flag
       brew bundle --file="$dir/Brewfile"
     fi
+  elif [ "$os" = "FreeBSD" ]; then
+    install_freebsd_packages
   elif command -v apt-get > /dev/null 2>&1; then
     if [ -f "$dir/packages-apt.txt" ]; then
       echo -e "[+] Installing apt packages from packages-apt.txt."
@@ -64,6 +65,41 @@ install_system_packages() {
       grep -v '^#' "$dir/packages-pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
     fi
   fi
+}
+
+# FreeBSD supports root bootstrapping as well as normal sudo-based installs.
+run_as_root() {
+  if [ "$(id -u)" -eq 0 ]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
+}
+
+install_freebsd_packages() {
+  run_as_root pkg update
+  local package matches
+  local packages=()
+  while IFS= read -r package; do
+    case "$package" in ""|\#*) continue ;; esac
+    # Availability varies by FreeBSD release, architecture and pkg branch.
+    if matches=$(pkg search -q -e "$package" 2>/dev/null) && [ -n "$matches" ]; then
+      packages+=("$package")
+    else
+      echo "[!] FreeBSD package unavailable in this repository: $package (skipped)"
+    fi
+  done < "$dir/packages-freebsd.txt"
+  if [ "${#packages[@]}" -gt 0 ]; then
+    run_as_root pkg install -y "${packages[@]}"
+  fi
+  # These are required for the shared shell/editor/session configuration.
+  local required
+  for required in fish git vim tmux fzf fd mise curl; do
+    command -v "$required" > /dev/null 2>&1 || {
+      echo "[!] Required FreeBSD command missing: $required" >&2
+      return 1
+    }
+  done
 }
 
 # Preserve every previous backup, including dangling symlinks.
@@ -266,6 +302,8 @@ setup_fish_shell() {
     if [ "$os" = "Darwin" ] && command -v brew > /dev/null 2>&1; then
       brew install fish
       export PATH="/opt/homebrew/bin:$PATH"
+    elif [ "$os" = "FreeBSD" ]; then
+      run_as_root pkg install -y fish
     elif command -v apt-get > /dev/null 2>&1; then
       sudo apt-get install -y fish
     elif command -v pacman > /dev/null 2>&1; then
@@ -312,6 +350,11 @@ setup_fish_shell() {
 }
 
 install_mise_runtimes() {
+  if [ "$os" = "FreeBSD" ]; then
+    echo "[+] FreeBSD: mise is supplied by pkg; automatic runtime installs are skipped."
+    echo "    Use project mise.toml files and install supported tools individually (see README)."
+    return
+  fi
   if ! command -v mise > /dev/null 2>&1; then
     if [ -x "$HOME/.local/bin/mise" ]; then
       export PATH="$HOME/.local/bin:$PATH"
@@ -334,6 +377,9 @@ install_mise_runtimes() {
 }
 
 # --- Main ---
+if [ "$os" = "FreeBSD" ]; then
+  export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+fi
 check_uncommitted_changes
 echo -e "Installing dot-files:"
 install_system_packages

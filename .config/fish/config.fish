@@ -36,6 +36,11 @@ fish_add_path $HOME/.cargo/bin
 fish_add_path $HOME/.bun/bin
 fish_add_path $HOME/.docker/bin
 
+# FreeBSD packages install outside the base system PATH.
+if test "$os" = FreeBSD
+    fish_add_path /usr/local/bin /usr/local/sbin
+end
+
 # Homebrew (macOS only)
 if test "$os" = Darwin
     fish_add_path /opt/homebrew/bin /opt/homebrew/sbin
@@ -63,6 +68,8 @@ switch $os
         alias apt-get='sudo apt-get'
         alias ifconfig='sudo ifconfig'
         alias open='xdg-open'
+    case FreeBSD
+        alias md5sum='md5 -q'
     case Darwin
         alias brew-restart='brew services restart'
         alias brew-start='brew services start'
@@ -74,7 +81,7 @@ end
 # --- Interactive only ---
 if status is-interactive
     # fzf keybindings and completion
-    if type -q fzf
+    if type -q fzf; and fzf --help | string match -q -- '*--fish*'
         fzf --fish | source
     end
 
@@ -189,7 +196,7 @@ if status is-interactive
         case Linux
             alias ls='ls -ltrGh'
             alias ps='ps aux --forest'
-        case Darwin
+        case Darwin FreeBSD
             alias ps="ps -eo pid,args,etime,%cpu,rss"
             alias ls='ls -Goh'
     end

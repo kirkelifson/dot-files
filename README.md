@@ -1,6 +1,6 @@
 ## dot-files
 
-Personal dotfiles for Fish shell + Ghostty terminal, managed via symlinks. Cross-platform (macOS + Linux).
+Personal dotfiles for Fish shell + Ghostty terminal, managed via symlinks. Supports macOS, Debian/Ubuntu, Arch/Omarchy, and a smaller FreeBSD setup.
 
 ### Quick Start
 
@@ -12,14 +12,14 @@ cd dot-files
 
 The install script is idempotent — safe to run multiple times. It will:
 
-- Install system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy)
+- Install system packages using Homebrew, apt, pacman, or FreeBSD pkg
 - Symlink dotfiles and configs to your home directory
 - Install GohuFont Nerd Font (required for Ghostty config)
 - Install and set Fish as default shell
-- Install language runtimes via mise (Ruby, Node, Python, Go, Elixir, Rust)
+- Install language runtimes via mise (Ruby, Node, Python, Go, Elixir, Rust; automatic runtime installation is skipped on FreeBSD)
 - Install vim packages
 
-`DOTFILES_CI=1 ./install` skips the slow, network-heavy steps (Homebrew/apt bulk install, `mise install`) — useful for a quick local relink. CI runs skip them automatically, since `install` also honors the standard `$CI` variable.
+`DOTFILES_CI=1 ./install` skips the slow, network-heavy steps (system package installation, `mise install`) — useful for a quick local relink. CI runs skip them automatically, since `install` also honors the standard `$CI` variable.
 
 ### What's Included
 
@@ -36,7 +36,31 @@ The install script is idempotent — safe to run multiple times. It will:
 | `Brewfile` | Homebrew packages (macOS) |
 | `packages-apt.txt` | apt packages (Debian/Ubuntu) |
 | `packages-pacman.txt` | pacman packages (Arch/Omarchy) |
+| `packages-freebsd.txt` | Smaller FreeBSD pkg set |
 | `.config/mise/config.toml` | mise language versions |
+
+### FreeBSD
+
+On a fresh FreeBSD machine, first run `pkg install bash sudo git curl` as root.
+Give your normal account sudo access, clone this repo as that account, then run
+`bash ./install`. Avoid running the whole installer as root unless you want root's
+home configured. `/usr/local/bin` and `/usr/local/sbin` are added to PATH.
+
+The smaller `packages-freebsd.txt` set keeps Fish, Vim, Git, tmux, sessionizer,
+search tools, clipboard helpers, fonts, and mise. The installer queries the active
+pkg repository, reports unavailable packages by name, and skips them. Missing
+core commands (fish, git, vim, tmux, fzf, fd, mise, curl) stop installation. Package availability
+varies by FreeBSD release, architecture, and quarterly/latest repository.
+
+| Area | FreeBSD support in this repo |
+|---|---|
+| mise | Installed via the [FreeBSD port](https://cgit.freebsd.org/ports/tree/sysutils/mise/); activated in Fish. Automatic installation of the shared Ruby/Node/Python/Go/Elixir/Rust/usage pins is skipped. Install and validate each project's tools with `mise use tool@version`; backend/binary support varies. |
+| Development extras | GHC, cabal, Haskell LSP, Lua, uv, gopls, golangci-lint, delve, pnpm, CMake, Ninja, and GDB are omitted from this smaller package set. This does not mean they are unavailable in FreeBSD Ports; add them per project. |
+| Databases and media | PostgreSQL, Valkey/Redis, libvips, ImageMagick, Graphviz, FFmpeg, and additional runtime build libraries are omitted; install per project. |
+| Containers and desktop | Podman and the Omarchy/Hyprland desktop setup are outside this FreeBSD bootstrap. Homebrew casks and VS Code extensions are macOS-only installer features. Ghostty is not installed; its shared config is linked for an independently installed terminal. |
+| Clipboard | `wl-clipboard` for a local Wayland session, `xclip` for X11. Over SSH these need access to a display; the package set does not configure clipboard forwarding. |
+| Agent layout | `tmux-agents` requires separately installed AI CLIs and GNU `watch`; FreeBSD base `watch` is a different utility. Use `tmux-sessionizer` for the supported core session workflow. |
+| Platform utilities | `apt-gpg` and `update-server` remain Debian/Ubuntu-only; `osx-restart-*` remain macOS-only. |
 
 ### Machine-Specific Config
 
