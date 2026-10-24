@@ -50,7 +50,8 @@ install_system_packages() {
     fi
     if [ -f "$dir/Brewfile" ]; then
       echo -e "[+] Installing Homebrew packages from Brewfile."
-      brew bundle --file="$dir/Brewfile" --no-lock
+      # No --no-lock: Homebrew dropped Brewfile.lock.json and now rejects the flag
+      brew bundle --file="$dir/Brewfile"
     fi
   elif command -v apt-get > /dev/null 2>&1; then
     if [ -f "$dir/packages-apt.txt" ]; then
