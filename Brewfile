@@ -142,8 +142,10 @@ cask "codex"            # OpenAI Codex CLI
 # ghidra is a formula now (not a cask): `brew "ghidra"` — reverse engineering
 cask "gqrx"             # Software defined radio
 cask "mitmproxy"        # HTTP proxy for debugging
+cask "keepingyouawake"  # Prevent macOS sleep (menu bar)
 cask "neohtop"          # System monitor (GUI)
 cask "ngrok"            # Tunnel to localhost
+cask "rectangle"        # Window management
 cask "terraform-linters/tap/tflint" # Terraform linter (moved out of homebrew-core)
 cask "vlc"              # Media player
 
