@@ -153,7 +153,8 @@ vscode "docker.docker"
 vscode "golang.go"
 vscode "hashicorp.terraform"
 vscode "haskell.haskell"
-vscode "justusadam.language-haskell"
+# justusadam.language-haskell was removed from the marketplace;
+# haskell.haskell above is the maintained replacement.
 vscode "koichisasada.vscode-rdbg"
 vscode "mikestead.dotenv"
 vscode "ms-azuretools.vscode-containers"

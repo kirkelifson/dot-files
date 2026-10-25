@@ -49,6 +49,15 @@ install_system_packages() {
     fi
     if [ -f "$dir/Brewfile" ]; then
       echo -e "[+] Installing Homebrew packages from Brewfile."
+      # Homebrew refuses to load formulas from taps it doesn't trust
+      # ("Refusing to load formula ... from untrusted tap"), so trust every
+      # tap declared in the Brewfile before bundling. Trusting an already
+      # trusted tap is a no-op, so this stays idempotent.
+      local tap
+      while IFS= read -r tap; do
+        echo -e "\t[>] Trusting tap $tap"
+        brew trust "$tap"
+      done < <(grep -E '^tap "' "$dir/Brewfile" | sed -E 's/^tap "([^"]+)".*/\1/')
       # No --no-lock: Homebrew dropped Brewfile.lock.json and now rejects the flag
       brew bundle --file="$dir/Brewfile"
     fi
