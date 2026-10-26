@@ -52,8 +52,13 @@ fish_add_path $HOME/.opencode/bin
 fish_add_path -a $HOME/.lmstudio/bin
 
 # mise - only load if devenv is not active
+# Shims-first instead of `mise activate`: shims resolve tool versions per-project
+# at exec time and work identically in non-interactive children (Hermes terminal,
+# editors, cron). `mise activate` exports raw install dirs into child PATH, where
+# they sit AFTER /usr/bin and go stale (old versions) — so `mise exec`/shims fail
+# to win resolution and macOS system Ruby 2.6 answers instead.
 if type -q mise; and not set -q DEVENV_PROFILE; and not set -q DEVENV_ROOT
-    mise activate fish | source
+    fish_add_path -g $HOME/.local/share/mise/shims
 end
 
 # --- Command aliases (available in scripts and interactive shells) ---
