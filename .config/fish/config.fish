@@ -79,7 +79,7 @@ switch $os
         alias brew-restart='brew services restart'
         alias brew-start='brew services start'
         alias brew-stop='brew services stop'
-        alias brew-update='brew update; brew upgrade -y; brew doctor; brew cleanup'
+        alias brew-update='brew update; brew upgrade -y --greedy; brew doctor; brew cleanup' # --greedy includes auto_updates casks (antigravity-cli)
         alias md5sum='md5 -q'
 end
 

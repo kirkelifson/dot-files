@@ -7,3 +7,5 @@ erlang = "29"   # required by elixir (erl must be on PATH; elixir builds are otp
 elixir = "1.20"
 rust = "1.98"
 usage = "latest"
+# xAI Grok CLI — not in Homebrew; npm is the official distribution channel
+"npm:@xai-official/grok" = "1"

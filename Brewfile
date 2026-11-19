@@ -119,7 +119,8 @@ brew "graphviz"         # Graph visualization (dot)
 
 # --- AI / LLM ---
 brew "ollama"           # Local LLM runner
-brew "gemini-cli"       # Google Gemini CLI
+cask "antigravity-cli"   # Google Antigravity CLI
+cask "claude-code"      # Anthropic Claude Code CLI (stable channel; brew upgrade to update)
 
 # --- Other ---
 brew "astroterm"        # Terminal astronomy
@@ -133,7 +134,7 @@ brew "termscp"          # Terminal file transfer
 brew "weechat"          # IRC client
 brew "automake"         # Build tool
 brew "qemu"             # Machine emulator
-brew "urh"              # Universal Radio Hacker
+brew "urh"              # Universal Radio Hacker (DEPRECATED upstream repo archived; brew disables 2027-07; alternatives: PentHertz/urh-ng fork, pip install urh)
 brew "internetarchive"  # Internet Archive CLI
 
 # --- Casks (GUI Applications) ---
