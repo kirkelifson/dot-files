@@ -152,3 +152,5 @@ btop
 
 # fonts (FiraCode for terminal/UI, keeps Nerd Font glyphs for prompts)
 ttf-firacode-nerd
+# emoji fallback — without it every emoji in foot/waybar is a tofu box
+noto-fonts-emoji
