@@ -1,0 +1,26 @@
+# mako — persistent, dismissable notifications (top-right).
+# Hermes/Claude/etc. via notify-send land here and stay until dismissed.
+
+anchor=top-right
+# timeout 0 = never auto-expire; dismiss with click / Mod+space cycle
+default-timeout=0
+ignore-timeout=false
+
+font=SF Mono 11
+background-color=#141418ee
+text-color=#c8c8c8
+border-color=#50b4b4
+border-size=2
+border-radius=6
+width=420
+height=140
+padding=12
+icons=1
+max-icon-size=48
+markup=1
+actions=1
+sort=-time
+# Group stacked notifications by app
+group-by=app-name
+max-visible=6
+layer=overlay
