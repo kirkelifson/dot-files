@@ -4,6 +4,10 @@
 # This workflow intentionally stays fast and read-only.
 name: arch-kit
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     paths:

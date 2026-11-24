@@ -1,9 +1,21 @@
 name: Test Install
 
+concurrency:
+  # A newer push on the same branch cancels the superseded run — no point
+  # testing three pushes back-to-back; only the tip matters.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [master]
+    paths-ignore:
+      # The install kit has its own workflow (arch-kit.yml); test-install
+      # exercises ./install and the dotfiles, which arch/ changes can't affect.
+      - "arch/**"
   pull_request:
+    paths-ignore:
+      - "arch/**"
 
 jobs:
   linux:
@@ -75,8 +87,30 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    env:
+      # The runner image's Homebrew index is fresh enough for fish/tmux;
+      # a full brew update here is pure CI minutes.
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
       # Same scaffolding rationale as the linux job above.
+      - name: Compute weekly cache key
+        id: stamp
+        # ISO week — the rolling key makes actions/cache refresh once a week:
+        # first run of a week misses the primary key, restores last week's
+        # bottles via restore-keys, installs the newest versions and re-saves.
+        # A static key would be saved exactly once and go stale forever.
+        run: echo "week=$(date -u +%Y-%V)" >> "$GITHUB_OUTPUT"
+      - name: Cache Homebrew bottle downloads
+        uses: actions/cache@v4
+        with:
+          # fish + tmux bottles are small; this shaves the download, not the
+          # install. actions/cache is free (10 GB/repo) and does NOT count
+          # against the billed Packages/Artifacts storage.
+          path: ~/Library/Caches/Homebrew
+          key: brew-bottles-${{ steps.stamp.outputs.week }}
+          restore-keys: |
+            brew-bottles-
       - name: Install test prerequisites
         run: brew install fish tmux
 

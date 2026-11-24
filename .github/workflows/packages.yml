@@ -3,10 +3,24 @@ name: Package Existence Check
 # Confirms every name in Brewfile / packages/apt.txt still resolves against
 # the real apt index / Homebrew API. No packages are installed — only
 # metadata lookups (apt-cache show, brew info).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [master]
+    paths:
+      # Only metadata lookups against apt/Homebrew — a change outside these
+      # files can't alter the result, so don't burn runner minutes on it.
+      - "Brewfile"
+      - "packages/apt.txt"
+      - ".github/workflows/packages.yml"
   pull_request:
+    paths:
+      - "Brewfile"
+      - "packages/apt.txt"
+      - ".github/workflows/packages.yml"
   schedule:
     - cron: "0 6 * * 1" # weekly — catches upstream removals even with no commits
   workflow_dispatch:
