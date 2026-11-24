@@ -203,7 +203,8 @@ if status is-interactive
     # Platform-specific display aliases
     switch $os
         case Linux
-            alias ls='ls -ltrGh'
+            # GNU ls: -G is --no-group (NOT color like BSD); colors need --color
+            alias ls='ls -ltr --color=auto -h'
             alias ps='ps aux --forest'
         case Darwin FreeBSD
             alias ps="ps -eo pid,args,etime,%cpu,rss"
