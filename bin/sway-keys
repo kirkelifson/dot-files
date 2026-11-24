@@ -1,0 +1,27 @@
+#!/bin/sh
+# sway-keys — searchable keybinding cheat sheet for sway.
+# Lists every bindsym/bindcode in the sway config via wofi; selecting an
+# `exec` binding runs it. Others just close (they're context-dependent).
+#
+# Called from sway: bindsym $mod+slash exec ~/.local/bin/sway-keys  (or bin/sway-keys)
+
+CFG="$HOME/dot-files/arch/sway/config"
+[ -f "$HOME/.config/sway/config" ] && CFG="$HOME/.config/sway/config"
+
+pick=$(grep -E '^bindsym|--locked|--release' "$CFG" \
+    | grep -v '^\s*#' \
+    | sed -E \
+        -e 's/^bindsym //' \
+        -e 's/(--locked|--release|--to-code) /[\1] /' \
+        -e 's/ exec /   →  run: /' \
+        -e 's/ mode "/   →  mode: /' \
+        -e 's/ (resize|move|workspace|layout|focus|split|fullscreen|floating|sticky|scratchpad|reload|kill|swap) /   →  \1 /' \
+    | sort -u \
+    | wofi --dmenu --prompt "keys" --width 900 --height 600)
+
+# Nothing picked or wofi closed
+[ -z "$pick" ] && exit 0
+
+# Execute if it maps to a command
+cmd=$(printf '%s' "$pick" | sed -n 's/.*→  run: //p')
+[ -n "$cmd" ] && (sh -c "$cmd" >/dev/null 2>&1 &)

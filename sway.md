@@ -4,6 +4,7 @@ Launching things:
   Mod+Enter        Open a terminal (foot)
   Mod+i            Open a browser (firefox)
   Mod+d            App launcher (wofi)
+  Mod+/            Keybinding helper (search all bindings, run exec ones)
   Mod+p            Clipboard history (cliphist via wofi)
 
 Window management:

@@ -66,6 +66,8 @@ bindsym $mod+Return exec $term
 bindsym $mod+i exec $browser
 bindsym $mod+d exec wofi --show drun
 bindsym $mod+p exec sh -c 'cliphist list | wofi --dmenu | cliphist decode | wl-copy'
+# Searchable keybinding cheat sheet; run selected exec bindings from the menu
+bindsym $mod+slash exec ~/bin/sway-keys
 
 ######## Workspaces (dwm tags → sway workspaces 1..9) ########
 set $ws1 "1"
