@@ -93,6 +93,10 @@ openssh
 # Bluetooth (game controllers — ARCH.md §7)
 bluez
 bluez-utils
+pipewire
+pipewire-alsa
+pipewire-pulse
+pavucontrol
 
 # Display manager + sway WM session (sddm greets sway; see ARCH.md §4)
 sddm
