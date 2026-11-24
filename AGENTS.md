@@ -23,7 +23,7 @@ The install script:
 - Installs system packages (Brewfile on macOS, packages/apt.txt on Debian/Ubuntu, packages/pacman.txt on Arch/Omarchy, packages/freebsd.txt on FreeBSD)
 - Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
 - Links the `bin/` directory to `~/bin` for custom utilities
-- Links `.config/fish/` and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
+- Links `.config/fish/`, `.config/nvim/` (skipped on Omarchy, which manages its own nvim config), and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
 - Installs/updates vim packages in `~/.vim/pack/bundle/start/`
 - Creates a symlink to Sublime Text's `subl` command if the app is installed (macOS only)
 - **Installs and configures fish shell**:
@@ -99,6 +99,8 @@ Configuration highlights:
 - Auto-prune on fetch enabled
 - Rerere (reuse recorded resolution) enabled
 - Histogram diff algorithm
+- git-delta as `core.pager` (+ `interactive.diffFilter`, navigate, line
+  numbers); installed on every platform via the package lists
 - Verbose commits by default
 
 ### Vim Configuration (.vimrc)
@@ -118,6 +120,29 @@ Vim is configured with:
   - `<leader>ev`: edit vimrc in vertical split
   - `<leader><space>`: clear search highlights
   - `<C-h/j/k/l>`: navigate between splits
+
+### Neovim Configuration (.config/nvim/)
+
+A single `init.lua` — no distro, no plugin manager. Neovim 0.12's built-in
+`vim.pack` clones six plugins on first launch (treesitter main, lspconfig,
+gitsigns, fzf-lua, fugitive, conform); a committed `nvim-pack-lock.json`
+pins their versions. Plugin updates are manual (`:lua vim.pack.update()`) by
+design, so agents/CI never hit the network after the first launch.
+
+- Mirrors `.vimrc` conventions: leader `,`, `;` → `:`, 2-space indent
+  (4 for Python/Java/C/C++, tabs for Go), persistent undo, cursor restore,
+  `<C-h/j/k/l>` splits, `,<space>` clears search highlights
+- Agent/git tuning: swapfiles off + autoread/checktime (concurrent file
+  writes never prompt), persistent undo, formatting manual only (`,f`) so
+  agent writes aren't reformatted, diagnostics quiet (current-line virtual
+  text), gitsigns hunk staging/blame (`<leader>hs/hr/hp/hb`, `]h`),
+  fugitive (`<leader>gs/gd`), fzf-lua pickers (`<leader>ff/fg/gf/gt/gc`)
+- LSP: no Mason — each server (gopls, rust_analyzer, ruby_lsp, pyright,
+  ts_ls, lua_ls, bashls, elixirls) is enabled only when its binary is on
+  PATH; completion is the built-in `vim.lsp.completion` autotrigger
+- Treesitter parsers compile on first launch via `tree-sitter` (in
+  Brewfile + packages/pacman.txt; apt users install it manually)
+- `install` links `.config/nvim` and leaves Omarchy's own nvim config alone
 
 ### Tmux Configuration (.tmux.conf)
 
@@ -204,7 +229,7 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 
 ## FreeBSD
 
-See README.md for bootstrap instructions and the support matrix. `packages/freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Development extras, databases, media tools, containers, and GUI apps are not installed by this smaller bootstrap.
+See README.md for bootstrap instructions and the support matrix. `packages/freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Core dev tooling (gh, git-delta, git-absorb, gopls, delve, uv, ast-grep, awscli, hyperfine, age) IS included; databases, desktop/GUI apps, and heavyweight media tooling are not.
 
 ## Machine-Specific Configuration
 
