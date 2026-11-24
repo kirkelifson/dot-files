@@ -159,3 +159,7 @@ ttf-firacode-nerd
 noto-fonts-emoji
 # fallback for U+2624 ☤ (Hermes status-bar brand glyph) — FiraCode lacks it
 ttf-dejavu
+# Hermes default-skin spinner faces (kawaii kaomoji) need kana/halfwidth forms
+# (｡･っロヽヾ) and Indic/Thai (ಠ๑) — FiraCode has none of these
+noto-fonts
+noto-fonts-cjk
