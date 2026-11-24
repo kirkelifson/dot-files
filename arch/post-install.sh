@@ -8,10 +8,22 @@ REPO_URL="https://github.com/kirkelifson/dot-files.git"
 GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/master/packages/pacman-gaming.txt"
 
 step() { printf '\n\033[1;34m[+]\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m[!]\033[0m %s\n' "$*"; }
-die()  { printf '\033[1;31m[x]\033[0m %s\n' "$*" >&2; exit 1; }
+WARNS=0 FAILS=0
+warn() { printf '\033[1;33m[!]\033[0m %s\n' "$*"; WARNS=$((WARNS+1)); }
+die()  { printf '\033[1;31m[x]\033[0m %s\n' "$*" >&2; FAILS=$((FAILS+1)); exit 1; }
 
 [[ $EUID -eq 0 ]] || die "Run with sudo (sudo bash post-install.sh)."
+
+# Log the whole run to /var/log (same-day re-runs append) while keeping the
+# terminal output live, then print a WARN/FAIL summary at exit — the same
+# shape as verify-install.sh's "Result:" line, so warnings aren't lost in
+# scrollback on install day.
+LOG="/var/log/post-install-$(date +%F).log"
+exec > >(tee -a "$LOG") 2>&1
+trap 'rc=$?; printf "\n\033[1;36m==\033[0m post-install summary: %d warn(s), %d fail(s) — full log: %s\n" "$WARNS" "$FAILS" "$LOG"; exit $rc' EXIT
+# Unguarded command failures (set -e exits) count as fails; guarded ones
+# already go through warn()/die().
+trap 'FAILS=$((FAILS+1))' ERR
 
 # Target user: auto-detect the primary /home user, overridable with
 # TARGET_USER=<name> (e.g. sudo TARGET_USER=xtc bash post-install.sh).
