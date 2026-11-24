@@ -139,3 +139,6 @@ snap-pac
 
 # zram swap (ARCH.md §2 — no swap partition; post-install writes the conf)
 zram-generator
+
+# system monitor
+btop

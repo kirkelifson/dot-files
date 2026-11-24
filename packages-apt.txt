@@ -94,3 +94,4 @@ podman
 graphviz
 ffmpeg
 direnv
+btop
