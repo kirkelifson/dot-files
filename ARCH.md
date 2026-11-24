@@ -229,27 +229,62 @@ reboot → sbctl status        # "Secure Boot: enabled"
 Custom archiso with an unattended archinstall config — not a disk image
 (a disk image bakes in hardware UUIDs and goes stale; archiso installs
 fresh packages every time). **The ISO builds in Docker** — no Arch install
-needed, works from the Mac (`arch/build-iso.sh`), and `arch/flash-usb.sh`
-writes it to the USB stick when you plug it in.
+needed, works from the Mac (`arch/build-iso.sh`, ~5.5 min, zstd squashfs),
+and `arch/flash-usb.sh` writes it to the USB stick when you plug it in.
+
+**Split of responsibilities — the ISO installs almost nothing:**
+
+- The baked archinstall list is a **minimal bootstrap**
+  (`arch/iso/packages-bootstrap.txt`: git, openssh, networkmanager) —
+  just enough to boot to a TTY with network and ssh. The unattended
+  install takes minutes, not half an hour.
+- `arch/post-install.sh` does the rest after first boot: the full
+  desktop + gaming stack (`packages-pacman{,-gaming}.txt`), the AUR list
+  (`packages-aur.txt` via paru), GPU stack, zram, sshd hardening,
+  sway/foot config, boot order, sbctl (interactive). First boot after
+  the install is a TTY login; run post-install, reboot, land in sway.
+
+**When an ISO rebuild IS needed** (these are the only things baked in):
+
+- `arch/iso/packages-bootstrap.txt` — the install-time package list
+- `arch/iso/airootfs/**` — `autostart.sh`, archinstall configs, motd, etc.
+- `arch/iso/profiledef.sh`, boot configs, `pacman.conf`,
+  `arch/iso/packages.x86_64` (the live environment's own packages)
+- archiso version bumps or a wedged workdir (`build-iso.sh` handles that)
+
+**When a rebuild is NOT needed** (pulled from GitHub at post-install
+time — push the repo, then re-run post-install on the target):
+
+- `packages-pacman.txt`, `packages-pacman-gaming.txt`, `packages-aur.txt`
+- `arch/post-install.sh`, `arch/verify-install.sh`,
+  `arch/ssh/authorized_keys`
+- `arch/sway/**` (sway config, foot.ini, screenshot scripts)
+- Everything else in the dot-files repo (`./install` links it)
+- VM test cycles: `run-vm-test.sh prep-ssh|post-install|verify` boot the
+  existing test disk — no ISO attached
 
 **Files live in `arch/` — see `arch/README.md` for build + usage:**
 
 - `arch/build-iso.sh` — Docker build (archlinux image, Rosetta on
-  Apple Silicon; emulation quirks handled)
+  Apple Silicon; emulation quirks handled); preflight-checks all
+  required files and reports missing ones before starting
 - `arch/flash-usb.sh` — interactive USB flasher for macOS/Linux
 - `arch/archinstall/user_configuration.json` — unattended config
-  (packages, user, services, multilib)
-- `arch/archinstall/user_disk_layout.json` — **targets the P3 only**
-  (wipe + ESP + btrfs); the Windows disk is never listed
+  (4.x schema: disk_config merged in; the device is a placeholder
+  `/dev/REPLACED-BY-AUTOSTART` patched at runtime by `autostart.sh`)
 - `arch/iso/` — custom archiso profile; boots straight into the installer
-- `arch/post-install.sh` — gaming stack, dot-files `./install`, zram,
+- `arch/post-install.sh` — desktop + gaming stack, AUR, dot-files
+  `./install`, zram, sshd hardening (8631, pubkey-only), sddm enable,
   boot order, sbctl Secure Boot (interactive)
 - `arch/verify-install.sh` — health check: Secure Boot, driver, 144 Hz,
   VRR, boot entries, zram, services, package spot-checks; exit code =
   number of failures
+- `arch/test/` — local QEMU harness that replays the whole install
+  (never in CI; see `arch/test/README.md`)
 
-What it can't automate: disk target confirmation, Secure Boot key
-enrollment (firmware screen), BIOS settings (F10+, XMP).
+What it can't automate: disk target confirmation (typed + retype-to-
+confirm by design), Secure Boot key enrollment (firmware screen), BIOS
+settings (F10+, XMP).
 
 ## 11. 5900X tuning
 

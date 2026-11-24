@@ -224,3 +224,25 @@ PATH is managed to avoid duplicates:
 - All PATH entries are set unconditionally in the top (non-interactive) section of `config.fish`
 - **mise** is only activated when devenv is NOT active (checked via `$DEVENV_PROFILE` or `$DEVENV_ROOT` variables)
   - When devenv is active, it manages tool versions and mise should not interfere
+
+## Arch install kit (`arch/`)
+
+Unattended Arch installer for the desktop build — design + hardware detail
+live in `ARCH.md` (§10), testing in `arch/test/README.md`. Key rules:
+
+- The ISO bakes a **minimal bootstrap only** (`arch/iso/packages-bootstrap.txt`:
+  git/openssh/networkmanager); `arch/post-install.sh` installs everything
+  else (desktop, gaming, AUR) after first boot and enables sddm.
+- **Rebuild the ISO** only when `arch/iso/**`, `arch/archinstall/**`, or
+  `arch/iso/packages-bootstrap.txt` change.
+- **No rebuild needed** for `packages-pacman*.txt`, `packages-aur.txt`,
+  `arch/post-install.sh`, `arch/sway/**`, `arch/ssh/authorized_keys`, or any
+  other dot-files change — those flow from GitHub when post-install runs.
+  Push the repo, re-run post-install on the target; VM tests can reuse the
+  existing test disk (`run-vm-test.sh prep-ssh|post-install|verify`).
+- `arch/test/` is local-only and must never run in CI (scripts self-guard);
+  CI (`.github/workflows/arch-kit.yml`) is superficial checks only.
+- The installed system's target user is `xtc`; the Samsung 980 Pro holds
+  Windows and must never be an install target (the installer warns on it).
+- Machine-specific creds (`user_credentials.json`, `arch/test/keys/`) are
+  gitignored — never commit them; SSH pubkeys in `arch/ssh/` are fine.
