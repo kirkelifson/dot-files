@@ -200,7 +200,7 @@ step "sway config: symlink config + scripts → ~/.config/sway"
 # easy to see/commit. Back up any pre-existing regular files first.
 SWAY_DIR="/home/$TARGET_USER/.config/sway"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "$SWAY_DIR/scripts"
-for rel in config scripts/autotile scripts/shot-region scripts/shot-full scripts/set-wallpaper scripts/toggle-nightlight scripts/generate-wallpapers; do
+for rel in config scripts/autotile scripts/idle-gate scripts/screensaver scripts/idle-resume scripts/set-wallpaper scripts/update-sddm-background scripts/shot-region scripts/shot-full scripts/toggle-nightlight scripts/generate-wallpapers; do
   src="/home/$TARGET_USER/dot-files/arch/sway/$rel"
   dst="$SWAY_DIR/$rel"
   [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"
@@ -307,6 +307,13 @@ fi
 step "Display manager (sddm) — installs with the desktop batch, enable now"
 systemctl enable sddm.service 2>/dev/null \
   || warn "sddm not enabled — check: systemctl enable sddm"
+# sddm login background: tile the current wallpaper into a custom theme.
+# Needs a generated wallpaper first (generate-wallpapers runs on first login);
+# re-run by hand after changing the wallpaper: sudo ~/.config/sway/scripts/update-sddm-background
+if [[ -x /home/$TARGET_USER/dot-files/arch/sway/scripts/update-sddm-background ]]; then
+  /home/$TARGET_USER/dot-files/arch/sway/scripts/update-sddm-background \
+    || warn "sddm background not set (no wallpaper yet?) — run update-sddm-background after generate-wallpapers"
+fi
 
 step "Bluetooth: enable the service when an adapter is present"
 if pacman -Q bluez >/dev/null 2>&1 && ls /sys/class/bluetooth/hci* >/dev/null 2>&1; then

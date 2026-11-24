@@ -38,4 +38,13 @@ else
     printf '\n######## Wallpaper ########\noutput * bg %s tile\n' "$FILE" >> "$SWAY_CFG"
 fi
 
+# Persist for the lock screen too — swaylock reads ~/.config/swaylock/config.
+# scaling=tile matches the tiled desktop (wallpapers are seamless tiles).
+mkdir -p "$HOME/.config/swaylock"
+printf 'image=%s\nscaling=tile\n' "$FILE" > "$HOME/.config/swaylock/config"
+
+# The sddm LOGIN screen can't read $HOME (700) — update it separately, as root:
+#   sudo ~/.config/sway/scripts/update-sddm-background
+# (reads the wallpaper from this sway config line, so run it after this script)
+
 notify-send "Wallpaper" "Set to $PICK"

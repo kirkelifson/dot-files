@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# update-sddm-background — give the sddm LOGIN screen the current wallpaper.
+#
+# Run as ROOT:   sudo ~/.config/sway/scripts/update-sddm-background
+#
+# - Picks the wallpaper from the sway config's `output * bg` line
+#   (fallback: first png in ~/.config/sway/wallpapers, or pass a path as $1)
+# - Wallpapers are small seamless tiles (~512px), so they get pre-tiled into a
+#   3840x2160 background — the greeter can't read $HOME (mode 700) anyway, and
+#   stretching a 512px tile to 4K would look terrible
+# - Installs it as a custom sddm theme "dotfiles" cloned from the stock
+#   elarun theme, and selects it via /etc/sddm.conf.d/10-dotfiles.conf
+#
+# Idempotent: re-run after every set-wallpaper to refresh the login screen.
+set -euo pipefail
+
+USER_NAME=${SUDO_USER:-xtc}
+USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
+WALL_DIR="$USER_HOME/.config/sway/wallpapers"
+SWAY_CFG="$USER_HOME/.config/sway/config"
+THEME_DIR=/usr/share/sddm/themes/dotfiles
+CONF=/etc/sddm.conf.d/10-dotfiles.conf
+OUT_W=3840 OUT_H=2160
+
+# --- pick source wallpaper ---------------------------------------------------
+if [[ $# -ge 1 ]]; then
+    SRC=$1
+elif BG_LINE=$(grep '^output \* bg' "$SWAY_CFG" 2>/dev/null | tail -1) && [[ -n ${BG_LINE:-} ]]; then
+    SRC=$(awk '{print $4}' <<<"$BG_LINE")
+    SRC=${SRC/#\~/$USER_HOME}
+else
+    SRC=$(ls "$WALL_DIR"/*.png 2>/dev/null | head -1)
+fi
+
+if [[ -z ${SRC:-} || ! -f $SRC ]]; then
+    echo "update-sddm-background: no wallpaper found (generate one with generate-wallpapers first)" >&2
+    exit 1
+fi
+echo "source wallpaper: $SRC"
+
+# --- theme scaffold (first run): clone stock elarun --------------------------
+if [[ ! -d $THEME_DIR ]]; then
+    [[ -d /usr/share/sddm/themes/elarun ]] \
+        || { echo "update-sddm-background: /usr/share/sddm/themes/elarun missing" >&2; exit 1; }
+    cp -a /usr/share/sddm/themes/elarun "$THEME_DIR"
+    sed -i 's|^background=.*|background=background.png|' "$THEME_DIR/theme.conf"
+fi
+
+# --- tile the wallpaper to the output resolution -----------------------------
+/usr/bin/python3 - "$SRC" "$THEME_DIR/background.png" "$OUT_W" "$OUT_H" <<'EOF'
+import sys
+from PIL import Image
+
+src, dst, w, h = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
+tile = Image.open(src).convert("RGB")
+canvas = Image.new("RGB", (w, h))
+tw, th = tile.size
+for y in range(0, h, th):
+    for x in range(0, w, tw):
+        canvas.paste(tile, (x, y))
+canvas.save(dst)
+EOF
+
+# --- select the theme --------------------------------------------------------
+mkdir -p /etc/sddm.conf.d
+if ! grep -q '^Current=dotfiles' "$CONF" 2>/dev/null; then
+    printf '[Theme]\nCurrent=dotfiles\n' > "$CONF"
+fi
+
+echo "sddm theme updated: $THEME_DIR/background.png ($OUT_W x $OUT_H)"
