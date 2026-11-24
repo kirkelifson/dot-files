@@ -63,6 +63,7 @@ pnpm
 
 # Build essentials (needed for mise/ruby/python compilation)
 base-devel
+rust
 autoconf
 automake
 openssl

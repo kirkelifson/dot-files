@@ -6,3 +6,7 @@
 
 # GE-Proton updater (ARCH.md §7 — per-game Proton versions)
 protonup-qt
+
+# udev access rules for game controllers (DualSense hidraw/uinput — rumble,
+# adaptive triggers, and non-Steam apps reading the controller)
+game-devices-udev
