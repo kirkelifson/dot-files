@@ -7,10 +7,6 @@ done on the machine.
 
 - [ ] **SSH config management** — Add a base `~/.ssh/config` template to the repo with common settings: keepalive intervals, connection multiplexing (`ControlMaster`), agent forwarding defaults. The install script could link or merge it.
 
-## Install Script
-
-- [ ] **apt branch fails silently mid-list** — The apt path pipes the whole list into one `xargs sudo apt-get install -y`, so one bad name aborts the rest with no report. Give it the FreeBSD treatment: check each package with `apt-cache show` first, install the resolvable ones, and report the missing by name.
-
 ## Brewfile / Package Gaps
 
 - [ ] **`git-absorb`, `hyperfine`, `age` missing from Brewfile** — All three were marked done in earlier reviews but are not in the Brewfile. Add `brew "git-absorb"`, `brew "hyperfine"`, `brew "age"`.

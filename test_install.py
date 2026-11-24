@@ -116,6 +116,27 @@ class InstallTests(unittest.TestCase):
         self.assertIn('missing-package (skipped)', output)
         self.assertIn('automatic runtime installs are skipped', output)
 
+    def test_apt_package_routing_and_unavailable_package(self):
+        output = self.run_shell('''
+            os=Linux
+            mkdir -p "$HOME/repo/packages"
+            printf '# comment\\n\\ncurl\\nmissing-package\\nfish\\n' > "$HOME/repo/packages/apt.txt"
+            dir="$HOME/repo"
+            run_as_root() { "$@"; }
+            apt-get() {
+                case "$1" in
+                    update) return 0 ;;
+                    install) printf '%s\\n' "$*" > "$HOME/installed" ;;
+                esac
+            }
+            apt-cache() {
+                [ "$2" != missing-package ]
+            }
+            install_system_packages
+            grep -qx 'install -y curl fish' "$HOME/installed"
+        ''')
+        self.assertIn('missing-package (skipped)', output)
+
 
 if __name__ == '__main__':
     unittest.main()

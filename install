@@ -66,13 +66,33 @@ install_system_packages() {
   elif command -v apt-get > /dev/null 2>&1; then
     if [ -f "$dir/packages/apt.txt" ]; then
       echo -e "[+] Installing apt packages from packages/apt.txt."
-      grep -v '^#' "$dir/packages/apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
+      install_apt_packages "$dir/packages/apt.txt"
     fi
   elif command -v pacman > /dev/null 2>&1; then
     if [ -f "$dir/packages/pacman.txt" ]; then
       echo -e "[+] Installing pacman packages from packages/pacman.txt."
       grep -v '^#' "$dir/packages/pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
     fi
+  fi
+}
+
+# apt: one unknown name aborts the whole xargs batch with no report, so check
+# each entry with apt-cache first (same treatment as the FreeBSD pkg branch),
+# install the resolvable ones, and report the missing by name.
+install_apt_packages() {
+  local file=$1 package
+  local packages=()
+  run_as_root apt-get update
+  while IFS= read -r package; do
+    case "$package" in ""|\#*) continue ;; esac
+    if apt-cache show "$package" > /dev/null 2>&1; then
+      packages+=("$package")
+    else
+      echo "[!] apt package unavailable in these repositories: $package (skipped)"
+    fi
+  done < "$file"
+  if [ "${#packages[@]}" -gt 0 ]; then
+    run_as_root apt-get install -y "${packages[@]}"
   fi
 }
 
