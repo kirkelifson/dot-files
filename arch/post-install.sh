@@ -231,34 +231,57 @@ if [[ -s packages-aur.txt ]]; then
     # as $TARGET_USER, which prompts for a password root can't answer
     # (root's credentials don't carry through `sudo -u`). And `paru -S -`
     # feeds # comment lines to pacman as package targets, aborting the
-    # batch. Instead: clone from AUR, pre-install build deps as root
-    # (so makepkg never needs sudo), makepkg as $TARGET_USER, pacman -U.
-    while IFS= read -r pkg; do
-      pkg="${pkg%%#*}"; pkg="${pkg//[[:space:]]/}" # strip comments/whitespace
-      [[ -z $pkg ]] && continue
+    # batch. Instead: clone from AUR, import any PGP signing keys, install
+    # repo deps as root, recurse into AUR deps (makepkg never needs sudo),
+    # makepkg as $TARGET_USER, pacman -U as root.
+    build_aur() {
+      local pkg="$1" depth="${2:-0}" srcinfo dep key
+      if (( depth > 4 )); then
+        warn "$pkg: dependency nesting deeper than 5 levels — build manually"
+        return 1
+      fi
       if pacman -Q "$pkg" >/dev/null 2>&1; then
-        echo "  AUR: $pkg (already installed)"
-        continue
+        (( depth == 0 )) && echo "  AUR: $pkg (already installed)"
+        return 0
       fi
       echo "  AUR: $pkg"
       sudo -u "$TARGET_USER" git clone -q --depth 1 "https://aur.archlinux.org/$pkg.git" "$BUILD/$pkg" \
-        || { warn "$pkg: clone from AUR failed"; continue; }
+        || { warn "$pkg: clone from AUR failed"; return 1; }
       srcinfo=$(sudo -u "$TARGET_USER" bash -c "cd '$BUILD/$pkg' && makepkg --printsrcinfo")
-      # shellcheck disable=SC2086
-      deps=$(awk '/^(make|check)?depends(_[a-z0-9]+)? =/ {print $3}' <<<"$srcinfo" | sort -u)
-      if [[ -n $deps ]]; then
-        pacman -S --needed --noconfirm $deps >/dev/null \
-          || warn "$pkg: installing build deps failed — makepkg will likely fail"
-      fi
+      # Import PGP keys the sources are signed with, else makepkg aborts
+      # on signature verification (e.g. 1Password's release key).
+      while IFS= read -r key; do
+        sudo -u "$TARGET_USER" gpg --batch --keyserver keys.openpgp.org --recv-keys "$key" \
+          || sudo -u "$TARGET_USER" gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" \
+          || warn "$pkg: could not import signing key $key — signature check may fail"
+      done < <(awk '/validpgpkeys =/ {print $3}' <<<"$srcinfo")
+      # One unresolvable dep must not abort the others: repo deps install
+      # individually as root, AUR deps recurse (they're not in pacman repos).
+      # Field-match $1 exactly so optdepends (optional, trailing ": desc")
+      # are excluded — SRCINFO lines are tab-indented, so no ^ anchor.
+      for dep in $(awk '$1 ~ /^(make|check)?depends(_[a-z0-9]+)?$/ && $2 == "=" {print $3}' <<<"$srcinfo" | sort -u); do
+        if pacman -Si "$dep" >/dev/null 2>&1; then
+          pacman -S --needed --noconfirm "$dep" >/dev/null \
+            || warn "$pkg: repo dep $dep failed to install — makepkg will likely fail"
+        else
+          build_aur "$dep" $((depth + 1)) || warn "$pkg: AUR dep $dep failed"
+        fi
+      done
       if sudo -u "$TARGET_USER" bash -c "cd '$BUILD/$pkg' && makepkg -f --noconfirm" \
          && pacman -U --noconfirm "$BUILD/$pkg"/*.pkg.tar.zst; then
         echo "  $pkg installed"
       else
         warn "$pkg: makepkg or pacman -U failed — check output above"
+        return 1
       fi
+    }
+    while IFS= read -r pkg; do
+      pkg="${pkg%%#*}"; pkg="${pkg//[[:space:]]/}" # strip comments/whitespace
+      [[ -z $pkg ]] && continue
+      build_aur "$pkg" 0 || true
     done < packages-aur.txt
     pacman -Q 1password >/dev/null 2>&1 \
-      && echo "  1password installed" || warn "1password not installed (check paru output)"
+      && echo "  1password installed" || warn "1password not installed — see AUR output above"
   else
     warn "paru build failed — AUR packages skipped (firefox is the browser)"
   fi
