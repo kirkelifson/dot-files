@@ -43,7 +43,7 @@ fi
 
 hdr "Display / refresh / VRR"
 if have swaymsg && [ -n "$SWAYSOCK" ]; then
-  swaymsg -t get_outputs -p 2>/dev/null | grep -q '3840x2160 @ 144' \
+  swaymsg -t get_outputs -p 2>/dev/null | grep -qE '3840x2160 @ 14[34]\.' \
     && ok "144 Hz mode active (sway)" \
     || warn "No 3840x2160@144 mode — check swaymsg -t get_outputs and DP-1/DSC"
   swaymsg -t get_outputs -p 2>/dev/null | grep -qi 'Adaptive sync: enabled' \
@@ -85,9 +85,15 @@ if have efibootmgr; then
   [[ -n $ARCH_NUM && $ORDER == "$ARCH_NUM",* ]] && ok "Arch is first in BootOrder ($ORDER)" || warn "Arch not first: BootOrder=$ORDER (fix: efibootmgr -o <arch>,<windows>)"
   if [[ -r /boot ]]; then
     ls /boot/EFI/BOOT/BOOTX64.EFI >/dev/null 2>&1 && ok "systemd-boot present on Arch's ESP" || bad "/boot/EFI/BOOT/BOOTX64.EFI missing — bootloader not installed on this ESP"
-    [[ -e /boot/initramfs-linux-fallback.img ]] && ok "fallback initramfs present" || bad "initramfs-linux-fallback.img missing"
+    [[ -e /boot/initramfs-linux-fallback.img ]] && ok "fallback initramfs present" || bad "initramfs-linux-fallback.img missing — sudo mkinitcpio -P"
   else
     warn "/boot not readable as this user (fmask 0177) — boot file checks skipped (verify with: sudo ls /boot/EFI/BOOT)"
+  fi
+  # Preset check works without root — catches archinstall's default-only preset
+  PRESET=/etc/mkinitcpio.d/linux.preset
+  if [[ -r $PRESET ]]; then
+    grep -q "'fallback'" "$PRESET" && ok "mkinitcpio preset includes fallback" \
+      || bad "mkinitcpio preset missing fallback — re-run post-install.sh or: sudo sed -i \"s/^PRESETS=.*/PRESETS=('default' 'fallback')/\" $PRESET && sudo mkinitcpio -P"
   fi
   have bootctl && { bootctl status 2>/dev/null | grep -q "systemd-boot" && ok "systemd-boot installed and reporting" || bad "bootctl does not report systemd-boot"; } || warn "bootctl missing (systemd pkg?)"
 else
@@ -96,8 +102,14 @@ fi
 
 hdr "Filesystem (btrfs layout from ARCH.md §2)"
 ROOT_SRC=$(findmnt -n -o SOURCE / 2>/dev/null)
-[[ $ROOT_SRC == *"@/"* || $ROOT_SRC == *"[/@]"* ]] && ok "root mounted from btrfs subvolume (@): $ROOT_SRC" \
-  || warn "root mount: '$ROOT_SRC' — expected a btrfs @ subvolume"
+ROOT_OPTS=$(findmnt -n -o OPTIONS / 2>/dev/null)
+if [[ $ROOT_SRC == *"@/"* || $ROOT_SRC == *"[/@]"* ]]; then
+  ok "root mounted from btrfs subvolume (@): $ROOT_SRC"
+elif [[ $ROOT_OPTS == *subvol=* ]]; then
+  ok "root mounted from btrfs subvolume: $ROOT_SRC ($(echo "$ROOT_OPTS" | grep -oP 'subvol=[^ ,]*'))"
+else
+  warn "root mount: '$ROOT_SRC' — expected a btrfs subvolume"
+fi
 findmnt -n -o FSTYPE / | grep -q btrfs && ok "root filesystem is btrfs" || bad "root is not btrfs: $(findmnt -n -o FSTYPE /)"
 FSTAB_NVME=$(grep -c "nvme" /etc/fstab 2>/dev/null || echo 0)
 (( FSTAB_NVME > 0 )) && ok "fstab references $FSTAB_NVME nvme line(s)" || bad "fstab has no nvme entries — installs may not survive reboot"

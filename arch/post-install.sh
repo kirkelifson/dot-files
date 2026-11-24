@@ -108,6 +108,20 @@ CONF="/boot/loader/loader.conf"
 printf 'timeout 3\ndefault arch.conf\n' > "$CONF"
 bootctl update --no-variables 2>/dev/null || bootctl install --no-variables
 
+step "Fallback initramfs (archinstall only builds 'default'; re-enable fallback)"
+PRESET=/etc/mkinitcpio.d/linux.preset
+if grep -q "^PRESETS=('default')$" "$PRESET" 2>/dev/null; then
+  sed -i "s/^PRESETS=('default')$/PRESETS=('default' 'fallback')/" "$PRESET"
+  sed -i 's/^#fallback_image/fallback_image/' "$PRESET"
+  mkinitcpio -P
+  echo "  Fallback initramfs rebuilt."
+elif [[ -f /boot/initramfs-linux-fallback.img ]]; then
+  echo "  Fallback initramfs already present."
+else
+  mkinitcpio -P
+  echo "  Rebuilt all initramfs presets."
+fi
+
 step "Boot order: Arch first, Windows second"
 ARCH_ID=$(efibootmgr | awk '/Linux Boot Manager/{print $1; exit}' | sed 's/Boot0*//; s/\*//')
 WIN_ID=$(efibootmgr | awk '/Windows Boot Manager/{print $1; exit}' | sed 's/Boot0*//; s/\*//')
@@ -175,14 +189,28 @@ sshd -t || die "sshd config test failed — fix $SSHD_DIR/10-lan-hardening.conf"
 systemctl enable --now sshd.service
 ss -tlnp | grep -E ':8631\b' || warn "sshd is not listening on 8631 yet — check: systemctl status sshd"
 
-step "sway config: config + screenshot scripts → ~/.config/sway"
-install -d -o "$TARGET_USER" -g "$TARGET_USER" "/home/$TARGET_USER/.config/sway/scripts"
-install -o "$TARGET_USER" -g "$TARGET_USER" -m 644 "/home/$TARGET_USER/dot-files/arch/sway/config" "/home/$TARGET_USER/.config/sway/config"
-install -o "$TARGET_USER" -g "$TARGET_USER" -m 755 "/home/$TARGET_USER/dot-files/arch/sway/scripts/shot-"* "/home/$TARGET_USER/.config/sway/scripts/"
+step "sway config: symlink config + scripts → ~/.config/sway"
+# Symlinks, not copies: edits in the repo apply live, and local edits are
+# easy to see/commit. Back up any pre-existing regular files first.
+SWAY_DIR="/home/$TARGET_USER/.config/sway"
+install -d -o "$TARGET_USER" -g "$TARGET_USER" "$SWAY_DIR/scripts"
+for rel in config scripts/shot-region scripts/shot-full scripts/set-wallpaper scripts/toggle-nightlight scripts/generate-wallpapers; do
+  src="/home/$TARGET_USER/dot-files/arch/sway/$rel"
+  dst="$SWAY_DIR/$rel"
+  [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"
+  ln -sfn "$src" "$dst"
+done
+# Waybar config ships in the main dot-files installer (link_config_dirs) —
+# nothing to do here unless it's missing (e.g. installer never ran):
+if [[ ! -L "/home/$TARGET_USER/.config/waybar" ]]; then
+  ln -sfn "/home/$TARGET_USER/dot-files/.config/waybar" "/home/$TARGET_USER/.config/waybar"
+fi
 
 step "foot terminal config (14pt — foot's 8pt default is tiny at 4K)"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "/home/$TARGET_USER/.config/foot"
-install -o "$TARGET_USER" -g "$TARGET_USER" -m 644 "/home/$TARGET_USER/dot-files/arch/sway/foot.ini" "/home/$TARGET_USER/.config/foot/foot.ini"
+FOOT_DST="/home/$TARGET_USER/.config/foot/foot.ini"
+[[ -e $FOOT_DST && ! -L $FOOT_DST ]] && mv "$FOOT_DST" "$FOOT_DST.pre-symlink"
+ln -sfn "/home/$TARGET_USER/dot-files/arch/sway/foot.ini" "$FOOT_DST"
 
 # AUR packages via paru. makepkg refuses to run as root, so the helper is
 # built as $TARGET_USER and installed with pacman as root (no password
@@ -219,6 +247,66 @@ fi
 
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
+
+step "System tuning (Ryzen 5900X / desktop workstation)"
+# -- makepkg: use all threads for builds and native march --
+if grep -q '^#MAKEFLAGS=' /etc/makepkg.conf; then
+  sed -i 's/^#MAKEFLAGS=.*/MAKEFLAGS="-j$(nproc)"/' /etc/makepkg.conf
+fi
+# Native CPU optimisation for locally-compiled packages (AUR etc.)
+if grep -q '^\(CFLAGS=.*\)-march=x86-64 -mtune=generic' /etc/makepkg.conf; then
+  sed -i 's/-march=x86-64 -mtune=generic/-march=native -mtune=native/' /etc/makepkg.conf
+fi
+# Use all cores for ZSTD package compression (already default for -T0 but explicit)
+if grep -q '^COMPRESSZST=.*-T0' /etc/makepkg.conf; then
+  :  # already parallel
+elif grep -q '^COMPRESSZST=' /etc/makepkg.conf; then
+  sed -i "s/^COMPRESSZST=.*/COMPRESSZST=(zstd -c -T0 -)/" /etc/makepkg.conf
+fi
+
+# -- CPU governor: performance for desktop (not laptop) --
+cat > /etc/tmpfiles.d/cpu-governor.conf <<'EOF'
+# Set all CPU cores to performance governor at boot
+w /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor - - - - performance
+EOF
+# Also apply right now
+for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+  echo performance > "$g" 2>/dev/null || true
+done
+
+# -- amd_pstate EPP: prefer performance on desktop --
+cat > /etc/tmpfiles.d/amd-pstate-epp.conf <<'EOF'
+w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - performance
+EOF
+for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+  echo performance > "$e" 2>/dev/null || true
+done
+
+# -- I/O scheduler: none for NVMe (already direct to hardware) --
+for sched in /sys/block/nvme*/queue/scheduler; do
+  echo none > "$sched" 2>/dev/null || true
+done
+cat > /etc/udev/rules.d/60-io-scheduler.rules <<'EOF'
+# NVMe: no scheduler (hardware handles queuing)
+ACTION=="add|change", KERNEL=="nvme*", ATTR{queue/scheduler}="none"
+# SATA/USB: mq-deadline
+ACTION=="add|change", KERNEL=="sd*", ATTR{queue/scheduler}="mq-deadline"
+EOF
+
+# -- VM tuning for 64GB RAM desktop --
+cat > /etc/sysctl.d/99-desktop-tuning.conf <<'EOF'
+# Lower swappiness — plenty of RAM, prefer keeping things in memory
+vm.swappiness = 10
+# Reduce vfs_cache_pressure — keep dentries/inodes cached longer
+vm.vfs_cache_pressure = 50
+# Larger dirty page ratio — NVMe can handle big flushes
+vm.dirty_ratio = 30
+vm.dirty_background_ratio = 10
+# Increase inotify watches for large projects (IDEs, file watchers)
+fs.inotify.max_user_watches = 524288
+fs.inotify.max_user_instances = 1024
+EOF
+sysctl --system > /dev/null 2>&1
 
 step "Remove NVIDIA userspace (full-AMD build — pulled in by vulkan-driver provider choice)"
 # vulkan-radeon is installed by now, so nothing depends on nvidia-utils.
