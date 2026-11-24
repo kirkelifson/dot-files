@@ -7,4 +7,5 @@
 # by arch/post-install.sh (SSH step). Add keys here, then re-run that
 # step (or copy the file over) to apply them.
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2sZ+cE5LtsLu5biv9FK8Z6pkidn1PXOo3E2oDAojUl kirk@prometheus
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKXVEn9ku/BDBRQEpkfa7iJAw1Qbfu8/m8njcEaLKrTz kirk@reach
 
