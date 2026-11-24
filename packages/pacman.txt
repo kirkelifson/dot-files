@@ -53,7 +53,9 @@ glab
 
 # CI / Linters
 shellcheck
+shfmt
 actionlint
+gitleaks
 
 # Languages & Runtimes not covered by mise (see .config/mise/config.toml
 # for Ruby, Node, Python, Go, Elixir, Rust)

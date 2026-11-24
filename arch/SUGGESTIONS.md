@@ -46,39 +46,34 @@ each item notes where it would live.
 
 ## Development
 
-6. **Lint parity with CI.** CI runs shellcheck over every bash script, but
-   neither shellcheck nor shfmt is installed locally — you can't run what
-   CI runs. Add both to `packages/pacman.txt`, plus a small fish function
-   or `just` recipe that replicates the CI lint commands.
-
-7. **`just` as the repo task runner.** The ISO build, VM-test invocations,
+6. **`just` as the repo task runner.** The ISO build, VM-test invocations,
    and lint commands are long one-liners living in README prose.
    A `justfile` at the repo root makes them runnable and discoverable.
 
-8. **`atuin`.** Synced, full-text-searchable shell history (Ctrl-R that
+7. **`atuin`.** Synced, full-text-searchable shell history (Ctrl-R that
     actually works). One conflict to resolve first: `fish_postexec`
     deletes failed commands from history — decide whether atuin's history
     is filtered the same way.
 
-9. **Container orchestration.** podman is installed but nothing
+8. **Container orchestration.** podman is installed but nothing
     composes: add `podman-compose` (or docker-compose against the podman
     socket). Rootless podman looks configured (subuid present) — worth a
     verify-install check that it actually works (`podman run hello-world`).
 
-10. **Small sharp tools**: `tshark` (packet inspection when the 2.5GbE
+9. **Small sharp tools**: `tshark` (packet inspection when the 2.5GbE
     NIC misbehaves), `xh` (curl with JSON ergonomics), `aria2`
     (resumable/parallel downloads).
 
 ## Gaming
 
-11. **`gamescope`.** Not installed, and sway/wlroots has no HDR —
+10. **`gamescope`.** Not installed, and sway/wlroots has no HDR —
     `gamescope --hdr-enabled` is the only HDR path (arch/README.md notes this).
     It also solves per-game fractional scaling and tearing quirks.
 
-12. **`heroic-games-launcher` (AUR)** — GOG/Epic front-end next to Steam;
+11. **`heroic-games-launcher` (AUR)** — GOG/Epic front-end next to Steam;
     pairs with protonup-qt (already installed) for ProtonGE management.
 
-13. **Proton experiments**: with a 7900 XT, try `PROTON_USE_NTSYNC=1` on
+12. **Proton experiments**: with a 7900 XT, try `PROTON_USE_NTSYNC=1` on
     modern Proton builds (kernel supports ntsync) for throughput in
     CPU-bound titles; measure with `hyperfine`-style before/after frametime
     via the MangoHud overlay. MangoHud is installed but opt-in — consider
@@ -86,35 +81,35 @@ each item notes where it would live.
 
 ## Look & feel (joy)
 
-14. **Theme the desktop from the wallpaper.** You already generate seamless
+13. **Theme the desktop from the wallpaper.** You already generate seamless
     wallpapers — `wallust` (or pywal) can extract a palette and repaint
     waybar accents, sway `client.focused` borders, and foot colors to
     match. Hook it into `set-wallpaper` so the whole desktop shifts with
     the background.
 
-15. **Restyle the sddm theme.** The login screen is a cloned elarun with a
+14. **Restyle the sddm theme.** The login screen is a cloned elarun with a
     swapped background — functional but dated. A minimal custom QML
     matching the waybar palette (dark panel, no user list, clock) would
     make the login feel like the rest of the setup.
 
-16. **pacman.conf cosmetics.** Still at defaults: add `Color` and
+15. **pacman.conf cosmetics.** Still at defaults: add `Color` and
     `ILoveCandy` (the pacman progress bar becomes Pac-Man — free joy).
     post-install can write these idempotently.
 
 ## Install kit / image generation
 
-17. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
+16. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
     pacman always uses fast, fresh mirrors — big `pacman -Syu` runs (and
     the VM test's package-cache seeding) get noticeably faster.
 
-18. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
+17. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
     but a *separate*, minimal public CI job could boot the built ISO
     headless in QEMU and assert the kernel reaches the archinstall
     environment — catching ISO breakage (e.g. a bad package list) before
     you flash a USB stick. Keep the full VM-test suite local; this is just
     "does it boot".
 
-19. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
+18. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
     `SHA256SUMS` next to the ISO (and optionally a signed digest once
     sbctl keys exist). Setting `SOURCE_DATE_EPOCH` / normalizing mtimes
     gets close to reproducible ISOs, so two builds of the same commit are
