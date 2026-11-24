@@ -10,7 +10,6 @@ set backspace=indent,eol,start " otherwise backspace/delete doesn't work
 set wildmenu " wild*: command line completion
 set wildmode=full
 set autoread
-set re=1
 set autowrite
 set laststatus=2 " lightline requirement
 set noshowmode

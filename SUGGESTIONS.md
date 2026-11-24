@@ -7,10 +7,6 @@ done on the machine.
 
 - [ ] **SSH config management** — Add a base `~/.ssh/config` template to the repo with common settings: keepalive intervals, connection multiplexing (`ControlMaster`), agent forwarding defaults. The install script could link or merge it.
 
-## Vim
-
-- [ ] **`re=1` forces the old regex engine** — `.vimrc:13` sets `set re=1` (backtracking engine). This was a workaround for Ruby syntax slowness circa 2014 but causes hangs with complex patterns in newer Vim. Remove it or set `re=0` (auto-select).
-
 ## Install Script
 
 - [ ] **`packages/apt.txt` on Ubuntu 24.04** — `eza` is in the apt list but is not in noble's default repos (it landed in later Ubuntu/Debian releases). Confirm the `packages.yml` CI job still passes; if not, drop `eza` from apt.txt or add a fallback install note. (`curlie` and `bandwhich` were already removed from the list.)
