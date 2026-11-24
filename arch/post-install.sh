@@ -385,6 +385,22 @@ sudo -u "$TARGET_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$TARGET_USER")" \
   systemctl --user enable sunshine.service \
   || warn "could not enable the sunshine user unit — run: systemctl --user enable sunshine.service"
 
+# Global prep commands: wake the display when a Moonlight client connects;
+# lock the session when it disconnects (the Mod+Shift+L path — start-force
+# is a no-op when the screensaver fish is already up; skipped entirely when
+# swaylock is already up). Runs with the session env from the user unit.
+# All logic lives in bin/sunshine-prep (repo, linked to ~/bin): Sunshine
+# execs prep commands WITHOUT a shell, so inline "cmd || true" breaks (the
+# operators reach the program as arguments), and ANY nonzero exit aborts
+# the stream launch ("failed to start application") — hence a wrapper that
+# always exits 0.
+SUNSHINE_CONF="/home/$TARGET_USER/.config/sunshine/sunshine.conf"
+if [[ -f $SUNSHINE_CONF ]] && ! grep -q '^global_prep_cmd' "$SUNSHINE_CONF"; then
+  cat >> "$SUNSHINE_CONF" <<EOF
+global_prep_cmd = [{"name":"Moonlight session","do":"/home/$TARGET_USER/bin/sunshine-prep connect","undo":"/home/$TARGET_USER/bin/sunshine-prep disconnect","elevated":false}]
+EOF
+fi
+
 step "Display manager (sddm) — installs with the desktop batch, enable now"
 systemctl enable sddm.service 2>/dev/null \
   || warn "sddm not enabled — check: systemctl enable sddm"

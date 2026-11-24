@@ -1,0 +1,20 @@
+#!/bin/sh
+# Sunshine global prep commands (called by app-dev.lizardbyte.app.Sunshine).
+# Sunshine execs prep commands WITHOUT a shell, so all logic lives here and
+# args stay single-token. ALWAYS exits 0 — a prep command failure aborts the
+# stream launch in Moonlight ("failed to start application", seen live).
+
+case ${1:-} in
+connect)
+    # Wake the display so a remote client never lands on a DPMS-off screen.
+    # Needs SWAYSOCK in the service env (imported by the sway autostart line).
+    swaymsg output DP-1 dpms on >/dev/null 2>&1 || true
+    ;;
+disconnect)
+    # Lock on disconnect — the Mod+Shift+L path: no-op when swaylock is
+    # already up, and start-force no-ops when the screensaver fish is up.
+    pgrep -x swaylock >/dev/null 2>&1 \
+        || "$HOME/.config/sway/scripts/screensaver" start-force >/dev/null 2>&1
+    ;;
+esac
+exit 0
