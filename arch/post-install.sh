@@ -352,6 +352,27 @@ else
   rm -f "$asset"
   echo "  Installed Sunshine ${SUNSHINE_VER}-1."
 fi
+# The upstream package sets caps as =p (permitted only), which Sunshine cannot
+# raise at runtime (raising needs CAP_SETCAP, which it doesn't have) — so KMS
+# capture fails and it falls back to Wayland screencopy. Make them effective
+# at exec, and re-apply after pacman upgrades via a hook.
+setcap cap_sys_admin,cap_sys_nice+ep /usr/bin/sunshine \
+  || warn "setcap failed — Sunshine falls back to screencopy capture"
+# hooks/ isn't guaranteed to exist on a fresh install (pacman creates it only
+# when shipping its own hook).
+mkdir -p /etc/pacman.d/hooks
+cat > /etc/pacman.d/hooks/sunshine-caps.hook <<'EOF'
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = sunshine
+
+[Action]
+Description = Restoring file capabilities for Sunshine (KMS capture)
+When = PostTransaction
+Exec = /usr/bin/setcap cap_sys_admin,cap_sys_nice+ep /usr/bin/sunshine
+EOF
 # avahi gives Moonlight mDNS auto-discovery; direct-IP connect works without it.
 systemctl enable --now avahi-daemon.service 2>/dev/null \
   || warn "avahi-daemon not enabled — Moonlight discovery off (connect by IP instead)"
