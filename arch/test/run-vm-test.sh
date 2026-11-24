@@ -99,7 +99,7 @@ stage_install() {
   qemu-img create -f qcow2 "$DISK" 40G >/dev/null
   launch_vm
   echo "== waiting for installer target prompt (TCG boot is slow) =="
-  wait_screen "Install target" 600 15
+  wait_screen "Type the device" 600 15
   # The P3 won't exist in a VM — cancel autostart to seed the package cache
   # from the 9p share (if filled via fill-pkg-cache.sh), then restart it.
   qmp keyraw ctrl+c
@@ -112,7 +112,11 @@ bash /root/autostart.sh
 EOF
   qmp keysfile "$DIR/cmds.tmp" 4
   sleep 3
-  wait_screen "Install target" 60 5
+  wait_screen "Type the device" 60 5
+  type_keys "/dev/vda"
+  qmp keyraw ret
+  # hard-target prompt: retype the path to confirm the wipe
+  wait_screen "Retype the device path" 60 5
   type_keys "/dev/vda"
   qmp keyraw ret
   wait_screen "Press Enter to start" 60 5
@@ -127,7 +131,7 @@ stage_prep_ssh() {
   launch_vm
   # Reboot into the ISO env (cdrom is attached; -boot d puts it first).
   (cd "$DIR" && python3 vm-reset.py reset)
-  wait_screen "Install target" 600 15
+  wait_screen "Type the device" 600 15
   qmp keyraw ctrl+c   # do NOT install again — we chroot the existing install
   sleep 2
   cat > "$DIR/cmds.tmp" <<'EOF'
