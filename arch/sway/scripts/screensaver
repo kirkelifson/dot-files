@@ -8,7 +8,8 @@
 #                lock view. Session is technically unlocked while it shows;
 #                the real lock lands on first input (idle-resume) and the
 #                600s auto-lock is the safety net. Press 'q' in the fish to
-#                dismiss it without locking (the fish's wrapper cleans up).
+#                dismiss it without locking (exit code 0); Ctrl+C or a crash
+#                exits non-zero and locks instead — never a free unlock.
 #   stop         kill fish + clear state
 #   should-lock  exit 0 when the 600s lock / 900s dpms timeouts may run:
 #                fish active (user locked manually = intent) or gate clear.
@@ -35,10 +36,12 @@ PATTERN='app-id=screensaver'
 running() { [[ -n $(pgrep -f "$PATTERN") ]]; }
 
 launch() {
-    # foot -F = fullscreen on the focused output. The wrapper makes 'q' a real
-    # dismissal: when asciiquarium exits, state is cleaned up (flag + watcher),
-    # so the next input does NOT lock.
-    swaymsg exec "foot --app-id=screensaver -F sh -c '/usr/bin/asciiquarium; $BASE/screensaver stop'"
+    # foot -F = fullscreen on the focused output. The wrapper decides by
+    # asciiquarium's exit code (verified live): 'q' exits 0 = intentional
+    # dismissal -> clean up so the next input does NOT lock. ANY other exit
+    # (Ctrl+C kills it with rc=1, or a crash) -> idle-resume brings up the
+    # REAL lock. Dismissing by Ctrl+C was the unlock bypass.
+    swaymsg exec "foot --app-id=screensaver -F sh -c '/usr/bin/asciiquarium; rc=\$?; if [ \$rc -eq 0 ]; then $BASE/screensaver stop; else $BASE/idle-resume; fi'"
 }
 
 kill_watcher() {
