@@ -5,3 +5,26 @@ bin/subl
 .config/fish/config.fish.bak.*
 *.dump
 Brewfile.lock.json
+
+# Arch install kit — build artifacts and credentials (ARCH.md, arch/README.md)
+arch/iso/out/
+arch/iso/airootfs/root/archinstall-config/user_credentials.json
+arch/archinstall/user_credentials.json
+# chroot leakage into the profile — regenerated at build, never commit
+arch/iso/airootfs/etc/localtime
+arch/iso/airootfs/etc/resolv.conf
+
+# macOS QEMU test artifacts
+*.uuid
+
+# Arch VM test harness artifacts (arch/test/run-vm-test.sh) — local only, never CI
+arch/test/test-disk.qcow2
+arch/test/vars.fd
+arch/test/shots/
+arch/test/keys/
+arch/test/pkg-cache/
+arch/test/vm-share/
+# persistent build package cache (build-iso.sh)
+arch/iso/.pkg-cache/
+cmds.tmp
+cmds-*.tmp
