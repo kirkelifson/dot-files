@@ -1,0 +1,147 @@
+#!/usr/bin/python3
+"""waybar-calendar: toggleable month-calendar popup for the waybar clock.
+
+Layer-shell popup anchored below the top bar's right edge (under the clock).
+Flip months with the scroll wheel or the calendar's header arrows; Esc closes.
+Designed for Sway/wlroots (wlr-layer-shell). No AUR deps: gtk3 + gtk-layer-shell
++ python-gobject (all in the official repos).
+"""
+import os
+import signal
+import sys
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, GLib, GLibUnix, Gtk, GtkLayerShell  # noqa: E402
+
+PIDFILE = "/tmp/waybar-calendar.pid"
+CSS = b"""
+window {
+    background-color: rgba(20, 20, 24, 0.96);
+    border-radius: 8px;
+    border: 1px solid #33333a;
+    padding: 8px;
+}
+calendar {
+    background: transparent;
+    color: #c8c8c8;
+    font-size: 15px;
+}
+calendar:selected {
+    background-color: #50b4b4;
+    color: #141418;
+    border-radius: 4px;
+}
+calendar:indeterminate {
+    color: #55555c;
+}
+calendar header button {
+    color: #50b4b4;
+    background: transparent;
+    border: none;
+}
+calendar header button:hover {
+    color: #7dcccc;
+}
+"""
+
+
+def live_pid():
+    """Return the pid of a running popup instance, or None."""
+    try:
+        pid = int(open(PIDFILE).read().strip())
+        if pid != os.getpid():
+            os.kill(pid, 0)
+            return pid
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def build_window(autoclose=None):
+    win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+
+    GtkLayerShell.init_for_window(win)
+    GtkLayerShell.set_layer(win, GtkLayerShell.Layer.OVERLAY)
+    GtkLayerShell.set_anchor(win, GtkLayerShell.Edge.TOP, True)
+    GtkLayerShell.set_anchor(win, GtkLayerShell.Edge.RIGHT, True)
+    # 36px bar + breathing room; right margin clears waybar's right padding.
+    GtkLayerShell.set_margin(win, GtkLayerShell.Edge.TOP, 42)
+    GtkLayerShell.set_margin(win, GtkLayerShell.Edge.RIGHT, 8)
+    GtkLayerShell.set_keyboard_mode(win, GtkLayerShell.KeyboardMode.ON_DEMAND)
+
+    provider = Gtk.CssProvider()
+    provider.load_from_data(CSS)
+    Gtk.StyleContext.add_provider_for_screen(
+        Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    )
+
+    cal = Gtk.Calendar()
+    cal.show()
+    win.add(cal)
+
+    def flip(_w, event):
+        # Scroll up = next month, down = previous (matches shift_up/shift_down).
+        step = 1 if event.direction == Gdk.ScrollDirection.UP else -1
+        d = cal.get_date()
+        month, year = d.month - 1 + step, d.year
+        if month < 0:
+            month, year = 11, year - 1
+        elif month > 11:
+            month, year = 0, year + 1
+        cal.select_month(month, year)
+        return True
+
+    cal.connect("scroll-event", flip)
+
+    def on_key(_w, event):
+        if event.keyval == Gdk.KEY_Escape:
+            Gtk.main_quit()
+            return True
+        return False
+
+    win.connect("key-press-event", on_key)
+    win.connect("destroy", Gtk.main_quit)
+
+    def on_date(_cal):
+        Gtk.main_quit()
+        return True
+
+    cal.connect("day-selected", on_date)
+
+    if autoclose:
+        GLib.timeout_add(int(autoclose * 1000), Gtk.main_quit)
+
+    return win
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "toggle"
+    pid = live_pid()
+    if mode == "toggle" and pid:
+        os.kill(pid, signal.SIGTERM)
+        return
+    if pid:
+        return  # already open
+
+    autoclose = float(sys.argv[2]) if len(sys.argv) > 2 else None
+    with open(PIDFILE, "w") as f:
+        f.write(str(os.getpid()))
+
+    GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, Gtk.main_quit)
+    win = build_window(autoclose)
+    win.show_all()
+    try:
+        Gtk.main()
+    finally:
+        try:
+            os.remove(PIDFILE)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    main()
