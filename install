@@ -180,6 +180,7 @@ link_config_dirs() {
 
   link_config_dir fish
   link_config_dir waybar
+  link_config_dir fastfetch
   link_mise_config
 
   # Ghostty: macOS uses ~/Library/Application Support/com.mitchellh.ghostty/
