@@ -55,6 +55,9 @@ exec swayidle -w timeout 600 'swaylock -f' timeout 900 'swaymsg output DP-1 dpms
 exec gammastep -P -O 3400 -l 38.9:-77.0
 # cliphist     — clipboard history: listener feeding cliphist from wl-paste
 exec wl-paste --watch cliphist store
+# copy-on-select: mirror the Wayland primary selection (select text in any
+# terminal → it lands on the system clipboard for Ctrl+V elsewhere)
+exec wl-paste -p -n --watch wl-copy
 # autotile     — dwm-style dynamic splits (wide→horizontal, tall→vertical);
 #                toggle with $mod+a. Manual b/v still works per-container.
 exec /usr/bin/python3 ~/.config/sway/scripts/autotile
