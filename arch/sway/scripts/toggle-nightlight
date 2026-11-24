@@ -1,0 +1,10 @@
+#!/bin/sh
+# toggle-nightlight — toggle gammastep on/off
+# Sends SIGUSR1 to pause/resume gammastep (built-in toggle).
+# If gammastep isn't running at all, start it.
+
+if pgrep -x gammastep >/dev/null; then
+    pkill -USR1 gammastep
+else
+    gammastep -P -O 3400 -l 38.9:-77.0 &
+fi

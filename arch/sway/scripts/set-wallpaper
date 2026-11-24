@@ -1,0 +1,41 @@
+#!/bin/sh
+# set-wallpaper — pick a wallpaper from ~/.config/sway/wallpapers/ via wofi
+# or pass a name directly:  set-wallpaper plasma
+#
+# Applies immediately via swaymsg AND persists by writing the
+# output line into the sway config so it survives reload/restart.
+
+WALL_DIR="$HOME/.config/sway/wallpapers"
+SWAY_CFG="$HOME/.config/sway/config"
+
+if [ -n "$1" ]; then
+    PICK="$1"
+else
+    PICK=$(ls "$WALL_DIR"/*.png 2>/dev/null | xargs -n1 basename | wofi --dmenu -p "wallpaper")
+fi
+
+[ -z "$PICK" ] && exit 0
+
+# allow passing with or without .png
+case "$PICK" in
+    *.png) ;;
+    *) PICK="${PICK}.png" ;;
+esac
+
+FILE="$WALL_DIR/$PICK"
+if [ ! -f "$FILE" ]; then
+    notify-send "set-wallpaper" "Not found: $FILE"
+    exit 1
+fi
+
+# Apply live
+swaymsg "output * bg $FILE tile"
+
+# Persist in sway config: replace or append the output * bg line
+if grep -q '^output \* bg' "$SWAY_CFG" 2>/dev/null; then
+    sed -i "s|^output \* bg.*|output * bg $FILE tile|" "$SWAY_CFG"
+else
+    printf '\n######## Wallpaper ########\noutput * bg %s tile\n' "$FILE" >> "$SWAY_CFG"
+fi
+
+notify-send "Wallpaper" "Set to $PICK"

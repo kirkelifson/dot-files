@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""Generate seamless-tiling wallpapers with generative algorithms.
+
+Usage:
+    generate-wallpapers [OUTPUT_DIR]
+
+Produces several 512x512 PNG tiles in OUTPUT_DIR (default: ~/.config/sway/wallpapers/).
+Set one in sway with:  output * bg /path/to/tile.png tile
+"""
+
+import math, os, random, struct, sys
+from pathlib import Path
+
+try:
+    from PIL import Image
+except ImportError:
+    sys.exit("Pillow not installed — pip install Pillow")
+
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / ".config/sway/wallpapers"
+OUT.mkdir(parents=True, exist_ok=True)
+SIZE = 512
+
+
+# ── helpers ──────────────────────────────────────────────────────────────
+
+def clamp(v, lo=0, hi=255):
+    return max(lo, min(hi, int(v)))
+
+
+# Permutation table for simplex/value noise (tiling-friendly)
+def _perm(seed=0):
+    rng = random.Random(seed)
+    p = list(range(256))
+    rng.shuffle(p)
+    return p + p  # double for wrapping
+
+
+def _value_noise_2d(x, y, perm, freq):
+    """Tiling value noise: freq must be integer so it wraps at SIZE."""
+    sx = x * freq / SIZE
+    sy = y * freq / SIZE
+    ix = int(sx) % freq
+    iy = int(sy) % freq
+    fx = sx - int(sx)
+    fy = sy - int(sy)
+    # smoothstep
+    fx = fx * fx * (3 - 2 * fx)
+    fy = fy * fy * (3 - 2 * fy)
+    ix1 = (ix + 1) % freq
+    iy1 = (iy + 1) % freq
+    aa = perm[perm[ix] + iy] / 255
+    ab = perm[perm[ix] + iy1] / 255
+    ba = perm[perm[ix1] + iy] / 255
+    bb = perm[perm[ix1] + iy1] / 255
+    top = aa + fx * (ba - aa)
+    bot = ab + fx * (bb - ab)
+    return top + fy * (bot - top)
+
+
+def fbm(x, y, perm, octaves=5, base_freq=4):
+    """Fractal Brownian Motion — tiling across SIZE."""
+    v = 0.0
+    amp = 1.0
+    freq = base_freq
+    for _ in range(octaves):
+        v += amp * _value_noise_2d(x, y, perm, freq)
+        amp *= 0.5
+        freq *= 2
+    return v
+
+
+# ── wallpaper generators ────────────────────────────────────────────────
+
+def gen_plasma(path):
+    """Deep-space plasma: layered noise with a dark palette."""
+    perm = _perm(42)
+    img = Image.new("RGB", (SIZE, SIZE))
+    pix = img.load()
+    for y in range(SIZE):
+        for x in range(SIZE):
+            n = fbm(x, y, perm, octaves=6, base_freq=4)
+            # map to a dark teal / purple palette
+            r = clamp(n * 60 + 10)
+            g = clamp(n * 100 + 15)
+            b = clamp(n * 160 + 30)
+            pix[x, y] = (r, g, b)
+    img.save(path)
+    print(f"  {path.name}")
+
+
+def gen_reaction_diffusion(path):
+    """Gray-Scott reaction-diffusion — organic coral/worm pattern on a torus."""
+    W = H = 256  # smaller grid, faster convergence; still tiles at 256
+    a = [1.0] * (W * H)
+    b = [0.0] * (W * H)
+    rng = random.Random(7)
+    # Seed many small patches so the pattern fills the tile
+    for _ in range(30):
+        cx, cy = rng.randint(0, W - 1), rng.randint(0, H - 1)
+        for dy in range(-4, 5):
+            for dx in range(-4, 5):
+                b[((cy + dy) % H) * W + (cx + dx) % W] = 1.0
+
+    Da, Db = 1.0, 0.5
+    f, k = 0.0545, 0.062  # mitosis/spots — stable parameter island
+    dt = 0.9
+    for step in range(5000):
+        na = list(a)
+        nb = list(b)
+        for y in range(H):
+            yw = y * W
+            ym = ((y - 1) % H) * W
+            yp = ((y + 1) % H) * W
+            for x in range(W):
+                xm = (x - 1) % W
+                xp = (x + 1) % W
+                idx = yw + x
+                aval = a[idx]
+                bval = b[idx]
+                lap_a = a[ym + x] + a[yp + x] + a[yw + xm] + a[yw + xp] - 4 * aval
+                lap_b = b[ym + x] + b[yp + x] + b[yw + xm] + b[yw + xp] - 4 * bval
+                ab2 = aval * bval * bval
+                na[idx] = max(0.0, min(1.0, aval + dt * (Da * lap_a - ab2 + f * (1 - aval))))
+                nb[idx] = max(0.0, min(1.0, bval + dt * (Db * lap_b + ab2 - (k + f) * bval)))
+        a = na
+        b = nb
+
+    # Render: chemical B drives colour; scale to full range
+    bmin = min(b)
+    bmax = max(b)
+    brange = bmax - bmin if bmax > bmin else 1.0
+    img = Image.new("RGB", (W, H))
+    pix = img.load()
+    for y in range(H):
+        for x in range(W):
+            v = (b[y * W + x] - bmin) / brange  # 0..1
+            # dark teal base, bright coral highlights
+            r = clamp(v * 200 + 12)
+            g = clamp((1 - v) * 120 + v * 60 + 18)
+            b_ = clamp((1 - v) * 160 + v * 40 + 20)
+            pix[x, y] = (r, g, b_)
+    # upscale to 512 with nearest-neighbour for a crisp pixelated look
+    img = img.resize((SIZE, SIZE), Image.NEAREST)
+    img.save(path)
+    print(f"  {path.name}")
+
+
+def gen_truchet(path):
+    """Truchet tile mosaic — interlocking quarter-circle arcs."""
+    from PIL import ImageDraw
+
+    CELL = 32
+    GRID = SIZE // CELL
+    img = Image.new("RGB", (SIZE, SIZE), (18, 18, 24))
+    draw = ImageDraw.Draw(img)
+    rng = random.Random(99)
+    colors = [(0, 180, 180), (120, 60, 180), (200, 80, 60), (60, 160, 90)]
+    lw = 3
+    for gy in range(GRID):
+        for gx in range(GRID):
+            x0 = gx * CELL
+            y0 = gy * CELL
+            c = colors[(gx + gy) % len(colors)]
+            if rng.random() < 0.5:
+                # arcs from top-left and bottom-right corners
+                draw.arc([x0 - CELL // 2, y0 - CELL // 2,
+                          x0 + CELL // 2, y0 + CELL // 2], 0, 90, fill=c, width=lw)
+                draw.arc([x0 + CELL // 2, y0 + CELL // 2,
+                          x0 + CELL + CELL // 2, y0 + CELL + CELL // 2], 180, 270, fill=c, width=lw)
+            else:
+                # arcs from top-right and bottom-left corners
+                draw.arc([x0 + CELL // 2, y0 - CELL // 2,
+                          x0 + CELL + CELL // 2, y0 + CELL // 2], 90, 180, fill=c, width=lw)
+                draw.arc([x0 - CELL // 2, y0 + CELL // 2,
+                          x0 + CELL // 2, y0 + CELL + CELL // 2], 270, 360, fill=c, width=lw)
+    img.save(path)
+    print(f"  {path.name}")
+
+
+def gen_voronoi(path):
+    """Tiling Voronoi cells — dark stained-glass look."""
+    W = H = SIZE
+    rng = random.Random(21)
+    N = 60
+    pts = [(rng.randint(0, W - 1), rng.randint(0, H - 1)) for _ in range(N)]
+    # assign each point a colour
+    palette = []
+    for _ in range(N):
+        palette.append((rng.randint(15, 50), rng.randint(40, 120), rng.randint(80, 170)))
+
+    img = Image.new("RGB", (W, H))
+    pix = img.load()
+    for y in range(H):
+        for x in range(W):
+            best = float("inf")
+            bi = 0
+            for i, (px, py) in enumerate(pts):
+                # toroidal distance for tiling
+                dx = min(abs(x - px), W - abs(x - px))
+                dy = min(abs(y - py), H - abs(y - py))
+                d = dx * dx + dy * dy
+                if d < best:
+                    best = d
+                    bi = i
+            # darken edges: find second closest
+            second = float("inf")
+            for i, (px, py) in enumerate(pts):
+                if i == bi:
+                    continue
+                dx = min(abs(x - px), W - abs(x - px))
+                dy = min(abs(y - py), H - abs(y - py))
+                d = dx * dx + dy * dy
+                if d < second:
+                    second = d
+            edge = math.sqrt(second) - math.sqrt(best)
+            if edge < 3:
+                pix[x, y] = (8, 8, 12)
+            else:
+                c = palette[bi]
+                # slight distance shading
+                f = max(0.6, 1.0 - math.sqrt(best) / 200)
+                pix[x, y] = (clamp(c[0] * f), clamp(c[1] * f), clamp(c[2] * f))
+    img.save(path)
+    print(f"  {path.name}")
+
+
+def gen_hex_grid(path):
+    """Hexagonal grid with pulsing colour based on noise."""
+    from PIL import ImageDraw
+
+    img = Image.new("RGB", (SIZE, SIZE), (14, 14, 20))
+    draw = ImageDraw.Draw(img)
+    perm = _perm(13)
+    R = 18  # hex radius
+    h = R * math.sqrt(3)
+    cols = int(SIZE / (1.5 * R)) + 2
+    rows = int(SIZE / h) + 2
+    for row in range(rows):
+        for col in range(cols):
+            cx = col * 1.5 * R
+            cy = row * h + (0.5 * h if col % 2 else 0)
+            # wrap coords for tiling noise
+            n = fbm(cx % SIZE, cy % SIZE, perm, octaves=4, base_freq=4)
+            brightness = 0.3 + 0.7 * n
+            r = clamp(40 * brightness)
+            g = clamp(180 * brightness * (0.5 + 0.5 * math.sin(n * 6)))
+            b_ = clamp(200 * brightness)
+            verts = []
+            for a in range(6):
+                angle = math.radians(60 * a)
+                verts.append((cx + (R - 1) * math.cos(angle),
+                              cy + (R - 1) * math.sin(angle)))
+            draw.polygon(verts, fill=(r, g, b_), outline=(8, 8, 12))
+    img.save(path)
+    print(f"  {path.name}")
+
+
+# ── main ─────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    print(f"Generating wallpapers in {OUT} …")
+    gen_plasma(OUT / "plasma.png")
+    gen_truchet(OUT / "truchet.png")
+    gen_hex_grid(OUT / "hex-grid.png")
+    gen_voronoi(OUT / "voronoi.png")
+    gen_reaction_diffusion(OUT / "reaction-diffusion.png")
+    print("Done. Set one with:")
+    print(f"  swaymsg 'output * bg {OUT}/<name>.png tile'")
