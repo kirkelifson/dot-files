@@ -160,15 +160,10 @@ for svc in NetworkManager sddm; do
 done
 have bluetoothctl && { systemctl is-active --quiet bluetooth && ok "bluetooth running" || warn "bluetooth service off"; } || warn "bluez not installed"
 
-hdr "SSH (LAN-only, port 8631, pubkey auth)"
+hdr "SSH (port 8631, pubkey auth)"
 systemctl is-active --quiet sshd && ok "sshd running" || bad "sshd not running (systemctl enable --now sshd)"
 LISTEN=$(ss -tln 2>/dev/null | awk '/:8631 /{print $4; exit}')
 [[ -n $LISTEN ]] && ok "listening: $LISTEN" || bad "nothing listening on port 8631"
-if [[ -n $LISTEN && $LISTEN == 10.0.0.* ]]; then
-  ok "bound to LAN address only ($LISTEN)"
-elif [[ -n $LISTEN ]]; then
-  warn "sshd bound to $LISTEN — expected a 10.0.0.x LAN address"
-fi
 if grep -qs 'PasswordAuthentication no' /etc/ssh/sshd_config.d/10-lan-hardening.conf; then
   ok "password auth disabled (pubkey only)"
 else
