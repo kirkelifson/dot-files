@@ -381,10 +381,17 @@ usermod -aG video "$TARGET_USER" 2>/dev/null \
   || warn "could not add $TARGET_USER to the video group — KMS capture will fail"
 # Autostart with the session (sway config starts graphical-session.target and
 # imports WAYLAND_DISPLAY for it — without that the unit runs display-less).
-sudo -u "$TARGET_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$TARGET_USER")" \
-  systemctl --user enable sunshine.service \
-  || warn "could not enable the sunshine user unit — run: systemctl --user enable sunshine.service"
-
+# Enable by the packaged unit's real name, not the Alias (sunshine.service):
+# the first enable writes the alias symlink into ~/.config/systemd/user/, and
+# on a re-run systemd then sees the alias as a linked unit — which enable
+# refuses ("Refusing to operate on linked unit file"). `show -p Id` resolves
+# any alias/link to the real packaged unit name.
+UENV="XDG_RUNTIME_DIR=/run/user/$(id -u "$TARGET_USER")"
+SUNSHINE_UNIT="$(sudo -u "$TARGET_USER" env "$UENV" \
+  systemctl --user show -p Id --value sunshine.service 2>/dev/null || true)"
+sudo -u "$TARGET_USER" env "$UENV" \
+  systemctl --user enable "${SUNSHINE_UNIT:-app-dev.lizardbyte.app.Sunshine.service}" \
+  || warn "could not enable the sunshine user unit — run: systemctl --user enable app-dev.lizardbyte.app.Sunshine.service"
 # Global prep commands: wake the display when a Moonlight client connects;
 # lock the session when it disconnects (the Mod+Shift+L path — start-force
 # is a no-op when the screensaver fish is already up; skipped entirely when
