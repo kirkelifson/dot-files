@@ -27,7 +27,15 @@ die()  { printf '\033[1;31m[x]\033[0m %s\n' "$*" >&2; FAILS=$((FAILS+1)); exit 1
 # scrollback on install day.
 LOG="/var/log/post-install-$(date +%F).log"
 exec > >(tee -a "$LOG") 2>&1
-trap 'rc=$?; printf "\n\033[1;36m==\033[0m post-install summary: %d warn(s), %d fail(s) — full log: %s\n" "$WARNS" "$FAILS" "$LOG"; exit $rc' EXIT
+# Shellcheck can't see the rc=$? assignment inside a quoted trap string
+# (SC2154), so the summary lives in a function where it can.
+post_install_summary() {
+  rc=$?
+  printf '\n\033[1;36m==\033[0m post-install summary: %d warn(s), %d fail(s) — full log: %s\n' \
+    "$WARNS" "$FAILS" "$LOG"
+  exit "$rc"
+}
+trap post_install_summary EXIT
 # Unguarded command failures (set -e exits) count as fails; guarded ones
 # already go through warn()/die().
 trap 'FAILS=$((FAILS+1))' ERR
