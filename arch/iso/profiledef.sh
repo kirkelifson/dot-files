@@ -10,6 +10,9 @@
 
 airootfs_image_type="squashfs"
 airootfs_image_squashfs_tool="mksquashfs"
+# zstd instead of the xz default: ~2-3 min faster builds, ~20% larger ISO
+# (a USB stick is not the bottleneck; build time is).
+airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '3' '-b' '1M')
 iso_label="DOTFILES_$(date +%Y%m)"
 iso_application="dot-files Arch desktop installer"
 iso_version="$(date +%Y.%m.%d)"
