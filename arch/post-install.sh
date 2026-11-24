@@ -221,8 +221,36 @@ if [[ -s packages-aur.txt ]]; then
   if sudo -u "$TARGET_USER" git clone -q --depth 1 https://aur.archlinux.org/paru.git "$BUILD/paru" \
      && sudo -u "$TARGET_USER" bash -c "cd '$BUILD/paru' && makepkg -f --noconfirm >/dev/null 2>&1" \
      && pacman -U --noconfirm "$BUILD"/paru/paru-*.pkg.tar.zst; then
-    sudo -u "$TARGET_USER" paru -S --needed --noconfirm - < packages-aur.txt \
-      || warn "paru AUR install had failures — run: paru -S --needed <pkg> as $TARGET_USER"
+    # paru -S cannot be used from a script: it shells out to `sudo pacman`
+    # as $TARGET_USER, which prompts for a password root can't answer
+    # (root's credentials don't carry through `sudo -u`). And `paru -S -`
+    # feeds # comment lines to pacman as package targets, aborting the
+    # batch. Instead: clone from AUR, pre-install build deps as root
+    # (so makepkg never needs sudo), makepkg as $TARGET_USER, pacman -U.
+    while IFS= read -r pkg; do
+      pkg="${pkg%%#*}"; pkg="${pkg//[[:space:]]/}" # strip comments/whitespace
+      [[ -z $pkg ]] && continue
+      if pacman -Q "$pkg" >/dev/null 2>&1; then
+        echo "  AUR: $pkg (already installed)"
+        continue
+      fi
+      echo "  AUR: $pkg"
+      sudo -u "$TARGET_USER" git clone -q --depth 1 "https://aur.archlinux.org/$pkg.git" "$BUILD/$pkg" \
+        || { warn "$pkg: clone from AUR failed"; continue; }
+      srcinfo=$(sudo -u "$TARGET_USER" bash -c "cd '$BUILD/$pkg' && makepkg --printsrcinfo")
+      # shellcheck disable=SC2086
+      deps=$(awk '/^(make|check)?depends(_[a-z0-9]+)? =/ {print $3}' <<<"$srcinfo" | sort -u)
+      if [[ -n $deps ]]; then
+        pacman -S --needed --noconfirm $deps >/dev/null \
+          || warn "$pkg: installing build deps failed — makepkg will likely fail"
+      fi
+      if sudo -u "$TARGET_USER" bash -c "cd '$BUILD/$pkg' && makepkg -f --noconfirm" \
+         && pacman -U --noconfirm "$BUILD/$pkg"/*.pkg.tar.zst; then
+        echo "  $pkg installed"
+      else
+        warn "$pkg: makepkg or pacman -U failed — check output above"
+      fi
+    done < packages-aur.txt
     pacman -Q 1password >/dev/null 2>&1 \
       && echo "  1password installed" || warn "1password not installed (check paru output)"
   else
