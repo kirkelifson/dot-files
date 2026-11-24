@@ -49,7 +49,8 @@ while true; do
   fi
   TARGET_MODEL=$(lsblk -d -n -o MODEL "$TARGET")
   TARGET_SERIAL=$(lsblk -d -n -o SERIAL "$TARGET")
-  TARGET_SIZE_H=$(lsblk -d -n -o SIZE "$TARGET" | numfmt --to=iec --suffix=B)
+  # -b for bytes (plain integer for numfmt; human units like '40G' need --from)
+  TARGET_SIZE_H=$(lsblk -b -d -n -o SIZE "$TARGET" 2>/dev/null | numfmt --to=iec --suffix=B 2>/dev/null || echo "?")
   echo ""
   echo "  $TARGET = ${TARGET_MODEL:-unknown model} / serial ${TARGET_SERIAL:-?} / ${TARGET_SIZE_H:-?}"
   if [[ "$TARGET_MODEL" == *980*Pro* ]]; then
