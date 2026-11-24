@@ -460,6 +460,22 @@ fi
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
 
+step "Disable amdgpu runtime PM (DPMS-off + VRR wake leaves corrupted scanout on RX 7900)"
+# With the display off the GPU runtime-suspends; the next wake is a full device
+# resume racing the VRR re-enable (amdgpu_dm_handle_vrr_transition WARNING) and
+# can leave torn/mirrored scanout garbage. Keep the GPU awake instead; wake is
+# then a light atomic commit. Cost: a few watts while the monitor is off.
+# Requires initramfs rebuild to apply (amdgpu loads via the kms hook).
+# Add-if-absent + skip the rebuild when already configured: this file may
+# carry other hand-set options (don't clobber them), and a re-run must not
+# pay a full initramfs rebuild for a no-op.
+if grep -qs '^options amdgpu runpm=0$' /etc/modprobe.d/amdgpu-runpm.conf; then
+  echo "  runpm=0 already set — skipping write and initramfs rebuild"
+else
+  printf 'options amdgpu runpm=0\n' >> /etc/modprobe.d/amdgpu-runpm.conf
+  mkinitcpio -P
+fi
+
 step "System tuning (Ryzen 5900X / desktop workstation)"
 # -- makepkg: use all threads for builds and native march --
 if grep -q '^#MAKEFLAGS=' /etc/makepkg.conf; then
