@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Test installer migrations and platform routing
-        run: python3 tests/test_install.py
+        run: python3 test_install.py
 
       - name: Run install
         run: ./install
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Test installer migrations and platform routing
-        run: python3 tests/test_install.py
+        run: python3 test_install.py
 
       - name: Run install
         run: ./install
@@ -139,7 +139,7 @@ jobs:
           prepare: pkg install -y bash sudo git curl python3
           run: |
             set -e
-            python3 tests/test_install.py
+            python3 test_install.py
             # Exercise the real pkg branch, then use CI mode for relinking.
             bash -c 'source <(sed "/^# --- Main ---/,$ d" install); dir="$PWD"; os=FreeBSD; CI=; DOTFILES_CI=; install_system_packages'
             CI=1 bash ./install
