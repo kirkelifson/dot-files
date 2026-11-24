@@ -62,6 +62,7 @@ window#waybar {
 #memory,
 #temperature,
 #custom-media,
+#custom-net-rate,
 #pulseaudio,
 #network,
 #clock,
@@ -74,6 +75,7 @@ window#waybar {
 #memory,
 #temperature,
 #custom-media,
+#custom-net-rate,
 #pulseaudio,
 #network,
 #clock {
@@ -120,6 +122,15 @@ window#waybar {
 
 #pulseaudio.muted {
     color: #666666;
+}
+
+/* throughput: bin/waybar-net-rate — fixed-width, zero-padded fields */
+#custom-net-rate {
+    color: #6699cc;
+}
+
+#custom-net-rate.offline {
+    color: #cc6666;
 }
 
 /* connection quality: gateway latency + packet loss (bin/waybar-net-health) */

@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""waybar-net-rate: fixed-width, right-aligned network throughput for waybar.
+
+Replaces the native network module's {bandwidthDownBytes}: waybar's pow_format
+formatter has its own spec grammar (no fill/precision specs), so the field
+width jitters as speeds change. This emits a constant 9-char field per
+direction (" 20.2kB/s", right-aligned, NBSP-padded — regular spaces would
+collapse in Pango markup), and truncates anything somehow wider (decimal
+auto-scaling keeps every value <= "999.9xB/s", so the truncation is defensive
+only). Updates via /proc + /sys counters, no netlink.
+"""
+import json
+import signal
+import subprocess
+import time
+
+WIDTH = 9        # field width incl. unit: "999.9kB/s"
+INTERVAL = 2.0   # matches the old module's polling cadence
+PREFIXES = ("", "k", "M", "G", "T", "P")
+
+
+def default_iface():
+    try:
+        with open("/proc/net/route") as f:
+            for line in f.readlines()[1:]:
+                parts = line.split()
+                if len(parts) > 1 and parts[1] == "00000000":
+                    return parts[0]
+    except OSError:
+        pass
+    return None
+
+
+def iface_bytes(iface):
+    try:
+        rx = int(open("/sys/class/net/%s/statistics/rx_bytes" % iface).read())
+        tx = int(open("/sys/class/net/%s/statistics/tx_bytes" % iface).read())
+        return rx, tx
+    except OSError:
+        return None
+
+
+def addr_of(iface):
+    try:
+        out = subprocess.run(["ip", "-j", "-4", "addr", "show", "dev", iface],
+                             capture_output=True, text=True, timeout=3).stdout
+        info = json.loads(out)
+        addrs = info[0].get("addr_info", []) if info else []
+        return addrs[0]["local"] if addrs else ""
+    except Exception:
+        return ""
+
+
+def fmt_rate(rate):
+    """Fixed-WIDTH field, zero-padded inside the number, unit flush right."""
+    val = float(rate)
+    idx = 0
+    # scale up also when 1dp rounding would spill to 5 digits ("1000.0")
+    while idx < len(PREFIXES) - 1 and float("%.1f" % val) >= 1000.0:
+        val /= 1000.0
+        idx += 1
+    suffix = PREFIXES[idx] + "B/s"
+    num = "%.1f" % val
+    # NBSP fill (regular spaces collapse in Pango); right-aligns the number
+    body = num.rjust(WIDTH - len(suffix), "\u00a0") + suffix
+    return body[:WIDTH]  # defensive truncation; unreachable in decimal scale
+
+
+def emit(iface, down, up):
+    if iface:
+        text = "%s ↓ %s ↑" % (fmt_rate(down), fmt_rate(up))
+        tooltip = "%s\n↓ %.1f B/s   ↑ %.1f B/s" % (
+            "%s (%s)" % (iface, addr_of(iface)) if addr_of(iface) else iface,
+            down, up)
+        cls = ""
+    else:
+        text, tooltip, cls = "offline", "no default route", "offline"
+    print(json.dumps({"text": text, "tooltip": tooltip, "class": cls}),
+          flush=True)
+
+
+def main():
+    # waybar closes our stdout on reload/exit — die silently, no traceback
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    iface = None
+    prev = None
+    while True:
+        cur = default_iface()
+        if cur != iface:
+            iface, prev = cur, None  # resample on iface change
+        if iface:
+            now = iface_bytes(iface)
+            if now is None:
+                iface = None
+                emit(None, 0, 0)
+            elif prev is None:
+                emit(iface, 0, 0)
+            else:
+                down = max(0, now[0] - prev[0]) / INTERVAL
+                up = max(0, now[1] - prev[1]) / INTERVAL
+                emit(iface, down, up)
+            prev = now
+        else:
+            emit(None, 0, 0)
+        time.sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    main()

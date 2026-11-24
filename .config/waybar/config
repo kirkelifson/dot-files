@@ -17,7 +17,7 @@
         "custom/keepawake",
         "custom/media",
         "pulseaudio",
-        "network",
+        "custom/net-rate",
         "custom/net-health",
         "cpu",
         "temperature#cpu",
@@ -82,12 +82,10 @@
         "tooltip-format": "{desc}"
     },
 
-    "network": {
-        "format-ethernet": "{bandwidthDownBytes} ↓ {bandwidthUpBytes} ↑",
-        "format-wifi": "{essid} {signalStrength}% {bandwidthDownBytes} ↓ {bandwidthUpBytes} ↑",
-        "format-disconnected": "offline",
-        "tooltip-format": "{ifname}: {ipaddr}/{cidr} via {gwaddr}\n↓ {bandwidthDownBytes}/s   ↑ {bandwidthUpBytes}/s",
-        "interval": 2
+    "custom/net-rate": {
+        "exec": "sh -c 'exec $HOME/bin/waybar-net-rate'",
+        "return-type": "json",
+        "format": "{text}"
     },
 
     "custom/net-health": {
