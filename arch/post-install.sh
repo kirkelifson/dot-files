@@ -190,6 +190,10 @@ else
   warn "packages-aur.txt missing or empty — AUR packages skipped"
 fi
 
+step "Display manager (sddm) — installs with the desktop batch, enable now"
+systemctl enable sddm.service 2>/dev/null \
+  || warn "sddm not enabled — check: systemctl enable sddm"
+
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
 

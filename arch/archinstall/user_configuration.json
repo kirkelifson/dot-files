@@ -29,20 +29,12 @@
     "removable": false
   },
   "services": [
-    "NetworkManager",
-    "sddm"
+    "NetworkManager"
   ],
   "packages": [
-    "linux",
-    "linux-firmware",
-    "amd-ucode",
-    "btrfs-progs",
-    "zram-generator",
-    "networkmanager",
-    "fish",
     "git",
-    "efibootmgr",
-    "sbctl"
+    "openssh",
+    "networkmanager"
   ],
   "custom_commands": [
     "echo '[post-install] Stage 1 complete - run /root/post-install.sh after reboot'"

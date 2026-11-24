@@ -13,19 +13,24 @@ REPO="$(cd "$DIR/../.." && pwd)"
 CACHE="$DIR/vm-share/pkg-cache"
 mkdir -p "$CACHE"
 
-# Union of: packages the live ISO env installs + the generated install-target list
+# Union of: live ISO env packages + the bootstrap install list + everything
+# post-install.sh will install (full pacman lists) — the host network seeds
+# the cache so the in-guest batches mostly hit it.
 PKGS=$(python3 - "$REPO" <<'PYEOF'
-import json, re, sys
+import sys
 repo = sys.argv[1]
 pkgs = set()
-# live ISO packages
-for line in open(f"{repo}/arch/iso/packages.x86_64"):
-    line = line.split("#", 1)[0].strip()
-    if line and not line.startswith("!"):
-        pkgs.add(line)
-# generated install-target list (build-iso.sh syncs it into the airootfs)
-cfg = json.load(open(f"{repo}/arch/iso/airootfs/root/archinstall-config/user_configuration.json"))
-pkgs.update(cfg.get("packages", []))
+for listfile in ("arch/iso/packages.x86_64",
+                 "arch/iso/packages-bootstrap.txt",
+                 "packages-pacman.txt",
+                 "packages-pacman-gaming.txt"):
+    try:
+        for line in open(f"{repo}/{listfile}"):
+            line = line.split("#", 1)[0].strip()
+            if line and not line.startswith("!"):
+                pkgs.add(line)
+    except FileNotFoundError:
+        pass
 print(" ".join(sorted(pkgs)))
 PYEOF
 )

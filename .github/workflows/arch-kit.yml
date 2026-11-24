@@ -10,6 +10,8 @@ on:
       - "arch/**"
       - "packages-pacman.txt"
       - "packages-pacman-gaming.txt"
+      - "packages-aur.txt"
+      - "arch/iso/packages-bootstrap.txt"
       - ".github/workflows/arch-kit.yml"
   schedule:
     - cron: "0 6 * * 1" # weekly: package availability + CVE report
@@ -69,7 +71,7 @@ jobs:
         run: |
           set -e
           MISSING=0
-          PKGS=$(grep -hEv '^\s*(#|!|$)' packages-pacman.txt packages-pacman-gaming.txt arch/iso/packages.x86_64 | sort -u)
+          PKGS=$(grep -hEv '^\s*(#|!|$)' packages-pacman.txt packages-pacman-gaming.txt arch/iso/packages.x86_64 arch/iso/packages-bootstrap.txt | sort -u)
           for p in $PKGS; do
             pacman -Si "$p" >/dev/null 2>&1 || { echo "MISSING: $p"; MISSING=1; }
           done

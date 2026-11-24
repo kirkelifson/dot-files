@@ -84,11 +84,21 @@ for script in ("run-vm-test.sh", "fill-pkg-cache.sh", "setup-installed.sh"):
         check("CI:-}" in content or "CI" in content and "REFUSING" in content,
               f"arch/test/{script} has the never-run-in-CI guard")
 
-# river session packages present (SDDM needs the session)
+# Browser/desktop packages are post-install territory now — the baked list is
+# a MINIMAL bootstrap (network+ssh+git) so the unattended install stays fast.
 pkgs = cfg.get("packages", [])
-check("sddm" in pkgs and "sway" in pkgs, "sddm + sway in install package list")
-check("firefox" in pkgs, "firefox (default browser) in install package list")
-check("chromium" in pkgs, "chromium in install package list")
+check(sorted(pkgs) == ["git", "networkmanager", "openssh"],
+      f"baked archinstall list is the minimal bootstrap (got {pkgs})")
+check("sddm" not in cfg.get("services", []),
+      "sddm NOT in archinstall services (enabled by post-install instead)")
+
+def repo_list(path):
+    return {l.split("#", 1)[0].strip() for l in open(f"{repo}/{path}")
+            if l.split("#", 1)[0].strip()}
+
+pacman = repo_list("packages-pacman.txt")
+for p in ("sddm", "sway", "firefox", "chromium"):
+    check(p in pacman, f"{p} in packages-pacman.txt (post-install batch)")
 
 # AUR packages list (installed by post-install via paru; CI can't check the AUR)
 aur = f"{repo}/packages-aur.txt"

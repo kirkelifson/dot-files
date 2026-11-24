@@ -34,9 +34,11 @@ missing=()
 [[ -f "$SCRIPT_DIR/sway/foot.ini" ]] || missing+=("arch/sway/foot.ini — foot terminal config")
 ls "$SCRIPT_DIR"/sway/scripts/shot-* >/dev/null 2>&1 \
   || missing+=("arch/sway/scripts/shot-* — screenshot scripts")
-for list in packages-pacman.txt packages-pacman-gaming.txt; do
+for list in packages-pacman.txt packages-pacman-gaming.txt packages-aur.txt; do
   [[ -f "$SCRIPT_DIR/../$list" ]] || missing+=("$list — installed-system package list")
 done
+[[ -f "$SCRIPT_DIR/iso/packages-bootstrap.txt" ]] \
+  || missing+=("arch/iso/packages-bootstrap.txt — the minimal archinstall bootstrap list")
 if (( ${#missing[@]} )); then
   echo "error: build preflight failed — ${#missing[@]} required file(s) missing:" >&2
   printf '  - %s\n' "${missing[@]}" >&2
@@ -81,15 +83,19 @@ def read_pkg_list(path):
             pkgs.append(line)
     return pkgs
 
-pkgs = read_pkg_list(os.path.join(base, "..", "packages-pacman.txt"))
-pkgs += [p for p in read_pkg_list(os.path.join(base, "..", "packages-pacman-gaming.txt"))
-         if p not in pkgs]
+# Bootstrap list: MINIMAL (network + ssh + git). The full desktop/gaming/AUR
+# stack is installed by post-install.sh after first boot — keeps the
+# unattended install fast (which dominates VM test time).
+pkgs = read_pkg_list(os.path.join(base, "iso", "packages-bootstrap.txt"))
 
 src = os.path.join(base, "iso/airootfs/root/archinstall-config/user_configuration.json")
 cfg = json.load(open(src))
 cfg["packages"] = pkgs
+# sddm must NOT be enabled at install time: it isn't installed until
+# post-install.sh runs, and archinstall would fail enabling a missing unit.
+cfg["services"] = [s for s in cfg.get("services", []) if s != "sddm"]
 json.dump(cfg, open(src, "w"), indent=2)
-print(f"[build-iso] generated package list: {len(pkgs)} packages")
+print(f"[build-iso] generated bootstrap package list: {len(pkgs)} packages")
 PYEOF
 
 if [[ -f "$SCRIPT_DIR/archinstall/user_credentials.json" ]]; then
