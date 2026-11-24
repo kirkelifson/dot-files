@@ -30,7 +30,6 @@ def main():
     i3.on("window::new", toggle_split)
     i3.on("window::close", toggle_split)
     i3.on("window::move", toggle_split)
-    i3.on("floating::new", lambda i3, e: None)
     i3.main()
 
 
