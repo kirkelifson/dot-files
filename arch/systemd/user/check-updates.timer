@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly pacman update check (check-updates.service)
+
+[Timer]
+# Friday noon — visible before the weekend; Persistent catches missed runs
+# after the machine was off.
+OnCalendar=Fri *-*-* 12:00:00
+RandomizedDelaySec=30m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

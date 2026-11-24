@@ -279,7 +279,7 @@ arch/
 ├── build-iso.sh               ← build the ISO in Docker (no Arch install needed)
 ├── find-usb.sh                ← list USB/removable disks to find the device id
 ├── flash-usb.sh               ← write the built ISO to the device YOU pass in
-├── post-install.sh            ← run on the INSTALLED system (sudo): GPU/gaming/dotfiles/sshd/sddm/sway
+├── post-install.sh            ← run on the INSTALLED system (sudo): GPU/gaming/dotfiles/sshd/sddm/sway/update-nudge
 ├── verify-install.sh          ← run as your user after install: health check
 ├── ssh/authorized_keys        ← pubkey-only sshd (host-local copy, never symlinked)
 ├── sway/

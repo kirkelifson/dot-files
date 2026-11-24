@@ -190,6 +190,9 @@ zram-generator
 # Firmware updates (NVMe/GPU/motherboard via fwupdmgr; post-install refreshes metadata)
 fwupd
 
+# checkupdates for the weekly update-visibility timer (arch/systemd/user)
+pacman-contrib
+
 # system monitor
 btop
 

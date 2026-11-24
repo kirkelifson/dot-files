@@ -142,6 +142,18 @@ else
   warn "snapper not installed — no rollback safety net for updates"
 fi
 
+hdr "Update visibility"
+if have checkupdates; then
+  ok "checkupdates available (pacman-contrib)"
+else
+  warn "checkupdates missing (pacman-contrib) — the weekly update nudge has nothing to run"
+fi
+if systemctl --user is-enabled --quiet check-updates.timer 2>/dev/null; then
+  ok "check-updates.timer enabled (weekly update nudge)"
+else
+  warn "check-updates.timer not enabled — pending updates are invisible (arch/systemd/user)"
+fi
+
 hdr "Services"
 for svc in NetworkManager sddm; do
   systemctl is-active --quiet "$svc" && ok "$svc running" || bad "$svc not running"

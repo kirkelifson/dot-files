@@ -1,0 +1,12 @@
+[Unit]
+Description=Check for pacman updates and send a desktop notification
+# Ordering only: skip pointless work before the session exists. Harmless
+# without one — notify-send fails and the journal records why.
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+# The user manager's bus — explicit so notify-send never autolaunches a bus
+# mako isn't listening on.
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
+ExecStart=%h/.config/systemd/user/check-updates

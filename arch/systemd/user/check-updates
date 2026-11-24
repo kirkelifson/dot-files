@@ -1,0 +1,27 @@
+#!/bin/bash
+# check-updates — weekly "updates available" desktop nudge (arch/SUGGESTIONS #5).
+# Run by the check-updates.timer systemd user unit. Arch never auto-updates;
+# this only makes pending upgrades visible. Every pacman transaction is
+# snapshotted by snapper (snap-pac), so applying the listed updates is low-drama.
+set -euo pipefail
+
+# checkupdates exits non-zero both on "no updates" and on errors (e.g. the
+# pacman db lock during an ongoing transaction) — treat both as "nothing to show".
+updates=$(checkupdates 2>/dev/null || true)
+count=$(grep -c . <<<"$updates" || true)
+
+if (( count == 0 )); then
+  exit 0
+fi
+
+list=$(head -n 5 <<<"$updates" | awk '{print $1 " → " $NF}')
+suffix=""
+if (( count > 5 )); then
+  suffix=$'\n…and '"$((count - 5))"' more'
+fi
+
+notify-send -a "Arch updates" -u normal \
+  "$count package update(s) available" \
+  "$list${suffix}
+
+Apply with: sudo pacman -Syu"
