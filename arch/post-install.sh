@@ -175,22 +175,42 @@ step "Windows clock: RealTimeIsUniversal (fixes time skew)"
 warn "In Windows (admin): reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation\" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f"
 
 step "Secure Boot (sbctl) — interactive"
-read -rp "Set up Secure Boot now? [y/N] " SB
-if [[ ${SB,,} == y ]]; then
-  pacman -S --needed --noconfirm sbctl
+# sbctl keys live under /usr/share/sbctl/keys after `sbctl create-keys`.
+# Gated: keys present means the sbctl side is done — re-enrolling would
+# demand another firmware confirmation. The only remaining action (flipping
+# Secure Boot on in firmware) cannot be done from the OS; sbctl status reads
+# the efivars, so "keys enrolled + status says enabled" IS complete, right
+# here, with no reboot needed.
+SB_KEYS=/usr/share/sbctl/keys
+if [[ -f $SB_KEYS/db/db.db && -f $SB_KEYS/KEK/KEK.db && -f $SB_KEYS/PK/PK.db ]]; then
+  echo "  sbctl keys already present — skipping create-keys/enroll."
   sbctl status || true
-  sbctl create-keys
-  # Keep Microsoft keys so the Windows half keeps booting
-  sbctl enroll-keys --firmware-builtin
-  sbctl sign -s /boot/vmlinuz-linux
-  sbctl sign -s /boot/amd-ucode.img
-  sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
-  sbctl sign -s /boot/EFI/systemd/systemd-bootx64.efi
-  sbctl verify
-  warn "Reboot into firmware, confirm Secure Boot is ON, then check: sbctl status && vulkaninfo --summary"
-  warn "AMD-only build: amdgpu is in-tree, so no module-signing work under lockdown."
+  # Matches "Secure Boot: enabled"; "Disabled" never matches ("disabled"
+  # does not contain "enabled").
+  if sbctl status 2>/dev/null | grep -qi 'secure boot:.*enabled'; then
+    echo "  Secure Boot is enabled in firmware — setup fully complete."
+  else
+    warn "Keys are enrolled but firmware Secure Boot is not confirmed enabled."
+    warn "Reboot into firmware setup, enable Secure Boot, then verify: sbctl status && vulkaninfo --summary"
+  fi
 else
-  warn "Skipped. Run later — steps in arch/README.md §10."
+  read -rp "Set up Secure Boot now? [y/N] " SB
+  if [[ ${SB,,} == y ]]; then
+    pacman -S --needed --noconfirm sbctl
+    sbctl status || true
+    sbctl create-keys
+    # Keep Microsoft keys so the Windows half keeps booting
+    sbctl enroll-keys --firmware-builtin
+    sbctl sign -s /boot/vmlinuz-linux
+    sbctl sign -s /boot/amd-ucode.img
+    sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
+    sbctl sign -s /boot/EFI/systemd/systemd-bootx64.efi
+    sbctl verify
+    warn "Reboot into firmware, confirm Secure Boot is ON, then check: sbctl status && vulkaninfo --summary"
+    warn "AMD-only build: amdgpu is in-tree, so no module-signing work under lockdown."
+  else
+    warn "Skipped. Run later — steps in arch/README.md §10."
+  fi
 fi
 
 step "SSH: LAN-only, port 8631, pubkey auth only"
@@ -200,9 +220,16 @@ install -d -m 755 "$SSHD_DIR"
 # day, and a stale address makes sshd fail to bind at every boot (seen in
 # the field). Port 8631 + pubkey-only + AllowUsers is the hardening; bind
 # all interfaces and filter at the firewall if LAN-only matters.
-LISTEN="# ListenAddress intentionally not set — a baked-in DHCP address goes stale and breaks sshd at boot"
-warn "sshd will listen on all interfaces (LAN-only binding is fragile with DHCP — use a firewall)."
-cat > "$SSHD_DIR/10-lan-hardening.conf" <<EOF
+# Gated on absence: once written, this file may carry host-local edits (e.g.
+# an explicit ListenAddress after a static-IP change) — a re-run must not
+# revert them. Delete the file to have the kit regenerate it.
+HARD_CONF="$SSHD_DIR/10-lan-hardening.conf"
+if [[ -f $HARD_CONF ]]; then
+  echo "  $HARD_CONF already present — left untouched (edit it by hand if needed)."
+else
+  LISTEN="# ListenAddress intentionally not set — a baked-in DHCP address goes stale and breaks sshd at boot"
+  warn "sshd will listen on all interfaces (LAN-only binding is fragile with DHCP — use a firewall)."
+  cat > "$HARD_CONF" <<EOF
 # Managed by dot-files arch/post-install.sh
 Port 8631
 ${LISTEN}
@@ -212,6 +239,7 @@ KbdInteractiveAuthentication no
 PermitRootLogin no
 AllowUsers ${TARGET_USER}
 EOF
+fi
 AK_SRC="/home/$TARGET_USER/dot-files/arch/ssh/authorized_keys"
 if [[ -f "$AK_SRC" ]] && grep -Eq '^(ssh-|ecdsa-|sk-)' "$AK_SRC"; then
   install -d -o "$TARGET_USER" -g "$TARGET_USER" -m 700 "/home/$TARGET_USER/.ssh"
@@ -340,8 +368,17 @@ else
 fi
 
 step "Sunshine (Moonlight stream host, pinned ${SUNSHINE_VER}) — Mac remote desktop"
-if [[ "$(pacman -Q sunshine 2>/dev/null | awk '{print $2}')" == "${SUNSHINE_VER}-1" ]]; then
-  echo "  Sunshine ${SUNSHINE_VER}-1 already installed."
+# Installed version decides: exact pin = no-op; any other installed version =
+# warn (a re-run must never silently downgrade a manual upgrade, nor blind-
+# upgrade over one — bump SUNSHINE_VER + SUNSHINE_SHA256 to re-pin).
+if pacman -Q sunshine >/dev/null 2>&1; then
+  installed_ver="$(pacman -Q sunshine | awk '{print $2}')"
+  if [[ $installed_ver == "${SUNSHINE_VER}-1" ]]; then
+    echo "  Sunshine ${SUNSHINE_VER}-1 already installed."
+  else
+    warn "Sunshine $installed_ver is installed, but this kit pins ${SUNSHINE_VER}-1 — not touching it."
+    warn "If $installed_ver is an intentional upgrade, bump SUNSHINE_VER and SUNSHINE_SHA256 in arch/post-install.sh (recompute the hash from the downloaded release asset, never the URL)."
+  fi
 else
   asset="/tmp/sunshine-${SUNSHINE_VER}-1-x86_64.pkg.tar.zst"
   curl -fsSL "$SUNSHINE_URL" -o "$asset" \
@@ -542,8 +579,22 @@ pacman -Rns --noconfirm nvidia-utils lib32-nvidia-utils 2>/dev/null \
   || echo "  (nvidia stack not present — nothing to remove)"
 
 step "Finishing touches"
-# archinstall can leave root-owned files in the user's home (e.g. fish config)
-chown -R "$TARGET_USER":"$TARGET_USER" "/home/$TARGET_USER" || warn "chown of /home/$TARGET_USER failed"
+# Why this exists: archinstall and the live-ISO session run as ROOT and can
+# leave root-owned files in the target user's home (e.g. fish config) — files
+# the user then can't edit. It's a fresh-install-only cleanup, so gate it on
+# a stamp: re-runs must not pay a full recursive walk of a large home (Steam
+# library). If root-owned files ever reappear, fix by hand:
+#   sudo chown -R "$TARGET_USER":"$TARGET_USER" ~
+# (The ISO can't do this itself — the home only exists on the target and
+# archinstall has no chown hook; post-install IS the after-install phase.)
+FIRST_RUN_STAMP=/var/lib/dot-files/.post-install.stamp
+if [[ -e $FIRST_RUN_STAMP ]]; then
+  echo "  Ownership cleanup already done (fresh-install only) — skipping recursive chown."
+else
+  chown -R "$TARGET_USER":"$TARGET_USER" "/home/$TARGET_USER" || warn "chown of /home/$TARGET_USER failed"
+  install -d -m 755 /var/lib/dot-files
+  : > "$FIRST_RUN_STAMP"
+fi
 sudo -u "$TARGET_USER" bash -c 'cd ~/dot-files && ./install' || warn "./install had warnings — review output above"
 pacman -S --needed --noconfirm --asdeps - < <(grep -v '^#' packages/pacman.txt | grep -v '^$') >/dev/null 2>&1 || true
 
