@@ -155,7 +155,7 @@ Windows-side disks:
 - **Back up anything important before reformatting** — that step is the
   risky one, not the Arch install.
 
-## 7. Gaming layer (`packages/packages-pacman-gaming.txt`)
+## 7. Gaming layer (`packages/pacman-gaming.txt`)
 
 Separate file so non-gaming machines skip it:
 
@@ -245,8 +245,8 @@ and `arch/flash-usb.sh` writes it to the USB stick when you plug it in.
   just enough to boot to a TTY with network and ssh. The unattended
   install takes minutes, not half an hour.
 - `arch/post-install.sh` does the rest after first boot: the full
-  desktop + gaming stack (`packages/packages-pacman{,-gaming}.txt`), the AUR list
-  (`packages/packages-aur.txt` via paru), GPU stack, zram, sshd hardening,
+  desktop + gaming stack (`packages/pacman{,-gaming}.txt`), the AUR list
+  (`packages/aur.txt` via paru), GPU stack, zram, sshd hardening,
   sway/foot config, boot order, sbctl (interactive). First boot after
   the install is a TTY login; run post-install, reboot, land in sway.
 
@@ -261,7 +261,7 @@ and `arch/flash-usb.sh` writes it to the USB stick when you plug it in.
 **When a rebuild is NOT needed** (pulled from GitHub at post-install
 time — push the repo, then re-run post-install on the target):
 
-- `packages/packages-pacman.txt`, `packages/packages-pacman-gaming.txt`, `packages/packages-aur.txt`
+- `packages/pacman.txt`, `packages/pacman-gaming.txt`, `packages/aur.txt`
 - `arch/post-install.sh`, `arch/verify-install.sh`,
   `arch/ssh/authorized_keys`
 - `arch/sway/**` (sway config, foot.ini, screenshot scripts)
@@ -329,12 +329,12 @@ settings (F10+, XMP).
 2. Boot custom ISO (§10) or manual install: **wipe the P3** — ESP + btrfs
    root, systemd-boot, zram, user account.
 3. Enable multilib, `pacman -Syu`.
-4. `pacman -S --needed - < packages/packages-pacman.txt` → `./install`.
+4. `pacman -S --needed - < packages/pacman.txt` → `./install`.
 5. GPU packages (§3) + reboot; verify with `vulkaninfo --summary`.
 6. river + 4K 144 Hz + adaptive sync (§4, §5).
 7. Dual-boot basics (§8): efibootmgr order, RealTimeIsUniversal.
 8. Secure Boot (§9): sbctl keys, sign, verify.
-9. `packages/packages-pacman-gaming.txt`, paru, Steam, Proton.
+9. `packages/pacman-gaming.txt`, paru, Steam, Proton.
 10. Storage: mount/format SATA disks per §6; Steam library to the 850 Evo.
 11. Verify: `vulkaninfo --summary`, 144 Hz active, VRR engaging via
     Mangohud frametimes, `gamemoderun` working, and one F12 reboot into

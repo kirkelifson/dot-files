@@ -78,8 +78,8 @@ and the stick is ejected when done. Boot via F12 on the Gigabyte board.
 
 - Change target disk: picked interactively at boot (P3 auto-detected by model;
   any device can be typed in).
-- **Packages on the installed system**: edit `packages/packages-pacman.txt` and
-  `packages/packages-pacman-gaming.txt` — `build-iso.sh` generates the archinstall
+- **Packages on the installed system**: edit `packages/pacman.txt` and
+  `packages/pacman-gaming.txt` — `build-iso.sh` generates the archinstall
   package list from them at build time (single source of truth). The list
   in `user_configuration.json` is only a fallback for manual archinstall.
 - Change username: also edit `user_configuration.json` → `users` AND

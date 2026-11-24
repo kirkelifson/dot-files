@@ -97,7 +97,7 @@ class InstallTests(unittest.TestCase):
         output = self.run_shell('''
             os=FreeBSD
             mkdir -p "$HOME/repo/packages"
-            printf '# comment\\n\\nfish\\nmissing-package\\n' > "$HOME/repo/packages/packages-freebsd.txt"
+            printf '# comment\\n\\nfish\\nmissing-package\\n' > "$HOME/repo/packages/freebsd.txt"
             dir="$HOME/repo"
             run_as_root() { "$@"; }
             pkg() {

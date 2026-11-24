@@ -64,14 +64,14 @@ install_system_packages() {
   elif [ "$os" = "FreeBSD" ]; then
     install_freebsd_packages
   elif command -v apt-get > /dev/null 2>&1; then
-    if [ -f "$dir/packages/packages-apt.txt" ]; then
-      echo -e "[+] Installing apt packages from packages/packages-apt.txt."
-      grep -v '^#' "$dir/packages/packages-apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
+    if [ -f "$dir/packages/apt.txt" ]; then
+      echo -e "[+] Installing apt packages from packages/apt.txt."
+      grep -v '^#' "$dir/packages/apt.txt" | grep -v '^$' | xargs sudo apt-get install -y
     fi
   elif command -v pacman > /dev/null 2>&1; then
-    if [ -f "$dir/packages/packages-pacman.txt" ]; then
-      echo -e "[+] Installing pacman packages from packages/packages-pacman.txt."
-      grep -v '^#' "$dir/packages/packages-pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
+    if [ -f "$dir/packages/pacman.txt" ]; then
+      echo -e "[+] Installing pacman packages from packages/pacman.txt."
+      grep -v '^#' "$dir/packages/pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
     fi
   fi
 }
@@ -99,7 +99,7 @@ install_freebsd_packages() {
     else
       echo "[!] FreeBSD package unavailable in this repository: $package (skipped)"
     fi
-  done < "$dir/packages/packages-freebsd.txt"
+  done < "$dir/packages/freebsd.txt"
   if [ "${#packages[@]}" -gt 0 ]; then
     run_as_root pkg install -y "${packages[@]}"
   fi

@@ -30,11 +30,11 @@ Improvements identified during dotfiles review. Checked off as completed.
 
 ## Install Script
 
-- [x] **Arch Linux / pacman support** — install uses packages/packages-pacman.txt and preserves Omarchy-managed terminal configuration.
+- [x] **Arch Linux / pacman support** — install uses packages/pacman.txt and preserves Omarchy-managed terminal configuration.
 
-- [x] **FreeBSD / pkg support** — install uses a smaller packages/packages-freebsd.txt set, reports unavailable packages, and preserves the shared shell/editor/tmux configuration. Limitations are documented in README.md.
+- [x] **FreeBSD / pkg support** — install uses a smaller packages/freebsd.txt set, reports unavailable packages, and preserves the shared shell/editor/tmux configuration. Limitations are documented in README.md.
 
-- [ ] **`packages/packages-apt.txt` has packages not in default repos** — `eza`, `curlie`, and `bandwhich` are not available in default Debian/Ubuntu apt repos (they're Rust-ecosystem tools distributed via GitHub releases or cargo). The install script will silently fail on them on a fresh server. Either remove them from the apt list and add a cargo-install fallback, or add a note/link to their install instructions.
+- [ ] **`packages/apt.txt` has packages not in default repos** — `eza`, `curlie`, and `bandwhich` are not available in default Debian/Ubuntu apt repos (they're Rust-ecosystem tools distributed via GitHub releases or cargo). The install script will silently fail on them on a fresh server. Either remove them from the apt list and add a cargo-install fallback, or add a note/link to their install instructions.
 
 ## Brewfile / Package Gaps
 

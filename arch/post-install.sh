@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/kirkelifson/dot-files.git"
-GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/master/packages/packages-pacman-gaming.txt"
+GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/master/packages/pacman-gaming.txt"
 
 step() { printf '\n\033[1;34m[+]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[!]\033[0m %s\n' "$*"; }
@@ -63,7 +63,7 @@ missing=()
 [[ -f arch/sway/config ]] || missing+=("arch/sway/config — sway session config")
 [[ -f arch/sway/foot.ini ]] || missing+=("arch/sway/foot.ini — foot terminal config")
 ls arch/sway/scripts/shot-* >/dev/null 2>&1 || missing+=("arch/sway/scripts/shot-* — screenshot scripts")
-[[ -f packages/packages-pacman.txt ]] || missing+=("packages/packages-pacman.txt — installed-system package list")
+[[ -f packages/pacman.txt ]] || missing+=("packages/pacman.txt — installed-system package list")
 if (( ${#missing[@]} )); then
   echo "error: post-install preflight failed — ${#missing[@]} required file(s) missing from $PWD:" >&2
   printf '  - %s\n' "${missing[@]}" >&2
@@ -71,11 +71,11 @@ if (( ${#missing[@]} )); then
   exit 1
 fi
 
-pacman -S --needed --noconfirm - < <(grep -v '^#' packages/packages-pacman.txt | grep -v '^$')
+pacman -S --needed --noconfirm - < <(grep -v '^#' packages/pacman.txt | grep -v '^$')
 
 step "Gaming packages"
-if [[ -f packages/packages-pacman-gaming.txt ]]; then
-  pacman -S --needed --noconfirm - < <(grep -v '^#' packages/packages-pacman-gaming.txt | grep -v '^$')
+if [[ -f packages/pacman-gaming.txt ]]; then
+  pacman -S --needed --noconfirm - < <(grep -v '^#' packages/pacman-gaming.txt | grep -v '^$')
 else
   curl -fsSL "$GAMING_LIST_URL" | pacman -S --needed --noconfirm -
 fi
@@ -221,8 +221,8 @@ ln -sfn "/home/$TARGET_USER/dot-files/arch/sway/foot.ini" "$FOOT_DST"
 # AUR packages via paru. makepkg refuses to run as root, so the helper is
 # built as $TARGET_USER and installed with pacman as root (no password
 # prompts). Firefox covers the browser if this step fails.
-if [[ -s packages/packages-aur.txt ]]; then
-  step "AUR helper (paru) + packages/packages-aur.txt"
+if [[ -s packages/aur.txt ]]; then
+  step "AUR helper (paru) + packages/aur.txt"
   BUILD=$(mktemp -d); chown "$TARGET_USER":"$TARGET_USER" "$BUILD"
   # paru is a Rust build — minutes of cargo output — so only build it when
   # missing, and never silence it: a silent makepkg looks hung and hides
@@ -293,7 +293,7 @@ if [[ -s packages/packages-aur.txt ]]; then
       pkg="${pkg%%#*}"; pkg="${pkg//[[:space:]]/}" # strip comments/whitespace
       [[ -z $pkg ]] && continue
       build_aur "$pkg" 0 || true
-    done < packages/packages-aur.txt
+    done < packages/aur.txt
     pacman -Q 1password >/dev/null 2>&1 \
       && echo "  1password installed" || warn "1password not installed — see AUR output above"
   else
@@ -301,7 +301,7 @@ if [[ -s packages/packages-aur.txt ]]; then
   fi
   rm -rf "$BUILD"
 else
-  warn "packages/packages-aur.txt missing or empty — AUR packages skipped"
+  warn "packages/aur.txt missing or empty — AUR packages skipped"
 fi
 
 step "Display manager (sddm) — installs with the desktop batch, enable now"
@@ -395,6 +395,6 @@ step "Finishing touches"
 # archinstall can leave root-owned files in the user's home (e.g. fish config)
 chown -R "$TARGET_USER":"$TARGET_USER" "/home/$TARGET_USER" || warn "chown of /home/$TARGET_USER failed"
 sudo -u "$TARGET_USER" bash -c 'cd ~/dot-files && ./install' || warn "./install had warnings — review output above"
-pacman -S --needed --noconfirm --asdeps - < <(grep -v '^#' packages/packages-pacman.txt | grep -v '^$') >/dev/null 2>&1 || true
+pacman -S --needed --noconfirm --asdeps - < <(grep -v '^#' packages/pacman.txt | grep -v '^$') >/dev/null 2>&1 || true
 
 step "Done. Next: reboot, then run ~/dot-files/arch/verify-install.sh (as your user, no sudo needed for most checks)."

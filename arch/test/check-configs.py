@@ -103,16 +103,16 @@ def repo_list(path):
     return {l.split("#", 1)[0].strip() for l in open(f"{repo}/{path}")
             if l.split("#", 1)[0].strip()}
 
-pacman = repo_list("packages/packages-pacman.txt")
+pacman = repo_list("packages/pacman.txt")
 for p in ("sddm", "sway", "firefox", "chromium"):
-    check(p in pacman, f"{p} in packages/packages-pacman.txt (post-install batch)")
+    check(p in pacman, f"{p} in packages/pacman.txt (post-install batch)")
 
 # AUR packages list (installed by post-install via paru; CI can't check the AUR)
-aur = f"{repo}/packages/packages-aur.txt"
-check(os.path.exists(aur), "packages/packages-aur.txt exists")
+aur = f"{repo}/packages/aur.txt"
+check(os.path.exists(aur), "packages/aur.txt exists")
 if os.path.exists(aur):
     check("1password" in open(aur).read(),
-          "packages/packages-aur.txt includes 1password")
+          "packages/aur.txt includes 1password")
 
 # sway config sanity: exists, autostarts the bar, pins VRR display mode
 sway_cfg = f"{repo}/arch/sway/config"
