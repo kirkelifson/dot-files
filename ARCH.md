@@ -52,7 +52,10 @@ Arch takes the **whole P3** (wiped):
 - **ESP, 1 GB, FAT32** — systemd-boot. Its own drive means Windows updates
   can't clobber it and vice versa: the worst case for any Windows update is
   boot order, never a broken install.
-- **Root** — btrfs (subvolumes `@`, `@home`, `@snapshots`) on the rest.
+- **Root** — btrfs subvolumes `@`, `@home`, plus `@log` and `@pkg`
+  (`/var/log`, pacman cache) so churn stays out of snapshots. Snapper
+  runs on `@`: hourly timeline + cleanup timers, and `snap-pacman`
+  takes pre/post snapshots around pacman transactions.
 - **No swap partition** — 64 GB RAM + zram (zram-generator, zstd, ~32 GB).
 - Same username as the other machines so dot-files paths line up.
 

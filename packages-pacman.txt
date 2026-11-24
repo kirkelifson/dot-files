@@ -88,6 +88,11 @@ nmap
 mtr
 gnupg
 qrencode
+openssh
+
+# Bluetooth (game controllers — ARCH.md §7)
+bluez
+bluez-utils
 
 # Display manager + sway WM session (sddm greets sway; see ARCH.md §4)
 sddm
@@ -122,3 +127,15 @@ podman
 graphviz
 ffmpeg
 direnv
+
+# System tuning (ARCH.md §11 — CPU/GPU control, fan curves)
+corectrl
+
+# Snapshots (btrfs rollback safety net — ARCH.md §2)
+snapper
+
+# pacman pre/post snapshots via snapper
+snap-pac
+
+# zram swap (ARCH.md §2 — no swap partition; post-install writes the conf)
+zram-generator

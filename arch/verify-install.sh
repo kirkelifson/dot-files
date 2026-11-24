@@ -31,7 +31,7 @@ lsmod | grep -q '^amdgpu ' && ok "amdgpu kernel module loaded" || bad "amdgpu mo
 if have vulkaninfo; then
   vulkaninfo --summary 2>/dev/null | grep -qi 'radv' && ok "Vulkan ICD: RADV (AMD) present" \
     || bad "No RADV Vulkan ICD — check vulkan-radeon and lib32-vulkan-radeon"
-  vulkaninfo --summary 2>/dev/null | grep -qi 'nvidia' && warn "NVIDIA ICD also present — leftover from the 2080 Ti? (pacman -R nvidia-utils …)" || true
+  vulkaninfo --summary 2>/dev/null | grep -qi 'nvidia' && warn "NVIDIA ICD also present — leftover from the 2080 Ti (post-install.sh removes it; now: pacman -Rns nvidia-utils lib32-nvidia-utils)" || true
 else
   warn "vulkaninfo missing (vulkan-tools)"
 fi
@@ -81,9 +81,14 @@ if have efibootmgr; then
   WIN=$(efibootmgr  | awk '/Windows Boot Manager/{print $1; exit}')
   [[ -n $ARCH ]] && ok "Arch boot entry present: $ARCH" || bad "No 'Linux Boot Manager' NVRAM entry"
   [[ -n $WIN  ]] && ok "Windows boot entry present: $WIN" || warn "No Windows entry (expected if dual booting)"
-  [[ $ORDER == ${ARCH#\*\ }*,* ]] && ok "Arch is first in BootOrder ($ORDER)" || warn "Arch not first: BootOrder=$ORDER (fix: efibootmgr -o <arch>,<windows>)"
-  ls /boot/EFI/BOOT/BOOTX64.EFI >/dev/null 2>&1 && ok "systemd-boot present on Arch's ESP" || bad "/boot/EFI/BOOT/BOOTX64.EFI missing — bootloader not installed on this ESP"
-  [[ -e /boot/initramfs-linux-fallback.img ]] && ok "fallback initramfs present" || bad "initramfs-linux-fallback.img missing"
+  ARCH_NUM=${ARCH#Boot}; ARCH_NUM=${ARCH_NUM%\*}
+  [[ -n $ARCH_NUM && $ORDER == "$ARCH_NUM",* ]] && ok "Arch is first in BootOrder ($ORDER)" || warn "Arch not first: BootOrder=$ORDER (fix: efibootmgr -o <arch>,<windows>)"
+  if [[ -r /boot ]]; then
+    ls /boot/EFI/BOOT/BOOTX64.EFI >/dev/null 2>&1 && ok "systemd-boot present on Arch's ESP" || bad "/boot/EFI/BOOT/BOOTX64.EFI missing — bootloader not installed on this ESP"
+    [[ -e /boot/initramfs-linux-fallback.img ]] && ok "fallback initramfs present" || bad "initramfs-linux-fallback.img missing"
+  else
+    warn "/boot not readable as this user (fmask 0177) — boot file checks skipped (verify with: sudo ls /boot/EFI/BOOT)"
+  fi
   have bootctl && { bootctl status 2>/dev/null | grep -q "systemd-boot" && ok "systemd-boot installed and reporting" || bad "bootctl does not report systemd-boot"; } || warn "bootctl missing (systemd pkg?)"
 else
   bad "efibootmgr missing"
@@ -94,7 +99,6 @@ ROOT_SRC=$(findmnt -n -o SOURCE / 2>/dev/null)
 [[ $ROOT_SRC == *"@/"* || $ROOT_SRC == *"[/@]"* ]] && ok "root mounted from btrfs subvolume (@): $ROOT_SRC" \
   || warn "root mount: '$ROOT_SRC' — expected a btrfs @ subvolume"
 findmnt -n -o FSTYPE / | grep -q btrfs && ok "root filesystem is btrfs" || bad "root is not btrfs: $(findmnt -n -o FSTYPE /)"
-[[ -d /.snapshots ]] && ok "@snapshots subvolume mounted" || warn "/.snapshots missing (snapshots subvol not mounted)"
 FSTAB_NVME=$(grep -c "nvme" /etc/fstab 2>/dev/null || echo 0)
 (( FSTAB_NVME > 0 )) && ok "fstab references $FSTAB_NVME nvme line(s)" || bad "fstab has no nvme entries — installs may not survive reboot"
 findmnt -n -o OPTIONS / | grep -q "ssd" && ok "btrfs mounted with ssd option" || true
@@ -113,6 +117,18 @@ fi
 hdr "Memory / swap"
 Z=$(zramctl --output DISKSIZE 2>/dev/null | awk 'NR==2{print $1}')
 [[ -n $Z ]] && ok "zram active: $Z" || warn "zram not active (systemd-zram-setup@zram0)"
+
+hdr "Snapshots (snapper)"
+if have snapper; then
+  ok "snapper installed"
+  [[ -d /.snapshots ]] && ok "/.snapshots present" || warn "/.snapshots missing — create the snapper config (Arch Wiki: Snapper)"
+  systemctl is-enabled --quiet snapper-timeline.timer && ok "snapper-timeline.timer enabled (hourly snapshots)" \
+    || warn "snapper-timeline.timer not enabled — automatic snapshots are off"
+  systemctl is-enabled --quiet snapper-cleanup.timer && ok "snapper-cleanup.timer enabled" \
+    || warn "snapper-cleanup.timer not enabled — old snapshots accumulate forever"
+else
+  warn "snapper not installed — no rollback safety net for updates"
+fi
 
 hdr "Services"
 for svc in NetworkManager sddm; do
@@ -138,7 +154,7 @@ fi
   || bad "\$HOME/.ssh/authorized_keys empty/missing — add keys in \$HOME/dot-files/arch/ssh/authorized_keys, then re-run post-install.sh"
 
 hdr "Packages (spot checks)"
-for p in fish git neovim tmux steam gamemode mangohud lutris protontricks corectrl btrfs-progs docker; do
+for p in fish git neovim tmux steam gamemode mangohud lutris protontricks corectrl btrfs-progs podman; do
   pacman -Q "$p" >/dev/null 2>&1 && ok "$p installed" || bad "$p MISSING"
 done
 pacman -Q lib32-mangohud >/dev/null 2>&1 && ok "lib32-mangohud installed" || bad "lib32-mangohud MISSING (multilib enabled?)"

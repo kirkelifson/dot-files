@@ -45,7 +45,14 @@ if len(parts) == 2:
           "ESP has the 'esp' flag (archinstall 4.x is_efi check — prevents 'Could not detect EFI system partition')")
     check("boot" in [f.lower() for f in esp.get("flags", [])], "ESP has boot flag")
     check(root.get("fs_type") == "btrfs", "root fs btrfs")
-    check(root.get("mountpoint") == "/", "root mounted /")
+    check(root.get("mountpoint") is None,
+          "root partition has no direct mountpoint (btrfs subvolumes carry it)")
+    subvols = root.get("btrfs", [])
+    names = {s.get("name"): s.get("mountpoint") for s in subvols}
+    check(names.get("@") == "/", "@ subvolume mounted /")
+    check(names.get("@home") == "/home", "@home mounted /home")
+    check(names.get("@log") == "/var/log", "@log mounted /var/log (churn out of snapshots)")
+    check(names.get("@pkg") == "/var/cache/pacman/pkg", "@pkg mounted /var/cache (churn out of snapshots)")
     for p in (esp, root):
         check(p.get("status") == "create", "partition status create")
         check("obj_id" in p, "partition obj_id present")

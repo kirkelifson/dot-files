@@ -3,3 +3,6 @@
 # repos, so this list is unchecked — keep it short and review PKGBUILDs.
 # (1password repackages the official 1Password tarball — quick build.)
 1password
+
+# GE-Proton updater (ARCH.md §7 — per-game Proton versions)
+protonup-qt

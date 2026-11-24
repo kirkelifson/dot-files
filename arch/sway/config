@@ -18,7 +18,7 @@ input type:keyboard {
 }
 
 ######## Displays (LG 27GP950-B: 4K 144 Hz VRR over DP with DSC) ########
-output DP-1 mode 3840x2160@144
+output DP-1 mode 3840x2160@144Hz
 output DP-1 adaptive_sync on
 output DP-1 pos 0 0
 output DP-1 scale 1

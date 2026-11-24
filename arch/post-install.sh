@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/kirkelifson/dot-files.git"
-GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/main/packages-pacman-gaming.txt"
+GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/master/packages-pacman-gaming.txt"
 
 step() { printf '\n\033[1;34m[+]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[!]\033[0m %s\n' "$*"; }
@@ -45,7 +45,7 @@ pacman -Syu --noconfirm
 # picks nvidia-utils. Full-AMD build: make RADV the provider from the start.
 step "GPU driver (AMD — RADV via mesa; amdgpu is in the kernel, nothing DKMS)"
 pacman -S --needed --noconfirm mesa vulkan-radeon vulkan-tools vulkan-mesa-layers \
-  lib32-mesa lib32-vulkan-radeon lib32-vulkan-icd-loader lib32-vulkan-mesa-layers
+  lib32-mesa lib32-vulkan-radeon lib32-vulkan-icd-loader lib32-vulkan-mesa-layers libva-utils
 
 step "Dot-files: clone and run installer"
 if [[ -d "/home/$TARGET_USER/dot-files" ]]; then
@@ -87,6 +87,21 @@ zram-size = ram / 2
 compression-algorithm = zstd
 EOF
 systemctl enable --now systemd-zram-setup@zram0.service 2>/dev/null || true
+
+step "Snapper: root snapshot timeline (hourly) + cleanup"
+if [[ ! -f /etc/snapper/configs/root ]]; then
+  pacman -S --needed --noconfirm snapper
+  snapper -c root create-config / || warn "snapper create-config failed — set up by hand (Arch Wiki: Snapper)"
+fi
+if [[ -f /etc/snapper/configs/root ]]; then
+  # Tighten retention — the 10/10/10/10 default is heavy on a busy root
+  sed -i -e 's/^TIMELINE_LIMIT_HOURLY=.*/TIMELINE_LIMIT_HOURLY="5"/' \
+         -e 's/^TIMELINE_LIMIT_DAILY=.*/TIMELINE_LIMIT_DAILY="7"/' \
+         -e 's/^TIMELINE_LIMIT_WEEKLY=.*/TIMELINE_LIMIT_WEEKLY="0"/' \
+         -e 's/^TIMELINE_LIMIT_MONTHLY=.*/TIMELINE_LIMIT_MONTHLY="0"/' \
+         -e 's/^TIMELINE_LIMIT_YEARLY=.*/TIMELINE_LIMIT_YEARLY="0"/' /etc/snapper/configs/root
+  systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
+fi
 
 step "systemd-boot: 3s timeout, Arch default"
 CONF="/boot/loader/loader.conf"
@@ -193,6 +208,14 @@ fi
 step "Display manager (sddm) — installs with the desktop batch, enable now"
 systemctl enable sddm.service 2>/dev/null \
   || warn "sddm not enabled — check: systemctl enable sddm"
+
+step "Bluetooth: enable the service when an adapter is present"
+if pacman -Q bluez >/dev/null 2>&1 && ls /sys/class/bluetooth/hci* >/dev/null 2>&1; then
+  rfkill unblock bluetooth 2>/dev/null || true
+  systemctl enable --now bluetooth.service || warn "bluetooth service failed to start"
+else
+  echo "  No Bluetooth adapter detected — service left off"
+fi
 
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
