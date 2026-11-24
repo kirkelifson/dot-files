@@ -161,6 +161,8 @@ floating_modifier $mod
 ######## Float / fullscreen / close / exit ########
 bindsym $mod+space floating toggle
 bindsym $mod+f fullscreen toggle
+# close window: $mod+q (Mod+Shift+c kept as alias; i3 muscle memory)
+bindsym $mod+q kill
 bindsym $mod+Shift+c kill
 bindsym $mod+Shift+q exec swaynag -m "Exit sway?" -B "Exit" "swaymsg exit"
 # Reload config in-place

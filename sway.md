@@ -8,7 +8,8 @@ Launching things:
   Mod+p            Clipboard history (cliphist via wofi)
 
 Window management:
-  Mod+Shift+c      Close focused window
+  Mod+q            Close focused window
+  Mod+Shift+c      Close focused window (alias)
   Mod+f            Toggle fullscreen
   Mod+Space        Toggle floating
   Mod+j / Mod+k    Focus down / up
