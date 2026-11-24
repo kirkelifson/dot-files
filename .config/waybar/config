@@ -47,13 +47,13 @@
     },
 
     "cpu": {
-        "format": "CPU {usage}%",
+        "format": "CPU {usage: >3}%",
         "interval": 3,
         "tooltip": false
     },
 
     "memory": {
-        "format": "MEM {percentage}%",
+        "format": "MEM {percentage: >3}%",
         "interval": 5,
         "tooltip-format": "{used:0.1f}G / {total:0.1f}G"
     },
@@ -61,16 +61,16 @@
     "temperature#cpu": {
         "hwmon-path": "/sys/class/hwmon/hwmon4/temp1_input",
         "critical-threshold": 85,
-        "format": "CPU {temperatureC}°",
-        "format-critical": "CPU {temperatureC}°!",
+        "format": "CPU {temperatureC: >3}°",
+        "format-critical": "CPU {temperatureC: >3}°!",
         "interval": 5
     },
 
     "temperature#gpu": {
         "hwmon-path": "/sys/class/hwmon/hwmon3/temp1_input",
         "critical-threshold": 90,
-        "format": "GPU {temperatureC}°",
-        "format-critical": "GPU {temperatureC}°!",
+        "format": "GPU {temperatureC: >3}°",
+        "format-critical": "GPU {temperatureC: >3}°!",
         "interval": 5
     },
 
