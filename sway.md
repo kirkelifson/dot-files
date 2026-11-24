@@ -27,6 +27,8 @@ Layout templates (swap per-workspace):
   Mod+t            Tabbed — full-height windows, switch like tabs
   Mod+u            Stacked — windows stacked vertically, title bars listed
   Mod+g            Back to default tiling (autotile resumes on next window)
+  Mod+Shift+t      Retile now — stack all terminals on this workspace
+                   vertically, other apps side by side (one-shot)
   Mod+e            Toggle split / tabbed (legacy)
 
 Tiling tips:

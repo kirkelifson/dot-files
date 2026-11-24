@@ -152,6 +152,9 @@ bindsym $mod+u layout stacking
 #   back to auto/manual tiling
 #   default tiling (splith) — NOTE: sway 1.12 dropped `layout default`
 bindsym $mod+g layout splith
+# retile now — group the workspace's terminals into one vertical stack,
+# other apps beside them (one-shot; autotile daemon untouched)
+bindsym $mod+Shift+t exec /usr/bin/python3 ~/.config/sway/scripts/autotile retile
 
 ######## Scratchpad (hidden stash for windows) ########
 # Move focused window to scratchpad (hidden)

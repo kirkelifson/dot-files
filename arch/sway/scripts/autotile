@@ -8,7 +8,49 @@ dwm's spiral. Simple, predictable, and removes 90% of manual b/v presses.
 Run from sway config:  exec /usr/bin/python3 ~/.config/sway/scripts/autotile
 Stop with:             pkill -f autotile
 """
+import sys
+
 import i3ipc
+
+TERMINALS = {
+    "foot", "footclient", "org.wezfurlong.wezterm", "Alacritty", "alacritty",
+    "kitty", "com.mitchellh.ghostty", "st", "st-256color", "xterm",
+    "xterm-256color", "URxvt", "urxvt", "terminator", "konsole",
+}
+
+
+def is_terminal(con):
+    props = getattr(con, "window_properties", None) or {}
+    app = con.app_id or props.get("class") or props.get("instance") or ""
+    return bool(app) and (app in TERMINALS or "term" in app.lower())
+
+
+def retile(i3):
+    """One-shot rearrange of the focused workspace: all terminals grouped
+    into one vertically-stacked container, everything else beside them
+    (side by side). Idempotent — safe to press repeatedly."""
+    tree = i3.get_tree()
+    focused = tree.find_focused()
+    ws = focused
+    while ws is not None and ws.type != "workspace":
+        ws = ws.parent
+    if ws is None:
+        return
+    wins = [c for c in ws.descendants()
+            if c.type == "con" and (c.app_id or getattr(c, "window_properties", None))]
+    if len(wins) < 2:
+        return
+    terms = [c for c in wins if is_terminal(c)]
+    pivot = terms[0] if terms else wins[0]
+    focus_after = focused.id
+    i3.command(f"[con_id={pivot.id}] mark retile_pivot")
+    for c in terms:
+        if c.id != pivot.id:
+            i3.command(f"[con_id={c.id}] move container to mark retile_pivot")
+    i3.command(f"[con_id={pivot.id}] layout splitv")
+    i3.command(f"[con_id={ws.id}] layout splith")
+    i3.command(f"[con_id={pivot.id}] unmark retile_pivot")
+    i3.command(f"[con_id={focus_after}] focus")
 
 
 def toggle_split(i3, _e):
@@ -26,6 +68,9 @@ def toggle_split(i3, _e):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "retile":
+        retile(i3ipc.Connection())
+        return
     i3 = i3ipc.Connection()
     i3.on("window::new", toggle_split)
     i3.on("window::close", toggle_split)
