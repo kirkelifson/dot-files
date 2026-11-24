@@ -1,10 +1,10 @@
-# Authorized public keys for SSH access to the Arch desktop (user: kirk).
+# Authorized public keys for SSH access to the Arch desktop.
 # One key per line, standard authorized_keys format, e.g.:
 #   ssh-ed25519 AAAA... comment
 # Lines starting with # are ignored by sshd.
 #
-# This file is installed to /home/kirk/.ssh/authorized_keys by
-# arch/post-install.sh (SSH step). Add your keys BEFORE running it.
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2sZ+cE5LtsLu5biv9FK8Z6pkidn1PXOo3E2oDAojUl kirk@prometheus
+# This file is installed to ~/.ssh/authorized_keys on the target machine
+# by arch/post-install.sh (SSH step). Add keys here, then re-run that
+# step (or copy the file over) to apply them.
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2sZ+cE5LtsLu5biv9FK8Z6pkidn1PXOo3E2oDAojUl kirk@prometheus
 
