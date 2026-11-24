@@ -443,6 +443,44 @@ setup_launchd_gui_env() {
   fi
 }
 
+# Agent configs (opencode, pi) are file-level links so each tool keeps its own
+# state directory (sessions, service.json, auth) outside the repo.
+link_agent_configs() {
+  local link src dst
+  for link in ".config/opencode/opencode.json" ".pi/agent/models.json"; do
+    src="$dir/$link"
+    dst="$HOME/$link"
+    [ -f "$src" ] || continue
+    mkdir -p "$(dirname "$dst")"
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+      backup_path "$dst" "$dst-backup"
+    fi
+    echo -e "\t[>] Linking $link"
+    ln -sfn "$src" "$dst"
+  done
+}
+
+# npm-installed CLI tools shared across platforms (see npm-globals.txt).
+install_npm_globals() {
+  [ -f "$dir/npm-globals.txt" ] || return 0
+  if ! command -v npm > /dev/null 2>&1; then
+    echo "[!] npm not found; skipping npm global packages (npm-globals.txt)."
+    return 0
+  fi
+  echo "[+] Installing npm global packages."
+  local pkg
+  while IFS= read -r pkg; do
+    pkg="${pkg%%#*}"
+    pkg="$(echo "$pkg" | tr -d '[:space:]')"
+    [ -n "$pkg" ] || continue
+    if npm list -g "$pkg" > /dev/null 2>&1; then
+      echo -e "\t[>] $pkg already installed"
+    else
+      npm install -g "$pkg"
+    fi
+  done < "$dir/npm-globals.txt"
+}
+
 # --- Main ---
 if [ "$os" = "FreeBSD" ]; then
   export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
@@ -452,10 +490,12 @@ echo -e "Installing dot-files:"
 install_system_packages
 link_dotfiles
 link_config_dirs
+link_agent_configs
 setup_vim_packages
 install_fonts
 install_ghostty_terminfo
 setup_fish_shell
 install_mise_runtimes
 setup_launchd_gui_env
+install_npm_globals
 echo -e "[!] Restart terminal session for changes to take effect."
