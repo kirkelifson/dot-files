@@ -429,7 +429,12 @@ fi
 
 step "fwupd: firmware update metadata refresh (NVMe/GPU/motherboard)"
 if pacman -Q fwupd >/dev/null 2>&1; then
-  fwupdmgr refresh || warn "fwupdmgr refresh failed — run it by hand once networking is up"
+  rc=0
+  fwupdmgr refresh || rc=$?
+  # rc 2 = FWUPD_EXIT_NOTHING_TO_DO: metadata already current (re-runs, or the
+  # fwupd-refresh.timer beat us) — success, not a failure.
+  [[ $rc -eq 0 || $rc -eq 2 ]] \
+    || warn "fwupdmgr refresh failed (rc=$rc) — run it by hand once networking is up"
 else
   warn "fwupd not installed — firmware updates stay manual"
 fi
