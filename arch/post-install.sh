@@ -253,10 +253,20 @@ if [[ -s packages-aur.txt ]]; then
         || { warn "$pkg: clone from AUR failed"; return 1; }
       srcinfo=$(sudo -u "$TARGET_USER" bash -c "cd '$BUILD/$pkg' && makepkg --printsrcinfo")
       # Import PGP keys the sources are signed with, else makepkg aborts
-      # on signature verification (e.g. 1Password's release key).
+      # on signature verification (e.g. 1Password's release key). Try
+      # ubuntu's keyserver FIRST: keys.openpgp.org strips UIDs from
+      # unverified keys and gpg then SILENTLY SKIPS the import (exit 0,
+      # nothing in the keyring). Verify the key actually landed.
       while IFS= read -r key; do
-        sudo -u "$TARGET_USER" gpg --batch --keyserver keys.openpgp.org --recv-keys "$key" \
-          || sudo -u "$TARGET_USER" gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" \
+        imported=""
+        for ks in keyserver.ubuntu.com keys.openpgp.org; do
+          if sudo -u "$TARGET_USER" gpg --batch --keyserver "$ks" --recv-keys "$key" \
+             && sudo -u "$TARGET_USER" gpg --batch --list-keys "$key" >/dev/null 2>&1; then
+            imported=1
+            break
+          fi
+        done
+        [[ -n $imported ]] \
           || warn "$pkg: could not import signing key $key — signature check may fail"
       done < <(awk '/validpgpkeys =/ {print $3}' <<<"$srcinfo")
       # One unresolvable dep must not abort the others: repo deps install
