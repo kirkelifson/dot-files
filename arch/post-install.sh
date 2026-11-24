@@ -194,7 +194,7 @@ step "sway config: symlink config + scripts → ~/.config/sway"
 # easy to see/commit. Back up any pre-existing regular files first.
 SWAY_DIR="/home/$TARGET_USER/.config/sway"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "$SWAY_DIR/scripts"
-for rel in config scripts/shot-region scripts/shot-full scripts/set-wallpaper scripts/toggle-nightlight scripts/generate-wallpapers; do
+for rel in config scripts/autotile scripts/shot-region scripts/shot-full scripts/set-wallpaper scripts/toggle-nightlight scripts/generate-wallpapers; do
   src="/home/$TARGET_USER/dot-files/arch/sway/$rel"
   dst="$SWAY_DIR/$rel"
   [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"
