@@ -43,8 +43,24 @@ if [[ ! -d $THEME_DIR ]]; then
     [[ -d /usr/share/sddm/themes/elarun ]] \
         || { echo "update-sddm-background: /usr/share/sddm/themes/elarun missing" >&2; exit 1; }
     cp -a /usr/share/sddm/themes/elarun "$THEME_DIR"
-    sed -i 's|^background=.*|background=background.png|' "$THEME_DIR/theme.conf"
 fi
+
+# --- force the Qt6 greeter ----------------------------------------------------
+# sddm picks the greeter build from the theme's metadata.desktop: without
+# QtVersion=6 it starts the Qt5 greeter, which can't run on a system without
+# the qt5 libraries (helper exits 127, black screen with no login prompt).
+# Applied unconditionally so re-runs repair the theme too.
+grep -q '^QtVersion=6$' "$THEME_DIR/metadata.desktop" \
+    || printf '\nQtVersion=6\n' >> "$THEME_DIR/metadata.desktop"
+
+# --- absolute path for the background ----------------------------------------
+# elarun's Main.qml binds `source: config.background` through a property alias
+# into Background.qml; under the Qt6 greeter that aliased relative URL resolves
+# against SddmComponents/ instead of the theme dir (journal:
+# "QML Image: Cannot open .../SddmComponents/background.png") and the greeter
+# falls back to a plain white background. An absolute path sidesteps QML URL
+# resolution. Applied unconditionally so re-runs repair the theme too.
+sed -i "s|^background=.*|background=$THEME_DIR/background.png|" "$THEME_DIR/theme.conf"
 
 # --- tile the wallpaper to the output resolution -----------------------------
 /usr/bin/python3 - "$SRC" "$THEME_DIR/background.png" "$OUT_W" "$OUT_H" <<'EOF'
