@@ -76,6 +76,11 @@ class InstallTests(unittest.TestCase):
                     link_config_dirs
                     link_config_dirs
                     test -L "$HOME/.config/fish"
+                    if [ "$os" = Linux ]; then
+                        test -L "$HOME/.config/mako"
+                    else
+                        test ! -e "$HOME/.config/mako"
+                    fi
                     if [ "$os" = Darwin ]; then
                         test -L "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
                     else
@@ -91,6 +96,7 @@ class InstallTests(unittest.TestCase):
             link_config_dirs
             test ! -L "$HOME/.config/ghostty"
             grep -qx theme "$HOME/.config/ghostty/config"
+            test ! -e "$HOME/.config/mako"
         ''')
 
     def test_freebsd_package_routing_and_unavailable_package(self):

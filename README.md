@@ -38,6 +38,7 @@ The install script is idempotent — safe to run multiple times. It will:
 | `arch/` | Unattended Arch install kit — see `arch/README.md`; sway keybindings cheat sheet at `arch/sway.md` |
 | `.config/mise/config.toml` | mise language versions |
 | `.config/opencode/opencode.json` | opencode coding agent: LM Studio provider + models |
+| `.config/mako/` | Notification daemon config (persistent top-right toasts; linked on Linux only, not Omarchy) |
 | `bun-globals.txt` | JS packages installed globally on every platform with bun (pi coding agent) |
 
 ### FreeBSD

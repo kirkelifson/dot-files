@@ -201,6 +201,12 @@ link_config_dirs() {
   link_config_dir fish
   link_config_dir waybar
   link_config_dir fastfetch
+  # mako: Wayland notification daemon — only meaningful on a Linux Wayland
+  # desktop. Skipped on macOS/FreeBSD (not packaged there) and on Omarchy,
+  # which manages its own notification setup.
+  if [ "$os" = "Linux" ] && ! is_omarchy; then
+    link_config_dir mako
+  fi
   if is_omarchy; then
     # Omarchy ships and updates its own nvim (LazyVim) config; leave it alone.
     echo -e "\t[>] Omarchy detected, leaving its nvim config alone"
