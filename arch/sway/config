@@ -225,6 +225,12 @@ for_window [title="Picture-in-Picture"] floating enable, sticky enable
 for_window [window_role="pop-up"] floating enable
 for_window [window_role="dialog"] floating enable
 for_window [window_type="dialog"] floating enable
+# Steam Big Picture (Moonlight "Steam" tile): open on its own workspace so it
+# never buries the desktop — BPM maps as a fullscreen view on the CURRENT
+# workspace and reads as "the desktop closed", though it never actually exits.
+# Moonlight captures the whole output, so the stream follows focus to ws 9;
+# $mod+1..8 (or the workspace keys) shows the desktop alongside again.
+for_window [class="^Steam$"] move container to workspace number 9, workspace number 9
 # Allow tearing for fullscreen games (opt-in; per-window in sway ≥1.12)
 for_window [app_id="steam_app_*"] allow_tearing enable
 # XWayland drag smoothness — render X11 windows 90ms before vblank instead of
