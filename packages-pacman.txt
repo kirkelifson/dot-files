@@ -149,3 +149,6 @@ zram-generator
 
 # system monitor
 btop
+
+# fonts (FiraCode for terminal/UI, keeps Nerd Font glyphs for prompts)
+ttf-firacode-nerd
