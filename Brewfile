@@ -120,7 +120,8 @@ brew "graphviz"         # Graph visualization (dot)
 # --- AI / LLM ---
 brew "ollama"           # Local LLM runner
 cask "antigravity-cli"   # Google Antigravity CLI
-cask "claude-code"      # Anthropic Claude Code CLI (stable channel; brew upgrade to update)
+cask "claude-code"       # Anthropic Claude Code CLI (stable channel; brew upgrade to update)
+brew "opencode"          # AI coding agent (uses LM Studio via opencode.json)
 
 # --- Other ---
 brew "astroterm"        # Terminal astronomy
