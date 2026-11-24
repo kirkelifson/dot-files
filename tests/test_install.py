@@ -96,8 +96,8 @@ class InstallTests(unittest.TestCase):
     def test_freebsd_package_routing_and_unavailable_package(self):
         output = self.run_shell('''
             os=FreeBSD
-            mkdir "$HOME/repo"
-            printf '# comment\\n\\nfish\\nmissing-package\\n' > "$HOME/repo/packages-freebsd.txt"
+            mkdir -p "$HOME/repo/packages"
+            printf '# comment\\n\\nfish\\nmissing-package\\n' > "$HOME/repo/packages/packages-freebsd.txt"
             dir="$HOME/repo"
             run_as_root() { "$@"; }
             pkg() {

@@ -2,8 +2,8 @@
 # Deliberately MINIMAL: just enough for the installed system to boot to a TTY
 # with network + ssh, so post-install.sh can do everything else (desktop,
 # gaming, AUR) — keeps the initial install fast, which matters most in VM
-# testing. Everything else lives in packages-pacman{,-gaming}.txt and
-# packages-aur.txt, applied by post-install.sh.
+# testing. Everything else lives in packages/packages-pacman{,-gaming}.txt and
+# packages/packages-aur.txt, applied by post-install.sh.
 #
 # DO NOT grow this list: every entry here is downloaded during the
 # unattended install before the machine is usable.

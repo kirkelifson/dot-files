@@ -34,9 +34,8 @@ The install script is idempotent — safe to run multiple times. It will:
 | `.gitconfig` | Git aliases and settings |
 | `bin/` | Utility scripts (tmux-sessionizer, password, etc.) |
 | `Brewfile` | Homebrew packages (macOS) |
-| `packages-apt.txt` | apt packages (Debian/Ubuntu) |
-| `packages-pacman.txt` | pacman packages (Arch/Omarchy) |
-| `packages-freebsd.txt` | Smaller FreeBSD pkg set |
+| `packages/` | Package lists: apt, pacman (+gaming), AUR, FreeBSD |
+| `arch/` | Unattended Arch install kit — see `ARCH.md`; sway keybindings cheat sheet at `arch/sway.md` |
 | `.config/mise/config.toml` | mise language versions |
 
 ### FreeBSD
@@ -46,7 +45,7 @@ Give your normal account sudo access, clone this repo as that account, then run
 `bash ./install`. Avoid running the whole installer as root unless you want root's
 home configured. `/usr/local/bin` and `/usr/local/sbin` are added to PATH.
 
-The smaller `packages-freebsd.txt` set keeps Fish, Vim, Git, tmux, sessionizer,
+The smaller `packages/packages-freebsd.txt` set keeps Fish, Vim, Git, tmux, sessionizer,
 search tools, clipboard helpers, fonts, and mise. The installer queries the active
 pkg repository, reports unavailable packages by name, and skips them. Missing
 core commands (fish, git, vim, tmux, fzf, fd, mise, curl) stop installation. Package availability

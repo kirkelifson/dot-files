@@ -20,7 +20,7 @@ cd dot-files
 
 The install script:
 - **Safety check**: Warns if the repo has uncommitted changes before proceeding
-- Installs system packages (Brewfile on macOS, packages-apt.txt on Debian/Ubuntu, packages-pacman.txt on Arch/Omarchy, packages-freebsd.txt on FreeBSD)
+- Installs system packages (Brewfile on macOS, packages/packages-apt.txt on Debian/Ubuntu, packages/packages-pacman.txt on Arch/Omarchy, packages/packages-freebsd.txt on FreeBSD)
 - Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
 - Links the `bin/` directory to `~/bin` for custom utilities
 - Links `.config/fish/` and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
@@ -143,9 +143,9 @@ Vim is configured with:
 
 **macOS (Brewfile)**: Curated Homebrew packages organized by category — core CLI tools, shell/terminal, git, editors, Ruby/Rails deps, languages, infrastructure, networking, media, AI tools, casks, and VS Code extensions. Install with `brew bundle`.
 
-**Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for mise to compile languages. Install with `xargs -a packages-apt.txt sudo apt-get install -y`.
+**Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for mise to compile languages. Install with `xargs -a packages/packages-apt.txt sudo apt-get install -y`.
 
-**Arch/Omarchy (packages-pacman.txt)**: Same set with Arch names, official repos only. `install` runs `sudo pacman -S --needed`, so packages Omarchy already ships are skipped.
+**Arch/Omarchy (packages/packages-pacman.txt)**: Same set with Arch names, official repos only. `install` runs `sudo pacman -S --needed`, so packages Omarchy already ships are skipped.
 
 **Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. Use project `mise.toml` files for local development. Idiomatic version files require enabling the relevant tools via `idiomatic_version_file_enable_tools`; see README.md.
 
@@ -194,7 +194,7 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 
 - `lint.yml` — shellcheck on all bash scripts (discovered by shebang, not a hardcoded list), `fish -n` syntax-checks every `.config/fish/**/*.fish`, `ruby -c` on the Brewfile (it's a Ruby DSL), actionlint on the workflows, gitleaks over the repo.
 - `test-install.yml` — runs `./install` for real on Linux (root inside an `ubuntu:24.04` container, so `chsh` doesn't hit a PAM password prompt) and macOS (`macos-latest`), asserts the resulting symlinks resolve into the repo, re-runs `install` to confirm idempotency (no `*-backup` files on the second pass), and sanity-checks `.vimrc`/`.tmux.conf`/`.gitconfig`/fish by actually loading them headless. `install` auto-detects CI via the standard `$CI` variable (which GitHub Actions sets), so the run stays fast and doesn't touch the Brewfile/apt-get bulk installs or compile language runtimes — no extra env vars needed in the workflow.
-- `packages.yml` — confirms every name in `Brewfile`/`packages-apt.txt` still resolves (`brew info`, `apt-cache show`) without installing anything; runs on push and weekly, since upstream removals (e.g. a formula dropped from homebrew-core) aren't triggered by a commit here.
+- `packages.yml` — confirms every name in `Brewfile`/`packages/packages-apt.txt` still resolves (`brew info`, `apt-cache show`) without installing anything; runs on push and weekly, since upstream removals (e.g. a formula dropped from homebrew-core) aren't triggered by a commit here.
 
 `install` is organized as a linear sequence of named stage functions (`install_system_packages`, `link_dotfiles`, `setup_fish_shell`, etc.) called in order at the bottom of the file — skim that final block to see the whole flow. `DOTFILES_CI=1 ./install` forces the same CI-skip behavior locally (e.g. for a fast relink).
 
@@ -208,7 +208,7 @@ There's no application build, but CI (`.github/workflows/`) verifies the shell s
 
 ## FreeBSD
 
-See README.md for bootstrap instructions and the support matrix. `packages-freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Development extras, databases, media tools, containers, and GUI apps are not installed by this smaller bootstrap.
+See README.md for bootstrap instructions and the support matrix. `packages/packages-freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Development extras, databases, media tools, containers, and GUI apps are not installed by this smaller bootstrap.
 
 ## Machine-Specific Configuration
 
@@ -235,7 +235,7 @@ live in `ARCH.md` (§10), testing in `arch/test/README.md`. Key rules:
   else (desktop, gaming, AUR) after first boot and enables sddm.
 - **Rebuild the ISO** only when `arch/iso/**`, `arch/archinstall/**`, or
   `arch/iso/packages-bootstrap.txt` change.
-- **No rebuild needed** for `packages-pacman*.txt`, `packages-aur.txt`,
+- **No rebuild needed** for `packages-pacman*.txt`, `packages/packages-aur.txt`,
   `arch/post-install.sh`, `arch/sway/**`, `arch/ssh/authorized_keys`, or any
   other dot-files change — those flow from GitHub when post-install runs.
   Push the repo, re-run post-install on the target; VM tests can reuse the
@@ -246,3 +246,19 @@ live in `ARCH.md` (§10), testing in `arch/test/README.md`. Key rules:
   Windows and must never be an install target (the installer warns on it).
 - Machine-specific creds (`user_credentials.json`, `arch/test/keys/`) are
   gitignored — never commit them; SSH pubkeys in `arch/ssh/` are fine.
+
+### Sway desktop (`arch/sway/`)
+
+- **Idle chain** (swayidle in `arch/sway/config`): 300s aquarium screensaver →
+  600s swaylock → 900s DPMS off, all gated by `arch/sway/scripts/idle-gate`
+  (skipped while a non-screensaver window is fullscreen or the mic is live —
+  calls/games). Mod+Shift+L = "fish lock": the screensaver replaces the lock
+  view and the real lock lands on the next input; `q` dismisses unlocked.
+  swayidle has no standalone `resume` — per-timeout resume clauses are the
+  only input-driven hook.
+- **Waybar network**: throughput (↓/↑) in the network module plus a
+  `custom/net-health` gateway-ping module (good/warn/bad coloring) backed by
+  `bin/waybar-net-health`.
+- **Wallpaper**: `set-wallpaper` drives the desktop, the swaylock background,
+  and (via root-only `update-sddm-background`) a pre-tiled sddm login theme.
+- Keybindings cheat sheet: `arch/sway.md` (update it when bindings change).

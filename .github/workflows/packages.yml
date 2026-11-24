@@ -1,6 +1,6 @@
 name: Package Existence Check
 
-# Confirms every name in Brewfile / packages-apt.txt still resolves against
+# Confirms every name in Brewfile / packages/packages-apt.txt still resolves against
 # the real apt index / Homebrew API. No packages are installed — only
 # metadata lookups (apt-cache show, brew info).
 on:
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: apt-get update
         run: sudo apt-get update
-      - name: Check every package in packages-apt.txt resolves
+      - name: Check every package in packages/packages-apt.txt resolves
         run: |
           missing=0
           while IFS= read -r pkg; do
@@ -29,7 +29,7 @@ jobs:
               echo "::error::apt package not found: $pkg"
               missing=1
             fi
-          done < packages-apt.txt
+          done < packages/packages-apt.txt
           exit "$missing"
 
   brew:

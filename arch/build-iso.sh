@@ -34,7 +34,7 @@ missing=()
 [[ -f "$SCRIPT_DIR/sway/foot.ini" ]] || missing+=("arch/sway/foot.ini — foot terminal config")
 ls "$SCRIPT_DIR"/sway/scripts/shot-* >/dev/null 2>&1 \
   || missing+=("arch/sway/scripts/shot-* — screenshot scripts")
-for list in packages-pacman.txt packages-pacman-gaming.txt packages-aur.txt; do
+for list in packages/packages-pacman.txt packages/packages-pacman-gaming.txt packages/packages-aur.txt; do
   [[ -f "$SCRIPT_DIR/../$list" ]] || missing+=("$list — installed-system package list")
 done
 [[ -f "$SCRIPT_DIR/iso/packages-bootstrap.txt" ]] \
@@ -65,7 +65,7 @@ rm -f "$ISO_DIR/airootfs/root/archinstall-config/"*.json
 cp "$SCRIPT_DIR"/archinstall/*.json "$ISO_DIR/airootfs/root/archinstall-config/"
 
 # Generate the installed-system package list from the repo package files —
-# packages-pacman.txt (+ gaming) are the single source of truth, so the
+# packages/packages-pacman.txt (+ gaming) are the single source of truth, so the
 # archinstall JSON never needs manual syncing. Runs AFTER the cp above so
 # the generated list wins.
 python3 - "$SCRIPT_DIR" <<'PYEOF'

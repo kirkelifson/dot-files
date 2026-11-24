@@ -28,3 +28,6 @@ arch/test/vm-share/
 arch/iso/.pkg-cache/
 cmds.tmp
 cmds-*.tmp
+
+__pycache__/
+*.pyc

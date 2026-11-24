@@ -22,8 +22,8 @@ repo = sys.argv[1]
 pkgs = set()
 for listfile in ("arch/iso/packages.x86_64",
                  "arch/iso/packages-bootstrap.txt",
-                 "packages-pacman.txt",
-                 "packages-pacman-gaming.txt"):
+                 "packages/packages-pacman.txt",
+                 "packages/packages-pacman-gaming.txt"):
     try:
         for line in open(f"{repo}/{listfile}"):
             line = line.split("#", 1)[0].strip()
