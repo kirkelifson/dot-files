@@ -1,284 +1,90 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for coding agents working in this repo.
 
-## Repository Overview
+## What this is
 
-This is a personal dotfiles repository for managing shell configuration, vim settings, tmux configuration, git aliases, and custom utility scripts across machines.
+Personal dotfiles — fish, vim/nvim, tmux, git, plus per-OS package lists and
+an unattended Arch install kit (`arch/`). `./install` links everything into
+the home directory; it is idempotent and safe to re-run at any time.
 
-**Current setup**: Fish shell + Ghostty terminal (with legacy zsh config still present for reference)
+## Repo layout
 
-## Installation
+- `install` — organized as linear stage functions (`install_system_packages`,
+  `link_dotfiles`, `setup_fish_shell`, …) called in order at the bottom of the
+  file; skim that final block to see the whole flow. Heavy steps (bulk
+  packages, runtime compilation, `chsh`) are skipped when `$CI` is set, or
+  forced locally with `DOTFILES_CI=1 ./install` (e.g. a fast relink).
+- `.config/` — fish, nvim, ghostty, waybar, fastfetch, mise, mako. `install`
+  links fish/waybar/fastfetch, nvim, ghostty and the mise fragment (Omarchy
+  exceptions below); ghostty on macOS links into
+  `~/Library/Application Support/com.mitchellh.ghostty/`. mako (Wayland
+  notification daemon) links on Linux only, not on Omarchy.
+- `packages/` — `apt.txt`, `pacman.txt`, `pacman-gaming.txt`, `aur.txt`,
+  `freebsd.txt`; `Brewfile` at the repo root for macOS. Keep apt references on
+  resolute (Ubuntu 26.04), never noble.
+- `bin/` — utility scripts, linked to `~/bin`. Per-project search dirs for
+  `tmux-sessionizer` are edited in that script.
+- `test_install.py` — unit tests for `install`; run it after installer edits.
+- `arch/` — unattended Arch install kit; see `arch/README.md` and
+  `arch/test/README.md`.
 
-The install script is idempotent and can be run repeatedly to update configurations and packages.
+## Conventions
 
-```bash
-git clone https://github.com/kirkelifson/dot-files.git
-cd dot-files
-./install
-```
+- **Fish**: environment variables and PATH go in the top of
+  `.config/fish/config.fish` (it runs for EVERY shell instance, including
+  non-interactive); aliases, abbreviations, and integrations go inside the
+  `if status is-interactive` block. `fish_add_path` dedupes. Machine-local
+  settings belong in `~/.config/fish/local.fish` (gitignored, sourced if
+  present).
+- **Guard optional binaries** (`if type -q eza; alias ls='…'; end`) so machines
+  without a tool degrade to stock behavior instead of breaking the alias.
+- **Validate before claiming done**: `fish -n` on fish files, `bash -n` on
+  shell scripts, `vim -Nu ~/.vimrc -es -c quit` for vimrc, `sway --validate`
+  for sway configs, `ruby -c Brewfile` (it is a Ruby DSL).
+- The config files are their own documentation — read the file instead of
+  assuming a binding, alias, or setting exists (or doesn't).
 
-The install script:
-- **Safety check**: Warns if the repo has uncommitted changes before proceeding
-- Installs system packages (Brewfile on macOS, packages/apt.txt on Debian/Ubuntu, packages/pacman.txt on Arch/Omarchy, packages/freebsd.txt on FreeBSD)
-- Creates soft-links to all dotfiles (`.vimrc`, `.tmux.conf`, `.gitconfig`, etc.) in the home directory
-- Links the `bin/` directory to `~/bin` for custom utilities
-- Links `.config/fish/`, `.config/nvim/` (skipped on Omarchy, which manages its own nvim config), and `.config/ghostty/` configurations (ghostty is skipped on Omarchy), and links the mise config into `~/.config/mise/conf.d/dot-files.toml`
-- Installs/updates vim packages in `~/.vim/pack/bundle/start/`
-- Creates a symlink to Sublime Text's `subl` command if the app is installed (macOS only)
-- **Installs and configures fish shell**:
-  - Installs fish if not present (via brew, apt, pacman, or FreeBSD pkg)
-  - Adds fish to `/etc/shells` if not already present (requires sudo)
-  - Changes default shell to fish if not already set
-- **Installs language runtimes via mise** from `.config/mise/config.toml` (Ruby, Node, Python, Go, Elixir, Rust)
+## CI (`.github/workflows/`)
 
-**Idempotent behavior**: The script can be run multiple times safely:
-- Symlinks are recreated with `-f` flag (overwrite existing)
-- Vim packages are updated via `git pull` if already present
-- Fish shell setup is skipped if fish is already the default shell
-- System packages only install what's missing
-- mise versions are skipped if already installed
-- All checks prevent duplicate installations
+- `lint.yml` — shellcheck (scripts found by shebang), `fish -n` over
+  `.config/fish/`, `ruby -c` on the Brewfile, actionlint, gitleaks.
+- `test-install.yml` — runs `./install` for real (root in an `ubuntu:26.04`
+  container so `chsh` skips PAM; also macOS), asserts symlinks resolve into
+  the repo, re-runs it to prove idempotency, and loads the configs headless.
+- `packages.yml` — every package name still resolves in its repos (push +
+  weekly; upstream removals aren't triggered by commits here).
+- `arch-kit.yml` — superficial checks only. `arch/test/` is local-only and
+  must never run in CI (its scripts self-guard).
 
-## Key Configuration Files
+## Omarchy exceptions (Arch + Hyprland)
 
-### Shell Configuration (.config/fish/)
+`install` detects Omarchy and avoids clobbering files its tooling rewrites:
+- nvim and ghostty configs are NOT linked (Omarchy owns them; its theme/font
+  commands edit them in place).
+- `~/.config/tmux/tmux.conf` is written as a one-line REGULAR file (not a
+  symlink — Omarchy's `refresh` would `cp -f` write through it) pointing at
+  the linked `~/.tmux.conf`.
+- mise config is linked into `~/.config/mise/conf.d/dot-files.toml` instead of
+  replacing the directory; `mise use -g` may update the linked fragment —
+  that's intentional, review before committing.
+- Both `~/.gitconfig` and Omarchy's `~/.config/git/config` are read; this
+  repo's `pull.ff = only` + Omarchy's `pull.rebase` means a diverged
+  `git pull` aborts instead of rebasing.
 
-**Primary shell**: Fish shell is configured in `.config/fish/config.fish`
+## Arch kit rules (`arch/`)
 
-The fish configuration is split into two sections:
-
-**Always loaded** (top of file — runs for all shells including non-interactive like `fish -c "..."`):
-- Environment variables (EDITOR, VISUAL, BUNDLER_EDITOR, PS_FORMAT, locales)
-- PATH management via `fish_add_path` (which auto-deduplicates)
-- mise activation (when devenv is not active)
-
-**Interactive only** (inside `if status is-interactive` block):
-- Abbreviations for git (`gst`, `gd`, `gco`, `gpu`, `gpl`, `ga`, `gci`, etc.) and Rails (`rc`, `rs`, `rr`, `rdb`, `bi`)
-- Aliases (platform-specific for Darwin vs Linux)
-- Tool integrations: fzf (`fzf --fish`), direnv, zoxide
-- `fetch-all`, `pull-all`: batch git operations using `find` across repos in current directory
-- Conditional loading of `~/.config/fish/local.fish` (for machine-specific settings)
-
-**Where to add new config**: Environment variables and PATH entries go in the top section. Aliases, abbreviations, keybindings, and shell integrations go inside the `if status is-interactive` block. Fish's `config.fish` runs for ALL shell instances (unlike bash/zsh), so the interactive guard prevents unnecessary work in non-interactive contexts.
-
-**Prompt** (`.config/fish/functions/fish_prompt.fish`):
-- Shows hostname in cyan
-- Shows last 2 directories in gray
-- Shows git branch with status indicators:
-  - `*`: unstaged changes
-  - `+`: staged changes
-- Branch name displayed in yellow
-
-**Important**:
-- `fish_add_path` automatically deduplicates, so no tmux guards are needed for PATH
-- All PATH entries are set unconditionally — tmux panes get their own fresh fish shell and need correct PATH
-
-### Terminal Configuration (.config/ghostty/)
-
-Ghostty is configured with:
-- Custom dark color palette complementing the `1c1c1c` background
-- SF Mono font at size 14
-- Background opacity (0.833) with blur
-- OSC 52 clipboard passthrough (allows tmux/vim to copy to system clipboard, even over SSH)
-- Dark native title bar (`window-theme = ghostty`)
-- Mouse hiding while typing, copy-on-select
-- Option-as-Alt for meta key support
-
-### Git Configuration (.gitconfig)
-
-Notable git aliases:
-- `cane`: commit --amend --no-edit (quick amend without changing message)
-- `lg`: pretty graph log with colors
-- `recent`: shows branches sorted by most recent commit
-- `nuke`: deletes both local and remote branch
-- `set-upstream`: sets upstream to origin/current-branch
-
-Configuration highlights:
-- Default branch: `master`
-- Auto-prune on fetch enabled
-- Rerere (reuse recorded resolution) enabled
-- Histogram diff algorithm
-- git-delta as `core.pager` (+ `interactive.diffFilter`, navigate, line
-  numbers); installed on every platform via the package lists
-- Verbose commits by default
-
-### Vim Configuration (.vimrc)
-
-Vim is configured with:
-- Leader key: `,`
-- Installed packages (in `~/.vim/pack/bundle/start/`):
-  - Sierra (color scheme)
-  - lightline.vim (status line)
-  - supertab (completion)
-  - vim-gitgutter (git diff in gutter)
-- Undo/backup files stored in `~/.vim/tmp` and `~/.vim/undo`
-- Language-specific indentation: 2 spaces (default), 4 spaces (Python, Java, C, C++)
-- Splits open below and to the right (splitbelow, splitright)
-- Custom keybindings:
-  - `;` remapped to `:`
-  - `<leader>ev`: edit vimrc in vertical split
-  - `<leader><space>`: clear search highlights
-  - `<C-h/j/k/l>`: navigate between splits
-
-### Neovim Configuration (.config/nvim/)
-
-A single `init.lua` — no distro, no plugin manager. Neovim 0.12's built-in
-`vim.pack` clones six plugins on first launch (treesitter main, lspconfig,
-gitsigns, fzf-lua, fugitive, conform); a committed `nvim-pack-lock.json`
-pins their versions. Plugin updates are manual (`:lua vim.pack.update()`) by
-design, so agents/CI never hit the network after the first launch.
-
-- Mirrors `.vimrc` conventions: leader `,`, `;` → `:`, 2-space indent
-  (4 for Python/Java/C/C++, tabs for Go), persistent undo, cursor restore,
-  `<C-h/j/k/l>` splits, `,<space>` clears search highlights
-- Agent/git tuning: swapfiles off + autoread/checktime (concurrent file
-  writes never prompt), persistent undo, formatting manual only (`,f`) so
-  agent writes aren't reformatted, diagnostics quiet (current-line virtual
-  text), gitsigns hunk staging/blame (`<leader>hs/hr/hp/hb`, `]h`),
-  fugitive (`<leader>gs/gd`), fzf-lua pickers (`<leader>ff/fg/gf/gt/gc`)
-- LSP: no Mason — each server (gopls, rust_analyzer, ruby_lsp, pyright,
-  ts_ls, lua_ls, bashls, elixirls) is enabled only when its binary is on
-  PATH; completion is the built-in `vim.lsp.completion` autotrigger
-- Treesitter parsers compile on first launch via `tree-sitter` (in
-  Brewfile + packages/pacman.txt; apt users install it manually)
-- `install` links `.config/nvim` and leaves Omarchy's own nvim config alone
-
-### Tmux Configuration (.tmux.conf)
-
-- Prefix key: `C-a` (instead of default `C-b`)
-- Mouse support enabled
-- Window/pane numbering starts at 1
-- Splits preserve current directory: `|` (horizontal), `_` (vertical)
-- Pane navigation: `h/j/k/l` (vim-style)
-- Pane resizing: `H/J/K/L` (repeatable)
-- Vi copy mode with platform-aware clipboard yank (`pbcopy`/`xclip`)
-- True color support (tmux-256color with Ghostty RGB)
-- Focus events enabled (for vim autoread)
-- Sessionizer: `prefix + f` to fuzzy-find and switch projects
-- Status bar: session name + user@host (left), time/date (right), cyan accent color
-- Default shell/command: `$SHELL` (works with whatever shell is configured)
-
-### Package Management
-
-**macOS (Brewfile)**: Curated Homebrew packages organized by category — core CLI tools, shell/terminal, git, editors, Ruby/Rails deps, languages, infrastructure, networking, media, AI tools, casks, and VS Code extensions. Install with `brew bundle`.
-
-**Linux (packages-apt.txt)**: Essential Debian/Ubuntu packages including build dependencies needed for mise to compile languages. Install with `xargs -a packages/apt.txt sudo apt-get install -y`.
-
-**Arch/Omarchy (packages/pacman.txt)**: Same set with Arch names, official repos only. `install` runs `sudo pacman -S --needed`, so packages Omarchy already ships are skipped.
-
-**Language versions (.config/mise/config.toml)**: Global mise defaults for Ruby, Node, Python, Go, Elixir, and Rust. The install script installs mise (if missing) and runs `mise install` to install these versions. Use project `mise.toml` files for local development. Idiomatic version files require enabling the relevant tools via `idiomatic_version_file_enable_tools`; see README.md.
-
-## Custom Utilities (bin/)
-
-The `bin/` directory contains various utility scripts:
-- `tmux-sessionizer`: Fuzzy-find project directories and create/attach tmux sessions
-- `password`: Generate secure passwords
-- `oldest-line`: Find oldest line in a file
-- `git-top-contributors`: Show top contributors to a git repository
-- `grep-rails`: Grep through Rails code
-- `load-ocaml`: OCaml environment loader (machine-specific OPAM path)
-- `osx-restart-*`: Scripts to restart macOS system components (Dock, Finder, menubar)
-- `plan`, `weekly-plan`: Planning utilities
-- `ssh-hosts`: List SSH hosts from known_hosts
-
-## Platform-Specific Behavior
-
-The configuration detects the OS via `uname -s` and adjusts:
-
-**Darwin (macOS)**:
-- Custom `ps` alias with specific format
-- `brew-*` aliases for Homebrew service management
-- `md5sum` aliased to `md5 -q`
-
-`ls` is aliased to `eza -l --git --time-style=relative` on every platform (defined only when `eza` is present), so no per-OS `ls` flags are needed.
-
-**Linux**:
-- `sudo` prepended to `apt`, `aptitude`, `ifconfig`
-- `open` aliased to `xdg-open`
-
-## Development Workflow
-
-Common abbreviations and aliases for development:
-- `gst`, `gd`, `gco`, `gpu`, `gpl`, `ga`, `gci`: git shortcuts (abbreviations, expand inline)
-- `be`: bundle exec (Ruby/Rails)
-- `rc`, `rs`, `rr`, `rdb`: Rails console/server/routes/db (abbreviations)
-- `dev`: bin/dev (Rails 7+ foreman launcher)
-- `goodcop`: rubocop with parallel execution and simple format
-- `coverage-web`: serves Ruby coverage reports on port 3005
-- `fetch-all`, `pull-all`: batch git operations on repos in current directory
-- `ts` / `tmux-sessionizer`: fuzzy-find projects and create/switch tmux sessions
-
-## Testing and Building
-
-There's no application build, but CI (`.github/workflows/`) verifies the shell scripts, fish config, and the installer itself:
-
-- `lint.yml` — shellcheck on all bash scripts (discovered by shebang, not a hardcoded list), `fish -n` syntax-checks every `.config/fish/**/*.fish`, `ruby -c` on the Brewfile (it's a Ruby DSL), actionlint on the workflows, gitleaks over the repo.
-- `test-install.yml` — runs `./install` for real on Linux (root inside an `ubuntu:26.04`/resolute container, so `chsh` doesn't hit a PAM password prompt) and macOS (`macos-latest`), asserts the resulting symlinks resolve into the repo, re-runs `install` to confirm idempotency (no `*-backup` files on the second pass), and sanity-checks `.vimrc`/`.tmux.conf`/`.gitconfig`/fish by actually loading them headless. `install` auto-detects CI via the standard `$CI` variable (which GitHub Actions sets), so the run stays fast and doesn't touch the Brewfile/apt-get bulk installs or compile language runtimes — no extra env vars needed in the workflow.
-- `packages.yml` — confirms every name in `Brewfile`/`packages/apt.txt` still resolves (`brew info`, `apt-cache show`) without installing anything; runs on push and weekly, since upstream removals (e.g. a formula dropped from homebrew-core) aren't triggered by a commit here.
-
-`install` is organized as a linear sequence of named stage functions (`install_system_packages`, `link_dotfiles`, `setup_fish_shell`, etc.) called in order at the bottom of the file — skim that final block to see the whole flow. `DOTFILES_CI=1 ./install` forces the same CI-skip behavior locally (e.g. for a fast relink).
-
-## Omarchy (Arch + Hyprland)
-
-`install` detects Omarchy (`/usr/share/omarchy` or the `omarchy` command) and avoids clobbering files Omarchy manages. Omarchy's `refresh` commands use `cp -f` (writes *through* symlinks into this repo) and its font/text-size commands use `sed -i` (replaces symlinks), so:
-- **Ghostty**: not linked. Omarchy's `~/.config/ghostty/config` includes the active theme and is edited by `omarchy font set`. Put personal tweaks there by hand.
-- **tmux**: `~/.tmux.conf` is linked as usual (tmux reads it before `~/.config/tmux/tmux.conf`). `~/.config/tmux/tmux.conf` is replaced with a one-line regular file, `source-file ~/.tmux.conf`, so `omarchy restart tmux` and update migrations reload this config instead of layering Omarchy's bindings on top. The original is saved as `tmux.conf.omarchy-default`; subsequent backups get numbered suffixes and never replace earlier backups. Super+Alt+K (tmux keybinding menu) will show little, since it parses that file.
-- **mise**: repo defaults are linked into `conf.d/`, preserving Omarchy's `config.toml`. mise manages global and project runtime selection. `mise use -g` may update the linked repo fragment when it declares the tool; that is intentional. Review those changes before committing. No rbenv, RVM, or asdf initialization is used.
-- **git**: `~/.gitconfig` and Omarchy's `~/.config/git/config` are both read; `~/.gitconfig` wins on conflicts. Omarchy sets `pull.rebase = true`, this repo sets `pull.ff = only`; together, a diverged `git pull` aborts instead of rebasing.
-
-## FreeBSD
-
-See README.md for bootstrap instructions and the support matrix. `packages/freebsd.txt` contains a small core set, checked against the active pkg repository before installation. Missing packages are reported; missing core commands abort. mise comes from pkg; automatic bulk runtime installation is skipped on FreeBSD. Core dev tooling (gh, git-delta, git-absorb, gopls, delve, uv, ast-grep, awscli, hyperfine, age) IS included; databases, desktop/GUI apps, and heavyweight media tooling are not.
-
-## Machine-Specific Configuration
-
-For machine-specific settings that shouldn't be committed:
-- **Fish**: Create `~/.config/fish/local.fish` - gitignored and sourced by config.fish if it exists
-- **tmux-sessionizer**: Edit `search_dirs` in `bin/tmux-sessionizer` to add your project directories
-
-## PATH Management
-
-PATH is managed to avoid duplicates:
-- `fish_add_path` automatically deduplicates when adding paths — no tmux guards needed
-- All PATH entries are set unconditionally in the top (non-interactive) section of `config.fish`
-- **mise** is only activated when devenv is NOT active (checked via `$DEVENV_PROFILE` or `$DEVENV_ROOT` variables)
-  - When devenv is active, it manages tool versions and mise should not interfere
-
-## Arch install kit (`arch/`)
-
-Unattended Arch installer for the desktop build — design + hardware detail
-live in `arch/README.md` (§10), testing in `arch/test/README.md`. Key rules:
-
-- The ISO bakes a **minimal bootstrap only** (`arch/iso/packages-bootstrap.txt`:
-  git/openssh/networkmanager); `arch/post-install.sh` installs everything
-  else (desktop, gaming, AUR) after first boot and enables sddm.
-- **Rebuild the ISO** only when `arch/iso/**`, `arch/archinstall/**`, or
-  `arch/iso/packages-bootstrap.txt` change.
-- **No rebuild needed** for `packages-pacman*.txt`, `packages/aur.txt`,
-  `arch/post-install.sh`, `arch/sway/**`, `arch/ssh/authorized_keys`, or any
-  other dot-files change — those flow from GitHub when post-install runs.
-  Push the repo, re-run post-install on the target; VM tests can reuse the
-  existing test disk (`run-vm-test.sh prep-ssh|post-install|verify`).
-- `arch/test/` is local-only and must never run in CI (scripts self-guard);
-  CI (`.github/workflows/arch-kit.yml`) is superficial checks only.
+- Rebuild the ISO only when `arch/iso/**` or `arch/archinstall/**` change;
+  everything else (post-install.sh, dot-files, package lists) flows from
+  GitHub when post-install runs on the target.
 - The installed system's target user is `xtc`; the Samsung 980 Pro holds
-  Windows and must never be an install target (the installer warns on it).
-- Machine-specific creds (`user_credentials.json`, `arch/test/keys/`) are
-  gitignored — never commit them; SSH pubkeys in `arch/ssh/` are fine.
+  Windows and must never be an install target.
+- Machine-specific creds (`arch/archinstall/user_credentials.json`,
+  `arch/test/keys/`) are gitignored — never commit them. SSH pubkeys in
+  `arch/ssh/` are fine.
 
-### Sway desktop (`arch/sway/`)
+## Machine-specific settings
 
-- **Idle chain** (swayidle in `arch/sway/config`): 300s aquarium screensaver →
-  600s swaylock → 900s DPMS off, all gated by `arch/sway/scripts/idle-gate`
-  (skipped while a non-screensaver window is fullscreen or the mic is live —
-  calls/games). Mod+Shift+L = "fish lock": the screensaver replaces the lock
-  view and the real lock lands on the next input; `q` dismisses unlocked.
-  swayidle has no standalone `resume` — per-timeout resume clauses are the
-  only input-driven hook.
-- **Waybar network**: throughput (↓/↑) in the network module plus a
-  `custom/net-health` gateway-ping module (good/warn/bad coloring) backed by
-  `bin/waybar-net-health`.
-- **Wallpaper**: `set-wallpaper` drives the desktop, the swaylock background,
-  and (via root-only `update-sddm-background`) a pre-tiled sddm login theme.
-- Keybindings cheat sheet: `arch/sway.md` (update it when bindings change).
+Anything host-specific that shouldn't be committed goes in
+`~/.config/fish/local.fish` (fish) or is edited directly on the host
+(e.g. `search_dirs` in `bin/tmux-sessionizer`).
