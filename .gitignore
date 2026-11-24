@@ -6,7 +6,7 @@ bin/subl
 *.dump
 Brewfile.lock.json
 
-# Arch install kit — build artifacts and credentials (ARCH.md, arch/README.md)
+# Arch install kit — build artifacts and credentials (arch/README.md, arch/README.md)
 arch/iso/out/
 arch/iso/airootfs/root/archinstall-config/user_credentials.json
 arch/archinstall/user_credentials.json

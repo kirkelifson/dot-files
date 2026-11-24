@@ -35,7 +35,7 @@ The install script is idempotent — safe to run multiple times. It will:
 | `bin/` | Utility scripts (tmux-sessionizer, password, etc.) |
 | `Brewfile` | Homebrew packages (macOS) |
 | `packages/` | Package lists: apt, pacman (+gaming), AUR, FreeBSD |
-| `arch/` | Unattended Arch install kit — see `ARCH.md`; sway keybindings cheat sheet at `arch/sway.md` |
+| `arch/` | Unattended Arch install kit — see `arch/README.md`; sway keybindings cheat sheet at `arch/sway.md` |
 | `.config/mise/config.toml` | mise language versions |
 
 ### FreeBSD

@@ -3,7 +3,7 @@
 # Sway reads this at startup; `swaymsg reload` applies edits live.
 #
 # Translated from the kit's original river init (riverctl → sway config).
-# The programs spawned here are the ecosystem; rationale: ../ARCH.md §4.
+# The programs spawned here are the ecosystem; rationale: ../README.md §4.
 
 ######## Basics ########
 set $mod Mod4

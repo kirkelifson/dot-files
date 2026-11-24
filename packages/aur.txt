@@ -4,7 +4,7 @@
 # (1password repackages the official 1Password tarball — quick build.)
 1password
 
-# GE-Proton updater (ARCH.md §7 — per-game Proton versions)
+# GE-Proton updater (arch/README.md §7 — per-game Proton versions)
 protonup-qt
 
 # udev access rules for game controllers (DualSense hidraw/uinput — rumble,

@@ -28,7 +28,7 @@ echo "--- stable /dev/disk/by-id paths (whole disks only) ---"
 ls -l /dev/disk/by-id/ | awk '/nvme|mmcblk|sd[a-z]+$/ && !/part/'
 echo "==============================================="
 echo ""
-echo "Reference (from ARCH.md): Samsung 980 Pro = Windows (NEVER touch),"
+echo "Reference (from arch/README.md): Samsung 980 Pro = Windows (NEVER touch),"
 echo "Crucial P3 = Arch target — on this machine expected at /dev/nvme0n1."
 echo "Verify against the MODEL/SERIAL columns above: device enumeration is"
 echo "NOT guaranteed, so the inventory is the source of truth, not the path."

@@ -1,5 +1,5 @@
 #!/bin/bash
-# verify-install.sh — health check for the Arch desktop build (ARCH.md).
+# verify-install.sh — health check for the Arch desktop build (arch/README.md).
 # Run as your normal user; sections needing root note it themselves.
 set -u
 
@@ -15,7 +15,7 @@ hdr "Secure Boot"
 if have mokutil && mokutil --sb-state 2>/dev/null | grep -q 'SecureBoot enabled'; then
   ok "Secure Boot: enabled"
 else
-  warn "Secure Boot: not enabled (fine if intentional — ARCH.md §10)"
+  warn "Secure Boot: not enabled (fine if intentional — arch/README.md §10)"
 fi
 if have sbctl; then sbctl status 2>/dev/null | head -3 || warn "sbctl present but status failed"; else warn "sbctl not installed"; fi
 
@@ -100,7 +100,7 @@ else
   bad "efibootmgr missing"
 fi
 
-hdr "Filesystem (btrfs layout from ARCH.md §2)"
+hdr "Filesystem (btrfs layout from arch/README.md §2)"
 ROOT_SRC=$(findmnt -n -o SOURCE / 2>/dev/null)
 ROOT_OPTS=$(findmnt -n -o OPTIONS / 2>/dev/null)
 if [[ $ROOT_SRC == *"@/"* || $ROOT_SRC == *"[/@]"* ]]; then
@@ -188,5 +188,5 @@ have gamemoderun && ok "gamemoderun available" || bad "gamemoderun missing"
 have mangohud && ok "mangohud available" || bad "mangohud missing"
 
 printf '\n\033[1mResult:\033[0m %d pass, %d fail, %d warn\n' "$PASS" "$FAIL" "$WARN"
-[[ $FAIL -eq 0 ]] && echo "All hard checks passed — fix the warns at your leisure." || echo "Fix the ✗ items above (ARCH.md has the sections)."
+[[ $FAIL -eq 0 ]] && echo "All hard checks passed — fix the warns at your leisure." || echo "Fix the ✗ items above (arch/README.md has the sections)."
 exit $FAIL

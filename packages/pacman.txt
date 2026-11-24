@@ -92,7 +92,7 @@ gnupg
 qrencode
 openssh
 
-# Bluetooth (game controllers — ARCH.md §7)
+# Bluetooth (game controllers — arch/README.md §7)
 bluez
 bluez-utils
 pipewire
@@ -100,7 +100,7 @@ pipewire-alsa
 pipewire-pulse
 pavucontrol
 
-# Display manager + sway WM session (sddm greets sway; see ARCH.md §4)
+# Display manager + sway WM session (sddm greets sway; see arch/README.md §4)
 sddm
 sway
 waybar
@@ -137,16 +137,16 @@ graphviz
 ffmpeg
 direnv
 
-# System tuning (ARCH.md §11 — CPU/GPU control, fan curves)
+# System tuning (arch/README.md §11 — CPU/GPU control, fan curves)
 corectrl
 
-# Snapshots (btrfs rollback safety net — ARCH.md §2)
+# Snapshots (btrfs rollback safety net — arch/README.md §2)
 snapper
 
 # pacman pre/post snapshots via snapper
 snap-pac
 
-# zram swap (ARCH.md §2 — no swap partition; post-install writes the conf)
+# zram swap (arch/README.md §2 — no swap partition; post-install writes the conf)
 zram-generator
 
 # system monitor

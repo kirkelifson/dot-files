@@ -1,4 +1,4 @@
-# Gaming packages — Arch desktop build (ARCH.md §7).
+# Gaming packages — Arch desktop build (arch/README.md §7).
 # Requires [multilib] in /etc/pacman.conf.
 steam
 ttf-liberation

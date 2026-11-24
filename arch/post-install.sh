@@ -1,7 +1,7 @@
 #!/bin/bash
 # post-install.sh — dot-files Arch desktop finishing pass.
 # Run ON THE INSTALLED SYSTEM (as the user with sudo), not from the live ISO.
-# Source: ~/dot-files/arch/post-install.sh — see ../ARCH.md for the full plan.
+# Source: ~/dot-files/arch/post-install.sh — see ../README.md for the full plan.
 set -euo pipefail
 
 REPO_URL="https://github.com/kirkelifson/dot-files.git"
@@ -152,7 +152,7 @@ if [[ ${SB,,} == y ]]; then
   warn "Reboot into firmware, confirm Secure Boot is ON, then check: sbctl status && vulkaninfo --summary"
   warn "AMD-only build: amdgpu is in-tree, so no module-signing work under lockdown."
 else
-  warn "Skipped. Run later — steps in ARCH.md §10."
+  warn "Skipped. Run later — steps in arch/README.md §10."
 fi
 
 step "SSH: LAN-only, port 8631, pubkey auth only"

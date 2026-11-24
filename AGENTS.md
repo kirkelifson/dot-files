@@ -228,7 +228,7 @@ PATH is managed to avoid duplicates:
 ## Arch install kit (`arch/`)
 
 Unattended Arch installer for the desktop build — design + hardware detail
-live in `ARCH.md` (§10), testing in `arch/test/README.md`. Key rules:
+live in `arch/README.md` (§10), testing in `arch/test/README.md`. Key rules:
 
 - The ISO bakes a **minimal bootstrap only** (`arch/iso/packages-bootstrap.txt`:
   git/openssh/networkmanager); `arch/post-install.sh` installs everything

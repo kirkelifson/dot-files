@@ -54,7 +54,7 @@ each item notes where it would live.
    or `just` recipe that replicates the CI lint commands.
 
 9. **`just` as the repo task runner.** The ISO build, VM-test invocations,
-   and lint commands are long one-liners living in README/ARCH.md prose.
+   and lint commands are long one-liners living in README prose.
    A `justfile` at the repo root makes them runnable and discoverable.
 
 10. **`lazygit` + `git-delta`.** Neither is installed. lazygit for
@@ -78,7 +78,7 @@ each item notes where it would live.
 ## Gaming
 
 14. **`gamescope`.** Not installed, and sway/wlroots has no HDR —
-    `gamescope --hdr-enabled` is the only HDR path (ARCH.md notes this).
+    `gamescope --hdr-enabled` is the only HDR path (arch/README.md notes this).
     It also solves per-game fractional scaling and tearing quirks.
 
 15. **`heroic-games-launcher` (AUR)** — GOG/Epic front-end next to Steam;
