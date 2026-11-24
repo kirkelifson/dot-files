@@ -14,10 +14,15 @@ on:
 jobs:
   apt:
     runs-on: ubuntu-latest
+    # Pinned to resolute (26.04) so the check runs against the same apt index
+    # as the Debian/Ubuntu machines this repo targets, not ubuntu-latest's
+    # floating release (in a container this job is root — no sudo).
+    container:
+      image: ubuntu:26.04
     steps:
       - uses: actions/checkout@v5
       - name: apt-get update
-        run: sudo apt-get update
+        run: apt-get update
       - name: Check every package in packages/apt.txt resolves
         run: |
           missing=0

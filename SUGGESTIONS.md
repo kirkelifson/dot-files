@@ -9,8 +9,6 @@ done on the machine.
 
 ## Install Script
 
-- [ ] **`packages/apt.txt` on Ubuntu 24.04** — `eza` is in the apt list but is not in noble's default repos (it landed in later Ubuntu/Debian releases). Confirm the `packages.yml` CI job still passes; if not, drop `eza` from apt.txt or add a fallback install note. (`curlie` and `bandwhich` were already removed from the list.)
-
 - [ ] **apt branch fails silently mid-list** — The apt path pipes the whole list into one `xargs sudo apt-get install -y`, so one bad name aborts the rest with no report. Give it the FreeBSD treatment: check each package with `apt-cache show` first, install the resolvable ones, and report the missing by name.
 
 ## Brewfile / Package Gaps
