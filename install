@@ -464,6 +464,13 @@ link_agent_configs() {
 install_npm_globals() {
   [ -f "$dir/npm-globals.txt" ] || return 0
   if ! command -v npm > /dev/null 2>&1; then
+    # node (and npm) may come from mise, whose shims are not on this
+    # script's PATH — e.g. Arch, where no pacman package supplies npm.
+    if [ -d "$HOME/.local/share/mise/shims" ]; then
+      export PATH="$HOME/.local/share/mise/shims:$PATH"
+    fi
+  fi
+  if ! command -v npm > /dev/null 2>&1; then
     echo "[!] npm not found; skipping npm global packages (npm-globals.txt)."
     return 0
   fi

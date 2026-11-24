@@ -1,0 +1,3 @@
+# npm packages installed globally on every platform (requires node from mise/brew).
+# Installed by ./install via install_npm_globals.
+@earendil-works/pi-coding-agent
