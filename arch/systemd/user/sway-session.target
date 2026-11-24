@@ -1,0 +1,14 @@
+[Unit]
+Description=Sway compositor session (pulls in graphical-session.target)
+# Started by the sway config's exec line after it imports the session env
+# (WAYLAND_DISPLAY etc.) into the user manager. Without that import, GUI
+# daemons wanted here (sunshine) start display-less and their main loop dies.
+# graphical-session.target is RefuseManualStart=yes on systemd >= 256 — it
+# can only be activated as a dependency pull, never `systemctl --user start`
+# directly, which is why this target exists.
+Wants=graphical-session-pre.target graphical-session.target
+After=graphical-session-pre.target
+# Stop with the graphical session (and take graphical-session.target down
+# with us when sway exits, so session services don't linger).
+BindsTo=graphical-session.target
+PropagatesStopTo=graphical-session.target

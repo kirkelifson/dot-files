@@ -43,13 +43,17 @@ output DP-1 pos 0 0
 output DP-1 scale 1
 
 ######## Autostart ########
-# graphical-session.target — lets systemd --user services (e.g. sunshine,
-# the Moonlight stream host) run with session services. Import the session
-# env FIRST: without WAYLAND_DISPLAY in the user manager, GUI daemons start
-# display-less (sunshine's tray/main loop die) — enable them with
-# `systemctl --user enable <unit>`; they have WantedBy=graphical-session.target
+# sway-session.target — starts session user services (e.g. sunshine, the
+# Moonlight stream host) with the session env. Import the session env FIRST:
+# without WAYLAND_DISPLAY in the user manager, GUI daemons start display-less
+# (sunshine's tray/main loop die) — enable services with
+# `systemctl --user enable <unit>`; they have WantedBy=graphical-session.target,
+# which sway-session.target pulls in. graphical-session.target refuses manual
+# start on systemd >= 256 (dependency-only), hence the wrapper target.
 exec systemctl --user import-environment WAYLAND_DISPLAY DISPLAY SWAYSOCK \
-  && systemctl --user start graphical-session.target
+  && systemctl --user start sway-session.target
+# Take session services down when sway exits (shutdown event fires before teardown)
+exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target
 # waybar       — status bar: workspaces, window title, clock, CPU/GPU temp, volume
 exec waybar
 # mako         — notification daemon (Wayland-native); history via makoctl
