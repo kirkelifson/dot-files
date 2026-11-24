@@ -321,6 +321,29 @@ install_fonts() {
   rm -rf "$tmpdir"
 }
 
+install_ghostty_terminfo() {
+  local bundle="/Applications/Ghostty.app/Contents/Resources/terminfo"
+  if [ "$os" != "Darwin" ] || [ ! -d "$bundle" ]; then
+    return
+  fi
+  if infocmp xterm-ghostty > /dev/null 2>&1; then
+    return
+  fi
+  # Ghostty ships its terminfo inside the app bundle but never installs it,
+  # so pagers (less via git lg) fail with "terminal is not fully functional".
+  # Compile the bundled entry into ~/.terminfo.
+  mkdir -p "$HOME/.terminfo"
+  local src
+  src=$(mktemp)
+  if infocmp -1 -x -A "$bundle" xterm-ghostty > "$src" 2> /dev/null && \
+     tic -x -o "$HOME/.terminfo" "$src" > /dev/null 2>&1; then
+    echo -e "[+] Installed xterm-ghostty terminfo to ~/.terminfo"
+  else
+    echo -e "[!] Could not install xterm-ghostty terminfo; pagers may warn about the terminal type"
+  fi
+  rm -f "$src"
+}
+
 setup_fish_shell() {
   # Install fish if missing
   if ! command -v fish > /dev/null 2>&1; then
@@ -431,6 +454,7 @@ link_dotfiles
 link_config_dirs
 setup_vim_packages
 install_fonts
+install_ghostty_terminfo
 setup_fish_shell
 install_mise_runtimes
 setup_launchd_gui_env

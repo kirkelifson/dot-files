@@ -58,7 +58,7 @@ background-opacity = 0.833
 background-blur-radius = 20
 
 # Shell integration
-shell-integration-features = cursor,sudo,title
+shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo
 
 # Clipboard - allow programs (tmux, vim) to read/write clipboard via OSC 52
 clipboard-read = allow
