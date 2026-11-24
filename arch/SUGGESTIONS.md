@@ -32,59 +32,45 @@ each item notes where it would live.
    `packages/aur.txt` for the small set it installs. (1password already
    verifies its PGP signature — good.)
 
-5. **Visible update posture.** Arch shouldn't auto-update, but nothing
-   tells you when to: a weekly systemd timer running `checkupdates` +
-   `notify-send` keeps upgrades visible. `snap-pac` is already installed,
-   so every pacman transaction gets pre/post snapper snapshots to roll
-   back to — pair the two and upgrades become low-drama.
-
-6. **btrfs scrub timer.** snapper timeline is on, but scrubbing isn't:
+5. **btrfs scrub timer.** snapper timeline is on, but scrubbing isn't:
    `systemctl enable --now btrfs-scrub@-.timer` (monthly) catches bit rot
    that snapshots would otherwise replicate faithfully.
 
-7. **fwupd.** Not installed anywhere — NVMe/GPU/motherboard firmware
-   updates are otherwise fully manual. Add `fwupd` to `packages/pacman.txt`
-   and a post-install `fwupdmgr refresh`.
-
 ## Development
 
-8. **Lint parity with CI.** CI runs shellcheck over every bash script, but
+6. **Lint parity with CI.** CI runs shellcheck over every bash script, but
    neither shellcheck nor shfmt is installed locally — you can't run what
    CI runs. Add both to `packages/pacman.txt`, plus a small fish function
    or `just` recipe that replicates the CI lint commands.
 
-9. **`just` as the repo task runner.** The ISO build, VM-test invocations,
+7. **`just` as the repo task runner.** The ISO build, VM-test invocations,
    and lint commands are long one-liners living in README prose.
    A `justfile` at the repo root makes them runnable and discoverable.
 
-10. **`lazygit` + `git-delta`.** Neither is installed. lazygit for
-    hunk-level staging in a foot window, git-delta as `core.pager` for
-    side-by-side diffs with syntax highlighting.
-
-11. **`atuin`.** Synced, full-text-searchable shell history (Ctrl-R that
+8. **`atuin`.** Synced, full-text-searchable shell history (Ctrl-R that
     actually works). One conflict to resolve first: `fish_postexec`
     deletes failed commands from history — decide whether atuin's history
     is filtered the same way.
 
-12. **Container orchestration.** podman is installed but nothing
+9. **Container orchestration.** podman is installed but nothing
     composes: add `podman-compose` (or docker-compose against the podman
     socket). Rootless podman looks configured (subuid present) — worth a
     verify-install check that it actually works (`podman run hello-world`).
 
-13. **Small sharp tools**: `tshark` (packet inspection when the 2.5GbE
+10. **Small sharp tools**: `tshark` (packet inspection when the 2.5GbE
     NIC misbehaves), `xh` (curl with JSON ergonomics), `aria2`
     (resumable/parallel downloads).
 
 ## Gaming
 
-14. **`gamescope`.** Not installed, and sway/wlroots has no HDR —
+11. **`gamescope`.** Not installed, and sway/wlroots has no HDR —
     `gamescope --hdr-enabled` is the only HDR path (arch/README.md notes this).
     It also solves per-game fractional scaling and tearing quirks.
 
-15. **`heroic-games-launcher` (AUR)** — GOG/Epic front-end next to Steam;
+12. **`heroic-games-launcher` (AUR)** — GOG/Epic front-end next to Steam;
     pairs with protonup-qt (already installed) for ProtonGE management.
 
-16. **Proton experiments**: with a 7900 XT, try `PROTON_USE_NTSYNC=1` on
+13. **Proton experiments**: with a 7900 XT, try `PROTON_USE_NTSYNC=1` on
     modern Proton builds (kernel supports ntsync) for throughput in
     CPU-bound titles; measure with `hyperfine`-style before/after frametime
     via the MangoHud overlay. MangoHud is installed but opt-in — consider
@@ -92,45 +78,45 @@ each item notes where it would live.
 
 ## Look & feel (joy)
 
-17. **Theme the desktop from the wallpaper.** You already generate seamless
+14. **Theme the desktop from the wallpaper.** You already generate seamless
     wallpapers — `wallust` (or pywal) can extract a palette and repaint
     waybar accents, sway `client.focused` borders, and foot colors to
     match. Hook it into `set-wallpaper` so the whole desktop shifts with
     the background.
 
-18. **`cava`** — terminal audio visualizer; the PipeWire stack is complete
+15. **`cava`** — terminal audio visualizer; the PipeWire stack is complete
     so it works out of the box. Fun in a scratchpad or on the lock screen
     era of the fish.
 
-19. **Restyle the sddm theme.** The login screen is a cloned elarun with a
+16. **Restyle the sddm theme.** The login screen is a cloned elarun with a
     swapped background — functional but dated. A minimal custom QML
     matching the waybar palette (dark panel, no user list, clock) would
     make the login feel like the rest of the setup.
 
-20. **pacman.conf cosmetics + speed.** Still at defaults: add `Color`,
+17. **pacman.conf cosmetics + speed.** Still at defaults: add `Color`,
     `ILoveCandy` (the pacman progress bar becomes Pac-Man — free joy), and
     bump `ParallelDownloads` from 5 to 10-15. post-install can write these
     idempotently.
 
 ## Install kit / image generation
 
-21. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
+18. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
     pacman always uses fast, fresh mirrors — big `pacman -Syu` runs (and
     the VM test's package-cache seeding) get noticeably faster.
 
-22. **post-install run log + summary.** The script's warns and fails
+19. **post-install run log + summary.** The script's warns and fails
     interleave with progress and are easy to miss. `tee` the whole run to
     `/var/log/post-install-<date>.log` and print a final WARN/FAIL summary
     block (the verify script already computes this — reuse its shape).
 
-23. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
+20. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
     but a *separate*, minimal public CI job could boot the built ISO
     headless in QEMU and assert the kernel reaches the archinstall
     environment — catching ISO breakage (e.g. a bad package list) before
     you flash a USB stick. Keep the full VM-test suite local; this is just
     "does it boot".
 
-24. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
+21. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
     `SHA256SUMS` next to the ISO (and optionally a signed digest once
     sbctl keys exist). Setting `SOURCE_DATE_EPOCH` / normalizing mtimes
     gets close to reproducible ISOs, so two builds of the same commit are
