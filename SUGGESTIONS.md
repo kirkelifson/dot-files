@@ -1,4 +1,4 @@
-# Recommendations
+# Suggestions
 
 Open improvements for the dot-files repo. Items are removed once verified
 done on the machine.
