@@ -51,6 +51,17 @@ if ! grep -q '^\[multilib\]' /etc/pacman.conf; then
 fi
 pacman -Syu --noconfirm
 
+step "pacman.conf: ParallelDownloads = 10"
+# Idempotent: archinstall leaves the stock "#ParallelDownloads = 5" (some
+# images uncomment it); handle both shapes.
+if grep -q '^ParallelDownloads' /etc/pacman.conf; then
+  sed -i 's/^ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf
+else
+  sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf
+fi
+grep -q '^ParallelDownloads = 10' /etc/pacman.conf \
+  || warn "could not set ParallelDownloads = 10 — edit /etc/pacman.conf by hand"
+
 # GPU driver FIRST: packages below (mangohud, gaming stack) depend on the
 # virtual `vulkan-driver`, and pacman resolves virtual deps to the
 # alphabetically-first provider — without vulkan-radeon installed first it
