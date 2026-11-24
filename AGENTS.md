@@ -85,10 +85,6 @@ Ghostty is configured with:
 - Mouse hiding while typing, copy-on-select
 - Option-as-Alt for meta key support
 
-### Legacy Shell Configuration (.zshrc, .zshenv)
-
-Legacy zsh configuration is still present for reference but not actively used. It follows similar patterns to the fish config with TMUX detection and environment variable management.
-
 ### Git Configuration (.gitconfig)
 
 Notable git aliases:
@@ -119,7 +115,6 @@ Vim is configured with:
 - Splits open below and to the right (splitbelow, splitright)
 - Custom keybindings:
   - `;` remapped to `:`
-  - `<C-p>`: fuzzy file search (CtrlP)
   - `<leader>ev`: edit vimrc in vertical split
   - `<leader><space>`: clear search highlights
   - `<C-h/j/k/l>`: navigate between splits
@@ -214,7 +209,6 @@ See README.md for bootstrap instructions and the support matrix. `packages/freeb
 
 For machine-specific settings that shouldn't be committed:
 - **Fish**: Create `~/.config/fish/local.fish` - gitignored and sourced by config.fish if it exists
-- **Zsh** (legacy): Create `~/.zshlocal` - sourced by .zshrc if it exists
 - **tmux-sessionizer**: Edit `search_dirs` in `bin/tmux-sessionizer` to add your project directories
 
 ## PATH Management

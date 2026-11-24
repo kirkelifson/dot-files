@@ -43,7 +43,6 @@ set encoding=utf-8
 set termencoding=utf-8
 
 " Style
-syntax on
 silent! color sierra
 set background=dark
 set t_Co=256
