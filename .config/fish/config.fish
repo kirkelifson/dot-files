@@ -178,6 +178,9 @@ if status is-interactive
     abbr -a gcane git commit --amend --no-edit
 
     abbr -a ts tmux-sessionizer
+    # terminal scrolling spectrogram (cava raw -> renderer); the GLSL window
+    # version is still around: cava -p ~/.config/cava/config-spectrogram
+    abbr -a cspec 'cava -p ~/.config/cava/config-raw | cava-spectrogram'
     abbr -a bi bundle install
     abbr -a rc bin/rails console
     abbr -a rs bin/rails server

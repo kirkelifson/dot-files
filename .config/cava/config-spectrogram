@@ -1,0 +1,37 @@
+# cava spectrogram — SDL window, GLSL shaders from the cava package
+# (~/.config/cava/shaders, seeded from example_files, version-matched).
+# Run: cavaspec  (fish abbr)  or  cava -p ~/.config/cava/config-spectrogram
+
+[general]
+lower_cutoff_freq = 50
+higher_cutoff_freq = 14000
+autosens = 1
+sensitivity = 100
+sleep_timer = 30
+
+[input]
+# platform default capture (PipeWire here)
+
+[output]
+method = sdl_glsl
+vertex_shader = pass_through.vert
+fragment_shader = spectrogram.frag
+# keep painting while silent so the scroll never stalls
+continuous_rendering = 1
+sdl_width = 1280
+sdl_height = 360
+sdl_x = -1
+sdl_y = -1
+sdl_full_screen = 0
+# shader input is clamped to [0..1]; a bit of extra gain makes quiet
+# passages register on the heat map
+sdl_glsl_gain = 130
+
+[color]
+background = '#111111'
+foreground = '#33ffff'
+
+[smoothing]
+# the spectrogram shader wants the raw signal — no monstercat shaping
+monstercat = 0
+noise_reduction = 55

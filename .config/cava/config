@@ -1,0 +1,61 @@
+# cava — console audio visualizer. Palette matches the waybar/terminal theme
+# (teal #50b4b4 accent on 1c1c1c). No [input] method pinned: cava auto-detects
+# per platform (pipewire/pulse on Linux, coreaudio on macOS), so this config
+# links unchanged on every machine the installer covers.
+
+[general]
+# auto-fill the terminal; wide bars with tight spacing read best in foot at 14pt
+bars = 0
+bar_width = 3
+bar_spacing = 1
+center_align = 1
+max_height = 80
+
+# skip sub-bass rumble below audible-interest; capture up to 14 kHz so cymbals
+# and air light up the top bars (cava raises this itself if bandwidth demands)
+lower_cutoff_freq = 50
+higher_cutoff_freq = 14000
+
+# auto gain — full sensitivity so quiet passages still dance
+autosens = 1
+sensitivity = 100
+
+# go to sleep after 30s of silence — no idle CPU burn in a forgotten pane
+sleep_timer = 30
+
+[input]
+# intentionally empty: platform default capture
+
+[output]
+method = noncurses
+# mirrored stereo: bass in the middle, treble at the edges — the classic look
+channels = stereo
+# heads stay visible when idle so the visualizer doesn't vanish
+show_idle_bar_heads = 1
+
+[color]
+background = default
+# vertical gradient, bottom (bass) to top (treble): deep teal -> brand teal ->
+# violet -> magenta -> hot pink
+gradient = 1
+gradient_color_1 = '#1a6a6a'
+gradient_color_2 = '#50b4b4'
+gradient_color_3 = '#7a9ec2'
+gradient_color_4 = '#b088cc'
+gradient_color_5 = '#e07bb4'
+
+[smoothing]
+# Monstercat-style neighbor smoothing makes the bar cluster move as one shape
+monstercat = 1.5
+waves = 0
+# 77 default is sluggish; 55 keeps peaks punchy — noisy is lively here
+noise_reduction = 55
+
+[eq]
+# gentle bass lift, trimmed sibilance — bass carries the gradient's darkest
+# color, so give it a bit more presence
+1 = 1.4
+2 = 1.2
+3 = 1
+4 = 1
+5 = 0.9

@@ -1,0 +1,33 @@
+# cava raw feed for the terminal spectrogram (bin/cava-spectrogram):
+#   cava -p ~/.config/cava/config-raw | cava-spectrogram
+# Raw stream contract expected by the renderer: 64 mono bars, 8-bit values
+# separated by ';', one '\n' per frame. No [input] method pinned — platform
+# default capture (PipeWire here, CoreAudio on macOS).
+
+[general]
+bars = 64
+lower_cutoff_freq = 50
+higher_cutoff_freq = 14000
+autosens = 1
+sensitivity = 100
+sleep_timer = 30
+
+[input]
+# platform default capture
+
+[output]
+method = raw
+# ascii (decimal digits) rather than binary — the renderer parses digits;
+# 255 max keeps the amplitude scale identical to 8-bit
+data_format = ascii
+ascii_max_range = 255
+bar_delimiter = 59
+frame_delimiter = 10
+raw_target = /dev/stdout
+channels = mono
+mono_option = average
+
+[smoothing]
+monstercat = 1.5
+# 55 — same punchy smoothing as the bar visualizer
+noise_reduction = 55

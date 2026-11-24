@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""cava-spectrogram — scrolling heat-map spectrogram for the terminal.
+
+Renders cava's `raw` output as a heat map that fills the terminal: each frame
+is one column of colored half-block cells, new columns enter at the right and
+the image scrolls left in place (alternate screen buffer — scrollback stays
+clean). Terminal size is re-read every frame, so resizing just works.
+
+Run:  cava -p ~/.config/cava/config-raw | cava-spectrogram   (or: cspec)
+
+Config assumptions (see config-raw): bars=64, channels=mono, ascii values
+0-255 separated by ';' with one '\n' per frame.
+"""
+import fcntl
+import signal
+import struct
+import sys
+import termios
+
+BINS = 64  # frequency bins per frame (config-raw: bars = 64)
+MAX_ROWS = BINS // 2   # one half-block cell shows two bins (bg = lower, fg = upper)
+
+ALT_ENTER = b"\x1b[?1049h\x1b[?25l\x1b[2J"
+ALT_EXIT = b"\x1b[?25h\x1b[?1049l"
+RESET = b"\x1b[0m"
+UPPER = "▀"
+
+# teal -> violet -> pink heat ramp (matches .config/cava/config's gradient);
+# index 0 = silence, near the terminal background so quiet bins disappear.
+RAMP = [
+    (20, 24, 30),
+    (26, 106, 106),
+    (80, 180, 180),
+    (122, 158, 194),
+    (176, 136, 204),
+    (224, 123, 180),
+]
+
+
+def _ramp(v):
+    """Amplitude 0-255 -> (r, g, b) interpolated on RAMP."""
+    v = max(0, min(255, v)) / 255.0
+    pos = v * (len(RAMP) - 1)
+    i = min(int(pos), len(RAMP) - 2)
+    t = pos - i
+    lo, hi = RAMP[i], RAMP[i + 1]
+    return tuple(round(lo[c] + (hi[c] - lo[c]) * t) for c in range(3))
+
+
+# Precomputed per-amplitude SGR strings: FG[v] colors the upper half-block,
+# BG[v] the lower.
+FG = [b"\x1b[38;2;%d;%d;%dm" % _ramp(v) for v in range(256)]
+BG = [b"\x1b[48;2;%d;%d;%dm" % _ramp(v) for v in range(256)]
+
+
+def term_size():
+    """(rows, cols) of the terminal attached to stdout."""
+    try:
+        packed = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, b"\0" * 8)
+        rows, cols = struct.unpack("hhhh", packed)[:2]  # winsize: 4 shorts
+    except (OSError, ValueError):
+        return 24, 80
+    return max(rows, 1), max(cols, 1)
+
+
+def render_frame(ring, rows, cols):
+    """Repaint the whole canvas: `cols` columns wide, `rows` cells tall.
+
+    Row 0 (screen top) carries the highest bins; the lowest land on the
+    bottom row, so bass glows along the bottom edge, treble along the top.
+    """
+    cell_rows = min(rows, MAX_ROWS)
+    # distribute all 64 bins over cell_rows rows — boundaries are fractional
+    # so any terminal height works (24-row terminal: ~2.67 bins per cell)
+    edges = [round(i * BINS / cell_rows) for i in range(cell_rows + 1)]
+    out = bytearray(b"\x1b[H")     # cursor home — full repaint shifts left
+    for r in range(cell_rows):
+        # top of screen = top of the spectrum
+        b = cell_rows - 1 - r              # cell row from the bottom
+        lo_bin, hi_bin = edges[b], edges[b + 1]
+        mid = (lo_bin + hi_bin) // 2
+        for frame in ring:
+            if len(frame) != BINS:         # resize transition filler
+                out += b" "
+                continue
+            low = max((v for v in frame[lo_bin:mid] if v >= 0), default=0)
+            high = max((v for v in frame[mid:hi_bin] if v >= 0), default=0)
+            out += BG[low] + FG[high] + UPPER.encode()
+        out += RESET + b"\x1b[K"                   # clear residual right edge
+        if r < cell_rows - 1:
+            out += b"\x1b[1B\x1b[G"                # down 1, back to column 1
+    return out
+
+
+def run():
+    if sys.stdin.isatty():
+        print("usage: cava -p ~/.config/cava/config-raw | cava-spectrogram\n"
+              "(reads cava's raw stream from stdin — nothing to show without "
+              "it)", file=sys.stderr)
+        sys.exit(1)
+
+    out = sys.stdout.buffer
+    # SIGINT (Ctrl+C) raises KeyboardInterrupt naturally; SIGTERM (pkill, pane
+    # close) would kill us without the finally below — route it through exit
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(1))
+    signal.signal(signal.SIGWINCH, lambda *_: None)  # size polled per frame
+    rows, cols = term_size()
+    history = []                       # plain list: maxlen would freeze width
+    history.extend([[-1] * BINS] * cols)  # pre-fill silence: canvas starts full-width
+
+    out.write(ALT_ENTER)
+    out.flush()
+
+    try:
+        acc, row = "", []
+        for chunk in sys.stdin.buffer:
+            for ch in chunk.decode("latin-1"):
+                if ch == ";":
+                    row.append(min(255, int(acc or 0)))
+                    acc = ""
+                elif ch == "\n":
+                    # last value in a frame has no trailing ';' — flush it
+                    if acc:
+                        row.append(min(255, int(acc or 0)))
+                        acc = ""
+                    if len(row) == BINS:
+                        rows, cols = term_size()
+                        history.append(row)
+                        if len(history) > cols:
+                            del history[:-cols]
+                        out.write(render_frame(history, rows, cols))
+                        out.flush()
+                    row = []
+                    acc = ""
+                else:
+                    acc += ch
+                    if len(acc) > 4:  # malformed run — resync at delimiter
+                        acc = ""
+        if not row and not acc:
+            raise BrokenPipeError             # stdin closed with no data
+    except KeyboardInterrupt:
+        pass
+    except BrokenPipeError:
+        if not ring:
+            print("no data on stdin — feed it from cava:\n"
+                  "  cava -p ~/.config/cava/config-raw | cava-spectrogram",
+                  file=sys.stderr)
+    finally:
+        out.write(ALT_EXIT + RESET)
+        out.flush()
+
+
+if __name__ == "__main__":
+    run()

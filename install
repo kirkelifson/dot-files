@@ -201,6 +201,9 @@ link_config_dirs() {
   link_config_dir fish
   link_config_dir waybar
   link_config_dir fastfetch
+  # cava: console audio visualizer; config is platform-agnostic (no pinned
+  # capture method) so it links everywhere
+  link_config_dir cava
   # mako: Wayland notification daemon — only meaningful on a Linux Wayland
   # desktop. Skipped on macOS/FreeBSD (not packaged there) and on Omarchy,
   # which manages its own notification setup.
