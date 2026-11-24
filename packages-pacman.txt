@@ -154,3 +154,5 @@ btop
 ttf-firacode-nerd
 # emoji fallback — without it every emoji in foot/waybar is a tofu box
 noto-fonts-emoji
+# fallback for U+2624 ☤ (Hermes status-bar brand glyph) — FiraCode lacks it
+ttf-dejavu
