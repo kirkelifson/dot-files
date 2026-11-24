@@ -51,7 +51,7 @@
     "config_type": "default_layout",
     "device_modifications": [
       {
-        "device": "/dev/nvme1n1",
+        "device": "/dev/REPLACED-BY-AUTOSTART",
         "wipe": true,
         "partitions": [
           {

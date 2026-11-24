@@ -66,7 +66,13 @@ for rel in scan:
     if not os.path.isfile(path):
         continue
     content = open(path, errors="ignore").read()
-    check("'!password'" not in content or rel.endswith("check-configs.py"),
+    if rel.endswith("check-configs.py"):
+        continue
+    if rel.endswith(".example"):
+        # template file: fine as long as it still holds the placeholder
+        check('"CHANGE_ME"' in content, f"{rel} is the placeholder template")
+        continue
+    check("'!password'" not in content,
           f"{rel} has no plaintext '!password' field")
 
 # test harness: every bash entry point carries the CI guard
@@ -95,6 +101,20 @@ if os.path.exists(sway_cfg):
 # partitions too and int() chokes on multi-line output (real bug, fixed 2026-11)
 autostart = f"{repo}/arch/iso/airootfs/root/autostart.sh"
 check('"-d"' in open(autostart).read(), "autostart.sh lsblk size query is disk-only (-d)")
+at = open(autostart).read()
+check("total_bytes // (1024 * 1024)" in at,
+      "autostart.sh computes root size from the ACTUAL disk (no 1TB assumption)")
+check('mod["device"] = target' in at, "autostart.sh patches the target device into the config")
+
+# The baked device is a placeholder: autostart always overwrites it from the
+# user-typed target. It must never name a real disk, or an unpatched run
+# could aim at the wrong drive (e.g. the Windows NVMe).
+cfg = json.load(open(f"{repo}/arch/archinstall/user_configuration.json"))
+dev = cfg["disk_config"]["device_modifications"][0]["device"]
+check(dev.startswith("/dev/REPLACED"),
+      f"baked device is the autostart placeholder (got '{dev}')")
+check(not os.path.exists(f"{repo}/arch/iso/airootfs/root/archinstall-config/user_disk_layout.json"),
+      "no stale v3 user_disk_layout.json in the ISO tree")
 
 print()
 if errors:

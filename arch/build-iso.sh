@@ -25,9 +25,7 @@ missing=()
 [[ -f "$SCRIPT_DIR/archinstall/user_credentials.json" ]] \
   || missing+=("arch/archinstall/user_credentials.json — plaintext user password baked into the ISO; copy archinstall/user_credentials.json.example and set a real password")
 [[ -f "$SCRIPT_DIR/archinstall/user_configuration.json" ]] \
-  || missing+=("arch/archinstall/user_configuration.json — archinstall config")
-[[ -f "$SCRIPT_DIR/archinstall/user_disk_layout.json" ]] \
-  || missing+=("arch/archinstall/user_disk_layout.json — disk layout")
+  || missing+=("arch/archinstall/user_configuration.json — archinstall config (4.x schema: disk_config merged in; device is a placeholder patched at runtime by autostart.sh)")
 [[ -f "$ISO_DIR/airootfs/root/autostart.sh" ]] \
   || missing+=("arch/iso/airootfs/root/autostart.sh — boot-time installer driver")
 [[ -f "$SCRIPT_DIR/ssh/authorized_keys" ]] \
@@ -58,6 +56,9 @@ fi
 # Sync archinstall configs into the airootfs (mkarchiso bundles airootfs files
 # as-is; the credentials file is copied only if present — it is gitignored).
 mkdir -p "$ISO_DIR/airootfs/root/archinstall-config"
+# Purge anything stale first: a leftover layout JSON with a hardcoded device
+# must never ride along into a new ISO.
+rm -f "$ISO_DIR/airootfs/root/archinstall-config/"*.json
 
 cp "$SCRIPT_DIR"/archinstall/*.json "$ISO_DIR/airootfs/root/archinstall-config/"
 
