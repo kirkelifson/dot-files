@@ -180,8 +180,14 @@ EOF
 AK_SRC="/home/$TARGET_USER/dot-files/arch/ssh/authorized_keys"
 if [[ -f "$AK_SRC" ]] && grep -Eq '^(ssh-|ecdsa-|sk-)' "$AK_SRC"; then
   install -d -o "$TARGET_USER" -g "$TARGET_USER" -m 700 "/home/$TARGET_USER/.ssh"
-  install -o "$TARGET_USER" -g "$TARGET_USER" -m 600 "$AK_SRC" "/home/$TARGET_USER/.ssh/authorized_keys"
-  echo "Installed $(grep -cE '^(ssh-|ecdsa-|sk-)' "$AK_SRC") authorized key(s) for $TARGET_USER."
+  # Create authorized_keys only if absent — never clobber host-local edits.
+  AK_DST="/home/$TARGET_USER/.ssh/authorized_keys"
+  if [[ -e $AK_DST ]]; then
+    echo "  $AK_DST already exists — left untouched (add keys to it directly)."
+  else
+    install -o "$TARGET_USER" -g "$TARGET_USER" -m 600 "$AK_SRC" "$AK_DST"
+    echo "Installed $(grep -cE '^(ssh-|ecdsa-|sk-)' "$AK_SRC") authorized key(s) for $TARGET_USER."
+  fi
 else
   warn "No public keys in ${AK_SRC} — add keys there, then re-run this step"
 fi
