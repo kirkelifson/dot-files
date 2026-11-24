@@ -460,32 +460,32 @@ link_agent_configs() {
   done
 }
 
-# npm-installed CLI tools shared across platforms (see npm-globals.txt).
-install_npm_globals() {
-  [ -f "$dir/npm-globals.txt" ] || return 0
-  if ! command -v npm > /dev/null 2>&1; then
-    # node (and npm) may come from mise, whose shims are not on this
-    # script's PATH — e.g. Arch, where no pacman package supplies npm.
+# JS CLIs shared across platforms (see bun-globals.txt), installed with bun.
+install_bun_globals() {
+  [ -f "$dir/bun-globals.txt" ] || return 0
+  if ! command -v bun > /dev/null 2>&1; then
+    # bun comes from mise, whose shims are not on this script's PATH —
+    # e.g. Arch, where no pacman package supplies bun.
     if [ -d "$HOME/.local/share/mise/shims" ]; then
       export PATH="$HOME/.local/share/mise/shims:$PATH"
     fi
   fi
-  if ! command -v npm > /dev/null 2>&1; then
-    echo "[!] npm not found; skipping npm global packages (npm-globals.txt)."
+  if ! command -v bun > /dev/null 2>&1; then
+    echo "[!] bun not found; skipping global JS packages (bun-globals.txt)."
     return 0
   fi
-  echo "[+] Installing npm global packages."
+  echo "[+] Installing global JS packages with bun (bun-globals.txt)."
   local pkg
   while IFS= read -r pkg; do
     pkg="${pkg%%#*}"
     pkg="$(echo "$pkg" | tr -d '[:space:]')"
     [ -n "$pkg" ] || continue
-    if npm list -g "$pkg" > /dev/null 2>&1; then
+    if bun pm ls -g 2> /dev/null | grep -qF "$pkg"; then
       echo -e "\t[>] $pkg already installed"
     else
-      npm install -g "$pkg"
+      bun add -g "$pkg"
     fi
-  done < "$dir/npm-globals.txt"
+  done < "$dir/bun-globals.txt"
 }
 
 # --- Main ---
@@ -504,5 +504,5 @@ install_ghostty_terminfo
 setup_fish_shell
 install_mise_runtimes
 setup_launchd_gui_env
-install_npm_globals
+install_bun_globals
 echo -e "[!] Restart terminal session for changes to take effect."

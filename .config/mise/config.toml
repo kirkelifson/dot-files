@@ -1,6 +1,7 @@
 [tools]
 ruby = "4.0"
 node = "26"
+bun = "1"
 python = "3.14"
 go = "1.27"
 erlang = "29"   # required by elixir (erl must be on PATH; elixir builds are otp-29)

@@ -1,0 +1,3 @@
+# JS packages installed globally on every platform with bun (from mise).
+# Installed by ./install via install_bun_globals.
+@earendil-works/pi-coding-agent
