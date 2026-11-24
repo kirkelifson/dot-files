@@ -87,6 +87,15 @@ for script in ("run-vm-test.sh", "fill-pkg-cache.sh", "setup-installed.sh"):
 # river session packages present (SDDM needs the session)
 pkgs = cfg.get("packages", [])
 check("sddm" in pkgs and "sway" in pkgs, "sddm + sway in install package list")
+check("firefox" in pkgs, "firefox (default browser) in install package list")
+check("chromium" in pkgs, "chromium in install package list")
+
+# AUR packages list (installed by post-install via paru; CI can't check the AUR)
+aur = f"{repo}/packages-aur.txt"
+check(os.path.exists(aur), "packages-aur.txt exists")
+if os.path.exists(aur):
+    check("1password" in open(aur).read(),
+          "packages-aur.txt includes 1password")
 
 # sway config sanity: exists, autostarts the bar, pins VRR display mode
 sway_cfg = f"{repo}/arch/sway/config"

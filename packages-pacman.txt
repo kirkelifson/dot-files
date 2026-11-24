@@ -111,6 +111,10 @@ playerctl
 brightnessctl
 xdg-desktop-portal-wlr
 
+# Browsers (firefox default; chromium = google-free-ish: no Google API keys baked in)
+firefox
+chromium
+
 # Containers
 podman
 

@@ -116,6 +116,8 @@
     "playerctl",
     "brightnessctl",
     "xdg-desktop-portal-wlr",
+    "firefox",
+    "chromium",
     "podman",
     "graphviz",
     "ffmpeg",

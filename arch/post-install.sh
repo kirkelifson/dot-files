@@ -169,6 +169,27 @@ step "foot terminal config (14pt — foot's 8pt default is tiny at 4K)"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "/home/$TARGET_USER/.config/foot"
 install -o "$TARGET_USER" -g "$TARGET_USER" -m 644 "/home/$TARGET_USER/dot-files/arch/sway/foot.ini" "/home/$TARGET_USER/.config/foot/foot.ini"
 
+# AUR packages via paru. makepkg refuses to run as root, so the helper is
+# built as $TARGET_USER and installed with pacman as root (no password
+# prompts). Firefox covers the browser if this step fails.
+if [[ -s packages-aur.txt ]]; then
+  step "AUR helper (paru) + packages-aur.txt"
+  BUILD=$(mktemp -d); chown "$TARGET_USER":"$TARGET_USER" "$BUILD"
+  if sudo -u "$TARGET_USER" git clone -q --depth 1 https://aur.archlinux.org/paru.git "$BUILD/paru" \
+     && sudo -u "$TARGET_USER" bash -c "cd '$BUILD/paru' && makepkg -f --noconfirm >/dev/null 2>&1" \
+     && pacman -U --noconfirm "$BUILD"/paru/paru-*.pkg.tar.zst; then
+    sudo -u "$TARGET_USER" paru -S --needed --noconfirm - < packages-aur.txt \
+      || warn "paru AUR install had failures — run: paru -S --needed <pkg> as $TARGET_USER"
+    pacman -Q 1password >/dev/null 2>&1 \
+      && echo "  1password installed" || warn "1password not installed (check paru output)"
+  else
+    warn "paru build failed — AUR packages skipped (firefox is the browser)"
+  fi
+  rm -rf "$BUILD"
+else
+  warn "packages-aur.txt missing or empty — AUR packages skipped"
+fi
+
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
 

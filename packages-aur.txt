@@ -1,0 +1,5 @@
+# AUR packages (packages-aur.txt) — installed by post-install.sh via paru.
+# One name per line, # comments. CI can only availability-check official
+# repos, so this list is unchecked — keep it short and review PKGBUILDs.
+# (1password repackages the official 1Password tarball — quick build.)
+1password
