@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Fullscreen ASCII aquarium screensaver — eye candy + burn-in prevention.
+#
+# Modes:
+#   start        auto (swayidle 300s): skipped when idle-gate inhibits
+#                (fullscreen app or live call)
+#   start-force  manual (Mod+Shift+L): ALWAYS starts — the fish REPLACES the
+#                lock view. Session is technically unlocked while it shows;
+#                the real lock lands on first input (idle-resume) and the
+#                600s auto-lock is the safety net. Press 'q' in the fish to
+#                dismiss it without locking (the fish's wrapper cleans up).
+#   stop         kill fish + clear state
+#   should-lock  exit 0 when the 600s lock / 900s dpms timeouts may run:
+#                fish active (user locked manually = intent) or gate clear.
+#                CRITICAL: without the flag check, idle-gate would see the
+#                fullscreen fish as "a game" and never let the safety-net
+#                lock fire.
+#
+# State invariant: FLAG exists  <=>  fish was seen RUNNING.
+# start-force waits synchronously for foot before touching FLAG, so idle-resume
+# can trust it (async launch + immediate input was the "sometimes doesn't lock"
+# bug). idle-resume claims an atomic mkdir lockfile before spawning swaylock so
+# double resume sources (main swayidle + watcher) can't double-spawn.
+set -u
+
+BASE="$HOME/.config/sway/scripts"
+RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+FLAG="$RUNTIME/screensaver.active"
+WATCH_PID="$RUNTIME/screensaver-watch.pid"
+CLAIM="$RUNTIME/screensaver.locking"
+# foot window is tagged --app-id=screensaver so pkill can't hit anything else
+# (swayidle's own cmdline mentions "screensaver" too — the app-id= prefix avoids it)
+PATTERN='app-id=screensaver'
+
+running() { [[ -n $(pgrep -f "$PATTERN") ]]; }
+
+launch() {
+    # foot -F = fullscreen on the focused output. The wrapper makes 'q' a real
+    # dismissal: when asciiquarium exits, state is cleaned up (flag + watcher),
+    # so the next input does NOT lock.
+    swaymsg exec "foot --app-id=screensaver -F sh -c '/usr/bin/asciiquarium; $BASE/screensaver stop'"
+}
+
+kill_watcher() {
+    [[ -f $WATCH_PID ]] && kill "$(cat "$WATCH_PID")" 2>/dev/null
+    rm -f "$WATCH_PID"
+}
+
+arm_watcher() {
+    # One-shot swayidle: arms after 2s idle, fires idle-resume on the next
+    # input, then removes itself. Guarantees the real lock lands even if the
+    # main swayidle's resume hadn't armed for this idle cycle.
+    kill_watcher
+    nohup sh -c "swayidle -w timeout 2 true resume '$BASE/screensaver resume-watcher' >/dev/null 2>&1 & echo \$! > '$WATCH_PID'" \
+        >/dev/null 2>&1 &
+}
+
+case ${1:-} in
+start)
+    if running; then touch "$FLAG"; exit 0; fi   # already up — just arm state
+    "$BASE/idle-gate" || exit 0                  # fullscreen app or call in progress
+    command -v asciiquarium >/dev/null || exit 0 # not installed yet — no-op
+    launch
+    touch "$FLAG"
+    ;;
+start-force)
+    # manual lock: deliberate keypress overrides the call/game gate
+    if ! running; then
+        if command -v asciiquarium >/dev/null; then
+            launch
+            # wait for foot to actually exist — FLAG must never lie
+            for _ in $(seq 1 20); do
+                running && break
+                sleep 0.1
+            done
+        fi
+        running || exec swaylock -f   # fish failed/missing — plain lock, always safe
+    fi
+    touch "$FLAG"
+    arm_watcher
+    ;;
+resume-watcher)
+    "$BASE/idle-resume"
+    kill_watcher   # one-shot: never leave a 2s-cycle resume trigger behind
+    ;;
+stop)
+    pkill -f "$PATTERN" || true   # exit 1 when nothing to kill — fine
+    kill_watcher
+    rm -f "$FLAG"
+    rmdir "$CLAIM" 2>/dev/null
+    ;;
+should-lock)
+    [[ -f $FLAG ]] && exit 0
+    exec "$BASE/idle-gate"
+    ;;
+*)
+    echo "usage: $0 start|start-force|stop|should-lock" >&2
+    exit 2
+    ;;
+esac

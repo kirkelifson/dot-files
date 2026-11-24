@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# swayidle global resume: runs on idle → active transitions.
+# If the aquarium was showing (manual "fish lock" or auto screensaver), the
+# first input brings up the REAL lock screen immediately — before any keys
+# reach a window. Dismissing the fish with 'q' clears its flag, so the next
+# input does NOT lock.
+#
+# Idempotent + race-safe: the main swayidle and the per-start watcher may both
+# call this concurrently; the atomic CLAIM dir ensures exactly one swaylock.
+set -u
+
+BASE="$HOME/.config/sway/scripts"
+RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+FLAG="$RUNTIME/screensaver.active"
+CLAIM="$RUNTIME/screensaver.locking"
+
+if [[ -f $FLAG ]] && mkdir "$CLAIM" 2>/dev/null; then
+    rm -f "$FLAG"
+    pgrep -x swaylock >/dev/null || swaylock -f   # never stack lock screens
+    rmdir "$CLAIM" 2>/dev/null
+fi
+
+"$BASE/screensaver" stop
+swaymsg 'output DP-1 dpms on'

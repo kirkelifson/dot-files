@@ -55,4 +55,6 @@ Media:
   Mod+Shift+n      Night light off
 
 Session:
+  Mod+Shift+l      Lock: aquarium screensaver takes over; first input brings
+                   the real lock screen (press q in the fish to dismiss unlocked)
   Mod+Shift+q      Exit sway (with confirmation)

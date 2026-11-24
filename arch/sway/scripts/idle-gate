@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Idle-action gate for swayidle. Exit 0 = idle actions SHOULD run,
+# exit 1 = inhibited. Used by the swayidle lock/dpms timeouts and the
+# aquarium screensaver (arch/sway/scripts/screensaver).
+#
+# Inhibit when:
+#   1. any window is fullscreen  — video players, games, presentations
+#      (players that implement wayland idle-inhibit already keep swayidle
+#      quiet; this catches the ones that don't)
+#   2. the microphone is being captured — voice/video calls
+set -u
+
+# 1) fullscreen check: walk the sway tree for any real window with fullscreen_mode
+#    set. IMPORTANT: sway's get_tree reports fullscreen_mode=1 on WORKSPACE and
+#    __i3_scratch container nodes too — only type "con"/"floating_con" with an
+#    app_id/window count.
+if swaymsg -t get_tree | /usr/bin/python3 -c '
+import json, sys
+
+def fullscreen(node):
+    if (node.get("type") in ("con", "floating_con")
+            and (node.get("app_id") or node.get("window_properties"))
+            and node.get("app_id") != "screensaver"   # our own fish is fullscreen BY DESIGN
+            and (node.get("fullscreen_mode", 0) or node.get("fullscreen", False))):
+        return True
+    return any(fullscreen(c)
+               for c in node.get("nodes", []) + node.get("floating_nodes", []))
+
+sys.exit(1 if fullscreen(json.load(sys.stdin)) else 0)
+'; then
+    :
+else
+    exit 1   # something is fullscreen
+fi
+
+# 2) mic capture check: any PulseAudio/PipeWire stream recording from a source
+if pactl list source-outputs 2>/dev/null | grep -q '^Source Output #'; then
+    exit 1
+fi
+
+exit 0
