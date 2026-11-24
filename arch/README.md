@@ -5,9 +5,10 @@ drives, dual-booted from the firmware menu.** Windows owns the Samsung 980
 Pro 1 TB; Arch owns the Crucial P3 1 TB. Nothing in this plan touches the
 Windows disk or its partitions.
 
-Omarchy stays on the 13" MacBook only; this is a **plain Arch** build.
-The dot-files install already supports plain Arch (pacman path, Omarchy
-detection is opt-in), so `./install` works as-is once packages are in.
+This folder is the **image generation → install → post-install flow** for
+that desktop: a custom archiso, an unattended installer, and the root
+finishing pass — nothing else lives here. (Omarchy notes are at the bottom;
+that machine is out of scope for this kit.)
 
 This file is both the design doc and the kit manual: §1–§9 and §11–§13 are
 the plan, §10 is the buildable install kit (build, flash, install, edit).
@@ -389,7 +390,6 @@ settings (F10+, XMP).
 
 ## 12. What NOT to add
 
-- **Omarchy anything** — laptop-only.
 - **Grub / rEFInd** — systemd-boot + firmware menu is enough, and sbctl
   integration is systemd-boot-first.
 - **Anything on the Windows ESP** — never chainload, mount, or repair it
@@ -422,3 +422,16 @@ settings (F10+, XMP).
 11. Verify: `vulkaninfo --summary`, 144 Hz active, VRR engaging via
     Mangohud frametimes, `gamemoderun` working, and one F12 reboot into
     Windows to confirm both halves still boot.
+
+## Omarchy — separate machine, out of scope
+
+Recorded here so it doesn't get re-litigated inside the kit sections:
+
+- Omarchy lives on the 13" MacBook only. This kit targets the desktop
+  build and never ships Omarchy config.
+- The shared dot-files `./install` still supports plain Arch directly
+  (pacman path); its Omarchy detection is opt-in and only *preserves*
+  Omarchy-managed configs when Omarchy is present — it never adds
+  Omarchy to a machine.
+- Don't add Omarchy packages, themes, or management to `packages/` or
+  post-install.sh; the desktop build is plain Arch (see §12).
