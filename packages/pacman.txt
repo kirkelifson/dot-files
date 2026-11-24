@@ -187,6 +187,9 @@ snap-pac
 # zram swap (arch/README.md §2 — no swap partition; post-install writes the conf)
 zram-generator
 
+# Firmware updates (NVMe/GPU/motherboard via fwupdmgr; post-install refreshes metadata)
+fwupd
+
 # system monitor
 btop
 

@@ -320,6 +320,13 @@ else
   echo "  No Bluetooth adapter detected — service left off"
 fi
 
+step "fwupd: firmware update metadata refresh (NVMe/GPU/motherboard)"
+if pacman -Q fwupd >/dev/null 2>&1; then
+  fwupdmgr refresh || warn "fwupdmgr refresh failed — run it by hand once networking is up"
+else
+  warn "fwupd not installed — firmware updates stay manual"
+fi
+
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
 printf 'blacklist tdx-host\n' > /etc/modprobe.d/blacklist-tdx-host.conf
 
