@@ -111,6 +111,8 @@ libnotify
 swaybg
 swaylock
 swayidle
+# fullscreen ASCII aquarium screensaver (arch/sway/scripts/screensaver, swayidle 300s stage)
+asciiquarium
 grim
 slurp
 # sway init helpers (spawned by arch/sway/config) — wl-clipboard already in core

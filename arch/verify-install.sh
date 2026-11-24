@@ -70,7 +70,7 @@ hdr "sway WM"
 [[ -f "$HOME/.config/sway/config" ]] && ok "\$HOME/.config/sway/config installed" \
   || bad "sway config missing — run post-install.sh or install dot-files/arch/sway/config"
 pacman -Q sway >/dev/null 2>&1 && ok "sway installed" || bad "sway MISSING"
-for p in waybar foot wofi mako swaylock swayidle grim slurp cliphist playerctl brightnessctl polkit-gnome xdg-desktop-portal-wlr pamixer dex gammastep; do
+for p in waybar foot wofi mako swaylock swayidle grim slurp cliphist playerctl brightnessctl polkit-gnome xdg-desktop-portal-wlr pamixer dex gammastep asciiquarium; do
   pacman -Q "$p" >/dev/null 2>&1 && ok "$p installed" || warn "$p missing (sway companion)"
 done
 
