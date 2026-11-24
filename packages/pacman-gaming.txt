@@ -8,3 +8,4 @@ lib32-mangohud
 lutris
 protontricks
 lib32-libpulse
+discord
