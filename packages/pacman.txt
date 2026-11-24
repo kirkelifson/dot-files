@@ -205,6 +205,9 @@ btop
 # system info display (successor to the unmaintained neofetch)
 fastfetch
 
+# terminal audio visualizer (PipeWire stack is complete — works out of the box)
+cava
+
 # fonts (FiraCode for terminal/UI, keeps Nerd Font glyphs for prompts)
 ttf-firacode-nerd
 # emoji fallback — without it every emoji in foot/waybar is a tofu box
