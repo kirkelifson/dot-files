@@ -193,6 +193,12 @@ fwupd
 # checkupdates for the weekly update-visibility timer (arch/systemd/user)
 pacman-contrib
 
+# Small sharp tools (arch/SUGGESTIONS): packet inspection for the 2.5GbE NIC
+# (wireshark-cli provides tshark), curl with JSON ergonomics, resumable downloads
+wireshark-cli
+xh
+aria2
+
 # system monitor
 btop
 
