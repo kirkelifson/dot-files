@@ -165,7 +165,8 @@ The configuration detects the OS via `uname -s` and adjusts:
 - Custom `ps` alias with specific format
 - `brew-*` aliases for Homebrew service management
 - `md5sum` aliased to `md5 -q`
-- Different `ls` flags
+
+`ls` is aliased to `eza -l --git --time-style=relative` on every platform (defined only when `eza` is present), so no per-OS `ls` flags are needed.
 
 **Linux**:
 - `sudo` prepended to `apt`, `aptitude`, `ifconfig`

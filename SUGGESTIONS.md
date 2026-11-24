@@ -7,18 +7,6 @@ done on the machine.
 
 - [ ] **SSH config management** — Add a base `~/.ssh/config` template to the repo with common settings: keepalive intervals, connection multiplexing (`ControlMaster`), agent forwarding defaults. The install script could link or merge it.
 
-## Fish Shell
-
-- [ ] **`ls` aliases should use `eza`** — `eza` is installed but fish config still has platform-diverging `ls -Goh` / `ls -ltrGh` aliases. Replace with a single `eza -l --git --time-style=relative` alias (works the same on macOS, Linux, and Arch). Eliminates the Darwin/Linux branch entirely.
-
-- [ ] **`search` alias should use `rg`** — The `search` alias calls `grep --color=auto -R -C3 -n`, but `ripgrep` is already installed. `rg` is faster, respects `.gitignore`, and handles binary files. A drop-in alias: `alias search='rg -C3'`.
-
-- [ ] **`dog` alias is now redundant** — `dog="pygmentize -g"` predates `bat`. Since `bat` is installed and handles more formats with better UX, replace with `alias dog='bat'` or just drop it and use `bat` directly.
-
-- [ ] **`bat` as man pager** — Set `MANPAGER` so man pages render with syntax highlighting: `set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"`. Goes in the non-interactive section of config.fish.
-
-- [ ] **`bat` preview in fzf** — Add `set -gx FZF_DEFAULT_OPTS '--preview "bat --color=always --line-range :200 {}"'` to config.fish. Makes Ctrl-T file picker show highlighted previews.
-
 ## Vim
 
 - [ ] **`re=1` forces the old regex engine** — `.vimrc:13` sets `set re=1` (backtracking engine). This was a workaround for Ruby syntax slowness circa 2014 but causes hangs with complex patterns in newer Vim. Remove it or set `re=0` (auto-select).

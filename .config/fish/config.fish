@@ -19,6 +19,12 @@ set -gx LANGUAGE en_US.UTF-8
 set -gx FZF_DEFAULT_COMMAND 'fd --type f'
 set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 
+# bat: man pager with syntax highlighting + fzf file previews
+if type -q bat
+    set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
+    set -gx FZF_DEFAULT_OPTS '--preview "bat --color=always --line-range :200 {}"'
+end
+
 # Disable greeting
 set -g fish_greeting
 
@@ -184,13 +190,13 @@ if status is-interactive
     alias coverage-web="ruby -run -e httpd coverage -p 3005"
     alias cp='cp -Rv'
     alias dev='bin/dev'
-    alias dog="pygmentize -g"
+    alias dog='bat'
     alias egrep='egrep --color=auto -n'
     alias gdb='gdb -q'
     alias grep='grep --color=auto -n'
     alias less='less -R'
     alias mv='mv -v'
-    alias search='grep --color=auto -R -C3 -n'
+    alias search='rg -C3'
     alias strings='strings -a'
     # alias vim='nvim'
     alias tmux='tmux -2 -u'
@@ -200,15 +206,17 @@ if status is-interactive
     alias fetch-all='find . -maxdepth 2 -name .git -type d -execdir git fetch --all --prune \;'
     alias pull-all='find . -maxdepth 2 -name .git -type d -execdir git pull \;'
 
-    # Platform-specific display aliases
+    # ls via eza (identical on macOS, Linux, and FreeBSD)
+    if type -q eza
+        alias ls='eza -l --git --time-style=relative'
+    end
+
+    # Platform-specific ps aliases
     switch $os
         case Linux
-            # GNU ls: -G is --no-group (NOT color like BSD); colors need --color
-            alias ls='ls -ltr --color=auto -h'
             alias ps='ps aux --forest'
         case Darwin FreeBSD
             alias ps="ps -eo pid,args,etime,%cpu,rss"
-            alias ls='ls -Goh'
     end
 end
 
