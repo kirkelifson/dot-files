@@ -11,6 +11,7 @@ tap "terraform-linters/tap"
 brew "coreutils"        # GNU core utilities (gdate, gls, etc.)
 brew "fd"               # Fast find alternative
 brew "fzf"              # Fuzzy finder
+brew "tree-sitter-cli"  # Compiles nvim treesitter parsers
 brew "grep"             # GNU grep (macOS grep is BSD)
 brew "htop"             # Interactive process viewer
 brew "btop"             # Resource monitor (prettier htop)

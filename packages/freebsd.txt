@@ -10,6 +10,7 @@ curl
 git
 git-lfs
 fish
+neovim
 vim
 tmux
 fzf

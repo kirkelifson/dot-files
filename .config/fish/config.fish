@@ -5,9 +5,9 @@ export PATH="$PATH:/Users/kirk/.docker/bin"
 # Fish configuration
 
 # Environment variables
-set -gx EDITOR vim
+set -gx EDITOR nvim
 set -gx VISUAL $EDITOR
-set -gx BUNDLER_EDITOR code
+set -gx BUNDLER_EDITOR $EDITOR
 set -gx PS_FORMAT "pid,user:20,cmd:200,etime,pcpu,rss"
 
 # Locale

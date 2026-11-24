@@ -15,6 +15,7 @@ ncdu
 ripgrep
 fd
 fzf
+tree-sitter-cli
 entr
 dos2unix
 7zip

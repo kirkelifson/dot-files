@@ -17,13 +17,6 @@ done on the machine.
 
 - [ ] **`gitconfig` lacks `includeIf` for machine-specific identity** — `.gitconfig` has your personal email hardcoded. On work machines or shared servers this is awkward. Add an `[includeIf "gitdir:~/work/"]` block pointing to a `~/.gitconfig-work` (not committed) with a different `user.email`. The install script could template it.
 
-## Neovim
-
-- [ ] **Give nvim a real config — it's currently stock** — `packages/pacman.txt` installs neovim but there is no `~/.config/nvim`, and `EDITOR=vim` means it never gets used. Two levels, pick one:
-  - **Bridge (10 min):** a minimal `~/.config/nvim/init.lua` that applies the same settings as `.vimrc` (2-space indent, search settings, leader `,`, `;`→`:`, splits, cursor restore) plus `vim.loader` — nvim instantly behaves like your vim.
-  - **Full (an evening):** a small `lazy.nvim` setup — treesitter, native LSP (nvim-lspconfig + Mason for ruby-lsp/pyright/gopls...), telescope, nvim-cmp, conform.nvim — keeping leader `,` so muscle memory holds. Keep `.vimrc` for quick `vim` edits; both stay maintained.
-- [ ] **Split EDITOR policy** — `EDITOR=vim` globally but `BUNDLER_EDITOR=code`; consider `EDITOR=nvim` once the config exists (git, fish, tmux all follow `$EDITOR`).
-
 ## CI / Repo Hygiene
 
 - [ ] **Pin GitHub Actions to commit SHAs** — Workflows reference actions by tag (`actions/checkout@v5`). Tags are mutable; pin to full SHAs (Dependabot can keep them updated) so a compromised action repo can't run code in CI with your secrets.

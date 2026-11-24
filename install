@@ -201,6 +201,12 @@ link_config_dirs() {
   link_config_dir fish
   link_config_dir waybar
   link_config_dir fastfetch
+  if is_omarchy; then
+    # Omarchy ships and updates its own nvim (LazyVim) config; leave it alone.
+    echo -e "\t[>] Omarchy detected, leaving its nvim config alone"
+  else
+    link_config_dir nvim
+  fi
   link_mise_config
 
   # Ghostty: macOS uses ~/Library/Application Support/com.mitchellh.ghostty/
