@@ -209,6 +209,11 @@ link_config_dirs() {
   # which manages its own notification setup.
   if [ "$os" = "Linux" ] && ! is_omarchy; then
     link_config_dir mako
+    # GTK dark-theme defaults: makes GTK apps (and browsers following the
+    # system theme) start dark. Skipped on macOS (own theme system) and on
+    # Omarchy, whose theme switching manages these files itself.
+    link_config_dir gtk-3.0
+    link_config_dir gtk-4.0
   fi
   if is_omarchy; then
     # Omarchy ships and updates its own nvim (LazyVim) config; leave it alone.

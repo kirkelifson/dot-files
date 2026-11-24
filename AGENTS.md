@@ -15,7 +15,8 @@ the home directory; it is idempotent and safe to re-run at any time.
   file; skim that final block to see the whole flow. Heavy steps (bulk
   packages, runtime compilation, `chsh`) are skipped when `$CI` is set, or
   forced locally with `DOTFILES_CI=1 ./install` (e.g. a fast relink).
-- `.config/` — fish, nvim, ghostty, waybar, fastfetch, mise, mako. `install`
+- `.config/` — fish, nvim, ghostty, waybar, fastfetch, mise, mako, gtk-3.0,
+  gtk-4.0. `install`
   links fish/waybar/fastfetch, nvim, ghostty and the mise fragment (Omarchy
   exceptions below); ghostty on macOS links into
   `~/Library/Application Support/com.mitchellh.ghostty/`. mako (Wayland

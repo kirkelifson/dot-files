@@ -596,6 +596,18 @@ else
   : > "$FIRST_RUN_STAMP"
 fi
 sudo -u "$TARGET_USER" bash -c 'cd ~/dot-files && ./install' || warn "./install had warnings — review output above"
+
+# Dark theme by default: the XDG settings portal (org.freedesktop.appearance
+# color-scheme) is what Firefox and friends read for prefers-color-scheme,
+# and it is backed by dconf, which only exists in a session. dbus-run-session
+# spins up a throwaway bus so this works before the user ever logs in.
+# Idempotent: it always writes the same values.
+step "Setting dark theme defaults (GTK + portal color-scheme)"
+sudo -u "$TARGET_USER" env HOME="/home/$TARGET_USER" \
+  dbus-run-session -- bash -c \
+  "gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' && \
+   gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'" \
+  || warn "could not set gsettings dark theme (portal/gtk-theme)"
 pacman -S --needed --noconfirm --asdeps - < <(grep -v '^#' packages/pacman.txt | grep -v '^$') >/dev/null 2>&1 || true
 
 step "Done. Next: reboot, then run ~/dot-files/arch/verify-install.sh (as your user, no sudo needed for most checks)."

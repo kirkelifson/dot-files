@@ -39,6 +39,7 @@ The install script is idempotent — safe to run multiple times. It will:
 | `.config/mise/config.toml` | mise language versions |
 | `.config/opencode/opencode.json` | opencode coding agent: LM Studio provider + models |
 | `.config/mako/` | Notification daemon config (persistent top-right toasts; linked on Linux only, not Omarchy) |
+| `.config/gtk-3.0/`, `.config/gtk-4.0/` | Dark-theme defaults for GTK apps (linked on Linux only, not Omarchy) |
 | `bun-globals.txt` | JS packages installed globally on every platform with bun (pi coding agent) |
 
 ### FreeBSD

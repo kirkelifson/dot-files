@@ -78,8 +78,12 @@ class InstallTests(unittest.TestCase):
                     test -L "$HOME/.config/fish"
                     if [ "$os" = Linux ]; then
                         test -L "$HOME/.config/mako"
+                        test -L "$HOME/.config/gtk-3.0"
+                        test -L "$HOME/.config/gtk-4.0"
                     else
                         test ! -e "$HOME/.config/mako"
+                        test ! -e "$HOME/.config/gtk-3.0"
+                        test ! -e "$HOME/.config/gtk-4.0"
                     fi
                     if [ "$os" = Darwin ]; then
                         test -L "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
