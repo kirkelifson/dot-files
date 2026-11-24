@@ -69,6 +69,8 @@ exec wl-paste -p -n --watch wl-copy
 exec /usr/bin/python3 ~/.config/sway/scripts/autotile
 # foot server  — foot terminal: pre-forked server makes new windows instant
 exec foot --server
+# dim-inactive — dims non-focused windows to 85% opacity; restores on focus
+exec /usr/bin/python3 ~/.config/sway/scripts/dim-inactive
 # XDG autostart entries (portals etc.)
 exec dex -a
 

@@ -1,0 +1,64 @@
+#!/usr/bin/python3
+"""dim-inactive: dim non-focused sway windows (opacity 0.85), restore on focus.
+
+Subscribes to sway window events and re-applies per-window opacity after every
+focus/new/close/title change. Focused windows always get opacity 1.0. Run as a
+daemon from the sway config's Autostart section.
+"""
+import json
+import subprocess
+
+DIM = "0.85"
+
+
+def sway(*args):
+    return subprocess.run(
+        ["swaymsg"] + list(args),
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout
+
+
+def windows():
+    """Yield leaf containers (real windows) from the current tree."""
+    tree = json.loads(sway("-t", "get_tree", "--raw"))
+    stack = [tree]
+    while stack:
+        node = stack.pop()
+        children = node.get("nodes", []) + node.get("floating_nodes", [])
+        if not children and node.get("type") in ("con", "floating_con"):
+            yield node
+        stack.extend(children)
+
+
+def dim_all():
+    # One focused node in the whole tree (None on an empty workspace).
+    focused = next((w for w in windows() if w.get("focused")), None)
+    focused_id = focused["id"] if focused else None
+    for w in windows():
+        level = "1" if w["id"] == focused_id else DIM
+        sway(f"[con_id={w['id']}] opacity {level}")
+
+
+def main():
+    dim_all()
+    proc = subprocess.Popen(
+        ["swaymsg", "-m", "-t", "subscribe", "--",
+         '["window","workspace"]'],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    for line in proc.stdout:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        # window::focus/new/close and workspace switches can all change which
+        # window should be highlighted; re-dim on any of them.
+        if event.get("change") or event.get("type"):
+            dim_all()
+
+
+if __name__ == "__main__":
+    main()
