@@ -55,6 +55,9 @@ exec swayidle -w timeout 600 'swaylock -f' timeout 900 'swaymsg output DP-1 dpms
 exec gammastep -P -O 3400 -l 38.9:-77.0
 # cliphist     — clipboard history: listener feeding cliphist from wl-paste
 exec wl-paste --watch cliphist store
+# autotile     — dwm-style dynamic splits (wide→horizontal, tall→vertical);
+#                toggle with $mod+a. Manual b/v still works per-container.
+exec /usr/bin/python3 ~/.config/sway/scripts/autotile
 # foot server  — foot terminal: pre-forked server makes new windows instant
 exec foot --server
 # XDG autostart entries (portals etc.)
@@ -134,6 +137,17 @@ mode "resize" {
     bindsym $mod+r mode "default"
 }
 bindsym $mod+r mode "resize"
+
+######## Layout templates ########
+# autotile on/off — dynamic dwm-style splits vs full manual control
+bindsym $mod+a exec sh -c 'pgrep -f scripts/autotile >/dev/null && pkill -f scripts/autotile || /usr/bin/python3 ~/.config/sway/scripts/autotile'
+# Whole-workspace presets (override autotile's per-container choices):
+#   tabbed (full-height windows, like browser tabs)
+bindsym $mod+t layout tabbed
+#   stacked (title bars stacked vertically) — $mod+s is screenshot, so $mod+u
+bindsym $mod+u layout stacking
+#   back to auto/manual tiling
+bindsym $mod+g layout default
 
 ######## Scratchpad (hidden stash for windows) ########
 # Move focused window to scratchpad (hidden)

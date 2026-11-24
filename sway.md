@@ -19,6 +19,22 @@ Window management:
   Mod + left-drag  Move floating window
   Mod + right-drag Resize floating window
 
+Layout templates (swap per-workspace):
+  (autotile)       Default: dwm-style dynamic splits — wide container
+                   splits horizontally, tall one vertically. On by default.
+  Mod+a            Toggle autotile on/off
+  Mod+t            Tabbed — full-height windows, switch like tabs
+  Mod+u            Stacked — windows stacked vertically, title bars listed
+  Mod+g            Back to default tiling (autotile resumes on next window)
+  Mod+e            Toggle split / tabbed (legacy)
+
+Tiling tips:
+  - Mod+Enter twice: autotile picks the split direction for you — you rarely
+    need Mod+b / Mod+v by hand.
+  - Nested containers: Mod+v then open a window to get a column of windows
+    inside one half of a horizontal split. Repeat for complex layouts.
+  - Mod+a off, then Mod+b/v give you fully manual control.
+
 Workspaces:
   Mod+1..9         Switch to workspace 1-9
   Mod+Shift+1..9   Move window to workspace 1-9

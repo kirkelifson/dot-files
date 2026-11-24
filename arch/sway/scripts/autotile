@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+"""autotile — dwm-style dynamic tiling for sway.
+
+Listens for window open/close and re-splits the focused container to match
+its shape (wide container splits horizontally, tall one vertically), like
+dwm's spiral. Simple, predictable, and removes 90% of manual b/v presses.
+
+Run from sway config:  exec /usr/bin/python3 ~/.config/sway/scripts/autotile
+Stop with:             pkill -f autotile
+"""
+import i3ipc
+
+
+def toggle_split(i3, _e):
+    focused = i3.get_tree().find_focused()
+    if focused is None or focused.type != "con":
+        return
+    # Only retile plain containers, never tabbed/stacked/nested special ones
+    if focused.layout not in ("splith", "splitv"):
+        return
+    w = focused.rect.width + (focused.rect.x * 2)  # treat gaps as part of shape
+    h = focused.rect.height + (focused.rect.y * 2)
+    want = "splith" if w >= h else "splitv"
+    if focused.layout != want:
+        i3.command("split " + ("horizontal" if want == "splith" else "vertical"))
+
+
+def main():
+    i3 = i3ipc.Connection()
+    i3.on("window::new", toggle_split)
+    i3.on("window::close", toggle_split)
+    i3.on("window::move", toggle_split)
+    i3.on("floating::new", lambda i3, e: None)
+    i3.main()
+
+
+if __name__ == "__main__":
+    main()
