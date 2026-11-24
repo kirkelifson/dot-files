@@ -8,6 +8,7 @@
 ######## Basics ########
 set $mod Mod4
 set $term foot
+set $browser firefox
 
 font pango:monospace 12
 default_border pixel 2
@@ -61,6 +62,8 @@ exec dex -a
 
 ######## Launcher / terminal / clipboard ########
 bindsym $mod+Return exec $term
+# browser: $mod+b is splith (i3-standard), so $mod+i
+bindsym $mod+i exec $browser
 bindsym $mod+d exec wofi --show drun
 bindsym $mod+p exec sh -c 'cliphist list | wofi --dmenu | cliphist decode | wl-copy'
 

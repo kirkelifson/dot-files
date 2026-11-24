@@ -2,6 +2,7 @@ Here's a summary of the key shortcuts from your sway config (Mod = Windows key):
 
 Launching things:
   Mod+Enter        Open a terminal (foot)
+  Mod+i            Open a browser (firefox)
   Mod+d            App launcher (wofi)
   Mod+p            Clipboard history (cliphist via wofi)
 
