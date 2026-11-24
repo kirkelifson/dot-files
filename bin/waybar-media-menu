@@ -1,0 +1,295 @@
+#!/usr/bin/python3
+"""waybar-media-menu: popup listing every MPRIS audio source with play/pause.
+
+Right-click the waybar media module ("custom/media" on-click-right) to toggle.
+Same layer-shell pattern as bin/waybar-calendar: gtk3 + gtk-layer-shell +
+python-gobject, all in the official repos. Rows live-update every 500 ms;
+click a row's play/pause button to toggle that source; Esc closes.
+The menu is a child of its spawner and checks getppid() every refresh: if
+waybar (or the terminal that launched it) dies, the menu closes with it, so
+stuck orphans can't outlive the session that opened them.
+"""
+import os
+import signal
+import subprocess
+import sys
+import traceback
+import urllib.parse
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, GLib, GLibUnix, Gtk, GtkLayerShell  # noqa: E402
+
+LAUNCHER_PID = os.getppid()  # snapshot as early as possible (see sync)
+
+PIDFILE = "/tmp/waybar-media-menu.pid"
+ERRLOG = "/tmp/waybar-media-menu.err"
+FMT = "{{playerName}}\t{{status}}\t{{artist}}\t{{title}}\t{{mpris:artUrl}}"
+REFRESH_MS = 500
+
+PRETTY = {
+    "firefox": "Firefox", "spotify": "Spotify", "mpv": "mpv", "vlc": "VLC",
+    "chromium": "Chromium", "google-chrome": "Chrome", "brave": "Brave",
+    "strawberry": "Strawberry", "audacious": "Audacious", "cellist": "Cellist",
+    "elisa": "Elisa", "lollypop": "Lollypop", "smplayer": "SMPlayer",
+    "cmus": "cmus", "ncspot": "ncspot", "jellyfin": "Jellyfin",
+}
+
+CSS = b"""
+window {
+    background-color: rgba(20, 20, 24, 0.97);
+    border-radius: 8px;
+    border: 1px solid #33333a;
+    padding: 10px;
+}
+box {
+    font-family: "FiraCode Nerd Font Mono", monospace;
+    font-size: 14px;
+    color: #c8c8c8;
+}
+header {
+    color: #666670;
+    font-size: 12px;
+    padding-bottom: 6px;
+}
+button {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    color: #50b4b4;
+}
+button:hover {
+    color: #7dcccc;
+}
+label {
+    padding: 4px 6px 4px 0;
+}
+label.playing {
+    color: #c8c8c8;
+}
+label.paused {
+    color: #77777c;
+}
+image {
+    padding-right: 6px;
+}
+"""
+
+
+def pretty(name):
+    base = name.split(".")[0]
+    return PRETTY.get(base, base[:1].upper() + base[1:])
+
+
+def snapshot():
+    """All MPRIS players: name, status, track, local art path (or None)."""
+    try:
+        out = subprocess.run(["playerctl", "-a", "metadata", "-f", FMT],
+                             capture_output=True, text=True,
+                             timeout=5).stdout.splitlines()
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return []
+    players = []
+    for line in out:
+        parts = line.split("\t")
+        if len(parts) != 5 or not parts[0]:
+            continue
+        name, status, artist, title, art = parts
+        track = " - ".join(x for x in (artist, title) if x) or "unknown track"
+        path = None
+        if art.startswith("file://"):
+            path = urllib.parse.unquote(art[len("file://"):])
+        players.append({"name": name, "status": status, "track": track,
+                        "art": path})
+    return players
+
+
+class Menu:
+    def __init__(self):
+        self.win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        GtkLayerShell.init_for_window(self.win)
+        GtkLayerShell.set_layer(self.win, GtkLayerShell.Layer.OVERLAY)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.TOP, True)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.RIGHT, True)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.TOP, 42)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.RIGHT, 8)
+        GtkLayerShell.set_keyboard_mode(self.win,
+                                        GtkLayerShell.KeyboardMode.ON_DEMAND)
+
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        self.outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.outer.add(Gtk.Label(label="audio sources"))
+        self.outer.get_children()[0].get_style_context().add_class("header")
+        self.rows = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.outer.add(self.rows)
+        self.row_by_name = {}
+        self.empty = Gtk.Label(label="no audio sources playing")
+        self.outer.add(self.empty)
+        self.win.add(self.outer)
+
+        self.win.connect("key-press-event", self.on_key)
+        self.win.connect("destroy", Gtk.main_quit)
+        GLib.timeout_add(REFRESH_MS, self.sync)
+        self.sync()  # populate immediately; no 500 ms empty-label flash
+
+    def on_key(self, _w, event):
+        if event.keyval == Gdk.KEY_Escape:
+            Gtk.main_quit()
+            return True
+        return False
+
+    @staticmethod
+    def make_art(path):
+        if not path or not os.path.isfile(path):
+            return None
+        try:
+            from gi.repository import GdkPixbuf
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(path, 32, 32)
+        except Exception:
+            return None
+
+    def toggle(self, _btn, name):
+        subprocess.run(["playerctl", "-p", name, "play-pause"],
+                       capture_output=True, timeout=5)
+        GLib.timeout_add(250, self.sync)
+        return True
+
+    def sync(self):
+        ppid = os.getppid()
+        if ppid == 1 or ppid != LAUNCHER_PID:
+            # our spawner (waybar, or a terminal that launched us) is gone —
+            # reparented to init, or we started after it already died. Never
+            # outlive it: this is what keeps waybar reloads/restarts from
+            # leaving orphaned popups.
+            if Gtk.main_level() > 0:  # else main()'s startup guard handles it
+                Gtk.main_quit()
+            return False
+        try:
+            self._sync()
+        except Exception:
+            # an exception inside a GLib callback silently REMOVES the
+            # callback, freezing the menu on its initial state — log it and
+            # keep the refresh timer alive instead
+            traceback.print_exc()
+            try:
+                with open(ERRLOG, "a") as f:
+                    traceback.print_exc(file=f)
+            except OSError:
+                pass
+        return True
+
+    def _sync(self):
+        players = snapshot()
+        seen = set()
+        for p in players:
+            seen.add(p["name"])
+            row = self.row_by_name.get(p["name"])
+            if row is None:
+                box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+                btn = Gtk.Button(label="")
+                btn.connect("clicked", self.toggle, p["name"])
+                art = Gtk.Image()
+                lbl = Gtk.Label()
+                lbl.set_justify(Gtk.Justification.LEFT)
+                box.add(art)
+                box.add(btn)
+                box.add(lbl)
+                self.rows.add(box)
+                row = {"box": box, "art": art, "btn": btn, "lbl": lbl,
+                       "art_path": None}
+                self.row_by_name[p["name"]] = row
+            playing = p["status"] == "Playing"
+            row["btn"].set_label("\uf04c" if playing else "\uf04b")
+            row["lbl"].set_label("%s: %s" % (pretty(p["name"]), p["track"]))
+            row["lbl"].get_style_context().remove_class("paused")
+            row["lbl"].get_style_context().remove_class("playing")
+            row["lbl"].get_style_context().add_class(
+                "playing" if playing else "paused")
+            if p["art"] != row["art_path"]:
+                row["art_path"] = p["art"]
+                pix = self.make_art(p["art"])
+                row["art"].clear()
+                if pix:
+                    row["art"].set_from_pixbuf(pix)
+                row["art"].set_visible(pix is not None)
+        for name, row in list(self.row_by_name.items()):
+            if name not in seen:
+                row["box"].destroy()
+                del self.row_by_name[name]
+        self.empty.set_visible(not players)
+        self.rows.set_visible(bool(players))
+        self.win.show()  # NOT show_all: it would re-show the hidden label
+        return True
+
+
+def running_pids():
+    """Live menu instances, found by exact /proc cmdline match: argv[0] is a
+    python interpreter and argv[1] resolves to this script. pgrep -f can't
+    be used here: it matches any process whose full cmdline merely CONTAINS
+    the path (shells, editors, test harnesses), and sweeping those kills
+    unrelated processes."""
+    script = os.path.realpath(__file__)
+    mine = os.getpid()
+    pids = set()
+    for ent in os.listdir("/proc"):
+        if not ent.isdigit() or int(ent) == mine:
+            continue
+        try:
+            with open("/proc/%s/cmdline" % ent, "rb") as f:
+                argv = f.read().rstrip(b"\0").split(b"\0")
+        except OSError:
+            continue
+        if (len(argv) >= 2
+                and os.path.basename(argv[0].decode("utf-8", "replace"))
+                .startswith("python")
+                and os.path.realpath(argv[1].decode("utf-8", "replace"))
+                == script):
+            pids.add(int(ent))
+    return pids
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "toggle"
+    if mode == "toggle":
+        pids = running_pids()
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+        if pids:
+            return  # was open: toggled closed
+    try:
+        open(ERRLOG, "w").close()  # fresh error log per launch
+    except OSError:
+        pass
+    with open(PIDFILE, "w") as f:
+        f.write(str(os.getpid()))
+
+    GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, Gtk.main_quit)
+    menu = Menu()
+    if os.getppid() != LAUNCHER_PID or os.getppid() == 1:
+        return  # spawner died during startup — sync's quit was a no-op
+    menu.win.show()  # children's visibility was set by Menu()'s first sync
+    try:
+        Gtk.main()
+    finally:
+        try:
+            # only remove the pidfile if it is still OURS — a successor
+            # instance may already have replaced it
+            if open(PIDFILE).read().strip() == str(os.getpid()):
+                os.remove(PIDFILE)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    main()

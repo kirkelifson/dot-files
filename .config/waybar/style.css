@@ -61,6 +61,7 @@ window#waybar {
 #cpu,
 #memory,
 #temperature,
+#custom-media,
 #pulseaudio,
 #network,
 #clock,
@@ -72,6 +73,7 @@ window#waybar {
 #cpu,
 #memory,
 #temperature,
+#custom-media,
 #pulseaudio,
 #network,
 #clock {
@@ -107,16 +109,17 @@ window#waybar {
     color: #cccc77;
 }
 
+/* now-playing (bin/waybar-media); text itself carries a play/pause glyph */
+#custom-media {
+    color: #6cc6cc;
+}
+
+#custom-media.paused {
+    color: #77777c;
+}
+
 #pulseaudio.muted {
     color: #666666;
-}
-
-#network {
-    color: #6699cc;
-}
-
-#network.disconnected {
-    color: #cc6666;
 }
 
 /* connection quality: gateway latency + packet loss (bin/waybar-net-health) */

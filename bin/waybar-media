@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""waybar-media: now-playing waybar module (MPRIS via playerctl).
+
+Continuous mode (no args): polls all MPRIS players once a second and emits
+{text,class,tooltip} JSON lines when anything changes. Shows the playing
+source in preference to paused ones. Polling (rather than playerctl -F
+follow) is deliberate: -F prints its current query immediately on startup
+(so a "wake on one line" loop hot-spins) and does not emit for players that
+appear after it starts.
+Firefox's single MPRIS bus points at a stale session when several tabs play
+(upstream bug 1710229: pausing one tab doesn't move the bus to the tab
+that's still playing), so any app with audio actually FLOWING (uncorked
+PulseAudio sink-input) but no "Playing" MPRIS player is shown from its
+stream's media.name (the real tab title) instead of the lying bus.
+"click" mode: toggles play/pause on the MPRIS player shown in the bar
+(state file written by the loop; falls back to playerctl's active player).
+The source menu popup lives in waybar-media-menu (right-click the module).
+"""
+import json
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+
+FMT = "{{playerName}}\t{{status}}\t{{artist}}\t{{title}}"
+POLL = 1.0  # seconds between playerctl sweeps
+STATE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"),
+                     "waybar-media.player")
+
+PRETTY = {
+    "firefox": "Firefox", "spotify": "Spotify", "mpv": "mpv", "vlc": "VLC",
+    "chromium": "Chromium", "google-chrome": "Chrome", "brave": "Brave",
+    "strawberry": "Strawberry", "audacious": "Audacious", "cellist": "Cellist",
+    "elisa": "Elisa", "lollypop": "Lollypop", "smplayer": "SMPlayer",
+    "cmus": "cmus", "ncspot": "ncspot", "jellyfin": "Jellyfin",
+}
+
+
+def pretty(name):
+    base = name.split(".")[0]
+    return PRETTY.get(base, base[:1].upper() + base[1:])
+
+
+def snapshot():
+    """All MPRIS players as dicts: name, status, track."""
+    try:
+        out = subprocess.run(["playerctl", "-a", "metadata", "-f", FMT],
+                             capture_output=True, text=True, timeout=5).stdout
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return []
+    players = []
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) != 4 or not parts[0]:
+            continue
+        name, status, artist, title = parts
+        # skip the artist when the title already leads with it ("x - x - song")
+        if artist and title.lower().startswith(artist.lower() + " - "):
+            artist = ""
+        track = " - ".join(x for x in (artist, title) if x) or "unknown track"
+        players.append({"name": name, "status": status, "track": track})
+    return players
+
+
+def audio_streams():
+    """(app, media.name) for every UNCORKED sink-input — streams actually
+    producing audio right now. media.name carries the real tab title even
+    when the app's MPRIS bus points at a stale session."""
+    try:
+        out = subprocess.run(["pactl", "list", "sink-inputs"],
+                             capture_output=True, text=True,
+                             timeout=5).stdout
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return []
+    streams = []
+    app = title = None
+    corked = None
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith("Sink Input #"):
+            if corked is False and app:
+                streams.append((app, title))
+            app = title = None
+            corked = None
+        elif line.startswith("Corked:"):
+            corked = line.partition(":")[2].strip() == "yes"
+        elif line.startswith("application.name ="):
+            app = line.partition("= ")[2].strip().strip('"')
+        elif line.startswith("media.name ="):
+            title = line.partition("= ")[2].strip().strip('"')
+    if corked is False and app:
+        streams.append((app, title))
+    return streams
+
+
+def clean_tab_title(raw):
+    """'(667) Artist - Title - YouTube' -> 'Artist - Title'."""
+    t = re.sub(r"^\(\d+\)\s*", "", raw or "")
+    t = re.sub(r"\s*-\s*YouTube\s*$", "", t)
+    return t.strip() or None
+
+
+def render(players):
+    """(waybar payload, state-file name or None) for this snapshot.
+
+    MPRIS is trusted when a player reports Playing; apps whose audio is
+    flowing (uncorked sink-input) without a Playing MPRIS player are shown
+    from their PulseAudio stream title instead — that is the Firefox
+    stale-bus case (bug 1710229).
+    """
+    streams = audio_streams()
+    mpris_playing = {p["name"].split(".")[0].lower()
+                     for p in players if p["status"] == "Playing"}
+    entries = [{"name": p["name"], "status": p["status"],
+                "track": p["track"], "mpris": True} for p in players]
+    seen = set()
+    for app, raw in streams:
+        if app.lower() in mpris_playing:
+            continue  # MPRIS already reports this app playing — trust it
+        title = clean_tab_title(raw)
+        if not title or title in seen:
+            continue
+        seen.add(title)
+        entries.append({"name": app, "status": "Playing", "track": title,
+                        "mpris": False})
+
+    player = next((e for e in entries if e["status"] == "Playing"),
+                  entries[0] if entries else None)
+    if not player:
+        return {"text": "", "class": "none", "tooltip": ""}, None
+    playing = player["status"] == "Playing"
+    glyph = "\uf04b" if playing else "\uf04c"  # Nerd Font play / pause
+    return {
+        "text": "%s %s %s" % (glyph, pretty(player["name"]),
+                              player["track"]),
+        "class": "playing" if playing else "paused",
+        "tooltip": "\n".join(
+            "%s: %s [%s]" % (pretty(e["name"]), e["track"],
+                             e["status"].lower())
+            for e in entries),
+    }, (player["name"] if player.get("mpris") else None)
+
+
+def toggle():
+    name = ""
+    try:
+        name = open(STATE).read().strip()
+    except OSError:
+        pass
+    cmd = ["playerctl"] + (["-p", name] if name else []) + ["play-pause"]
+    subprocess.run(cmd, capture_output=True, timeout=5)
+
+
+def main():
+    if "click" in sys.argv[1:]:
+        toggle()
+        return
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    # waybar closes our stdout on reload/exit — die silently, no traceback
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    last = None
+    while True:
+        players = snapshot()
+        payload, player_name = render(players)
+        if payload != last:
+            last = payload
+            if player_name:
+                with open(STATE, "w") as f:
+                    f.write(player_name)
+            print(json.dumps(payload), flush=True)
+        time.sleep(POLL)
+
+
+if __name__ == "__main__":
+    main()

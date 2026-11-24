@@ -15,6 +15,7 @@
     "modules-right": [
         "tray",
         "custom/keepawake",
+        "custom/media",
         "pulseaudio",
         "network",
         "custom/net-health",
@@ -104,6 +105,17 @@
         "interval": 60,
         "signal": 8,
         "on-click": "sh -c 'exec $HOME/bin/keepawake toggle'"
+    },
+
+    "custom/media": {
+        "exec": "sh -c 'exec $HOME/bin/waybar-media'",
+        "return-type": "json",
+        "format": "{text}",
+        "max-length": 70,
+        "escape": true,
+        "hide-empty-text": true,
+        "on-click": "sh -c 'exec $HOME/bin/waybar-media click'",
+        "on-click-right": "sh -c 'exec $HOME/bin/waybar-media-menu toggle'"
     },
 
     "tray": {
