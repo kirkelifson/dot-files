@@ -1,0 +1,132 @@
+/* Waybar style — dark, minimal, matches the 1c1c1c terminal aesthetic */
+
+* {
+    font-family: "GohuFont 14 Nerd Font Mono", "Liberation Mono", monospace;
+    font-size: 16px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(20, 20, 24, 0.92);
+    color: #c8c8c8;
+    border-bottom: 1px solid rgba(80, 180, 180, 0.3);
+}
+
+/* ── workspaces ── */
+#workspaces button {
+    padding: 0 8px;
+    margin: 0;
+    color: #666666;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+}
+
+#workspaces button.focused,
+#workspaces button.active {
+    color: #ffffff;
+    border-bottom: 2px solid #50b4b4;
+}
+
+#workspaces button.visible {
+    color: #aaaaaa;
+}
+
+#workspaces button.urgent {
+    color: #ff6666;
+    border-bottom: 2px solid #ff6666;
+}
+
+#workspaces button:hover {
+    background: rgba(80, 180, 180, 0.15);
+    box-shadow: none;
+}
+
+/* ── mode (resize etc.) ── */
+#mode {
+    background: #50b4b4;
+    color: #141418;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+/* ── window title ── */
+#window {
+    color: #888888;
+    padding: 0 12px;
+}
+
+/* ── right-side modules ── */
+#cpu,
+#memory,
+#temperature,
+#pulseaudio,
+#network,
+#clock,
+#tray {
+    padding: 0 10px;
+}
+
+/* subtle separators via left border */
+#cpu,
+#memory,
+#temperature,
+#pulseaudio,
+#network,
+#clock {
+    border-left: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+#clock {
+    color: #50b4b4;
+    font-weight: bold;
+}
+
+#cpu {
+    color: #88bb88;
+}
+
+#memory {
+    color: #b088cc;
+}
+
+#temperature.cpu {
+    color: #cc9966;
+}
+
+#temperature.gpu {
+    color: #cc8855;
+}
+
+#temperature.critical {
+    color: #ff4444;
+}
+
+#pulseaudio {
+    color: #cccc77;
+}
+
+#pulseaudio.muted {
+    color: #666666;
+}
+
+#network {
+    color: #6699cc;
+}
+
+#network.disconnected {
+    color: #cc6666;
+}
+
+#tray {
+    padding: 0 6px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}

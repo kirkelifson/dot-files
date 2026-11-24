@@ -1,0 +1,92 @@
+// Waybar config — dot-files Arch desktop (AMD Ryzen + RX 7900 XT)
+// Linked from ~/.config/waybar/config
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 0,
+
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode",
+        "sway/window"
+    ],
+    "modules-center": [],
+    "modules-right": [
+        "tray",
+        "pulseaudio",
+        "network",
+        "cpu",
+        "temperature#cpu",
+        "temperature#gpu",
+        "memory",
+        "clock"
+    ],
+
+    "sway/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+
+    "sway/mode": {
+        "format": " {} "
+    },
+
+    "sway/window": {
+        "max-length": 60
+    },
+
+    "clock": {
+        "format": "{:%a %b %d  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "format-alt": "{:%Y-%m-%d %H:%M:%S}"
+    },
+
+    "cpu": {
+        "format": "CPU {usage}%",
+        "interval": 3,
+        "tooltip": false
+    },
+
+    "memory": {
+        "format": "MEM {percentage}%",
+        "interval": 5,
+        "tooltip-format": "{used:0.1f}G / {total:0.1f}G"
+    },
+
+    "temperature#cpu": {
+        "hwmon-path": "/sys/class/hwmon/hwmon4/temp1_input",
+        "critical-threshold": 85,
+        "format": "CPU {temperatureC}°",
+        "format-critical": "CPU {temperatureC}°!",
+        "interval": 5
+    },
+
+    "temperature#gpu": {
+        "hwmon-path": "/sys/class/hwmon/hwmon3/temp1_input",
+        "critical-threshold": 90,
+        "format": "GPU {temperatureC}°",
+        "format-critical": "GPU {temperatureC}°!",
+        "interval": 5
+    },
+
+    "pulseaudio": {
+        "format": "VOL {volume}%",
+        "format-muted": "MUTE",
+        "on-click": "pavucontrol",
+        "tooltip-format": "{desc}"
+    },
+
+    "network": {
+        "format-ethernet": "{ipaddr}",
+        "format-wifi": "{essid} {signalStrength}%",
+        "format-disconnected": "offline",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr} via {gwaddr}",
+        "interval": 10
+    },
+
+    "tray": {
+        "spacing": 8
+    }
+}
