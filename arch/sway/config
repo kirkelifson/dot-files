@@ -43,6 +43,13 @@ output DP-1 pos 0 0
 output DP-1 scale 1
 
 ######## Autostart ########
+# graphical-session.target — lets systemd --user services (e.g. sunshine,
+# the Moonlight stream host) run with session services. Import the session
+# env FIRST: without WAYLAND_DISPLAY in the user manager, GUI daemons start
+# display-less (sunshine's tray/main loop die) — enable them with
+# `systemctl --user enable <unit>`; they have WantedBy=graphical-session.target
+exec systemctl --user import-environment WAYLAND_DISPLAY DISPLAY SWAYSOCK \
+  && systemctl --user start graphical-session.target
 # waybar       — status bar: workspaces, window title, clock, CPU/GPU temp, volume
 exec waybar
 # mako         — notification daemon (Wayland-native); history via makoctl

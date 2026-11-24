@@ -15,11 +15,19 @@ each item notes where it would live.
    plain HTTP on 0.0.0.0 also disables browser secure-context features; a
    loopback bind + SSH tunnel is the safer default.
 
-2. **Pin the runtime package-list fetch.** `arch/post-install.sh:8` pulls
-   `packages/pacman-gaming.txt` from raw.githubusercontent.com/**master**
-   and pipes it to pacman **as root**. Pin the URL to a full commit SHA
-   (or verify a checksum fetched out-of-band) — a compromised GitHub
-   account otherwise becomes root code-execution on every fresh install.
+2. **Pin every unversioned fetch in post-install.** Unversioned URLs run
+   unreviewed future content into a root context on every fresh install;
+   pin each to a commit SHA or tag + checksum (Sunshine — now pinned in
+   post-install.sh with tag + SHA256 — is the worked example):
+   - `arch/post-install.sh:8` pulls `packages/pacman-gaming.txt` from
+     raw.githubusercontent.com/**master** and pipes it to pacman **as
+     root** — the worst of the three (pin to a full commit SHA).
+   - `arch/post-install.sh:7,84` clones dot-files from **master** and
+     then runs the post-install script out of that checkout — pin to a
+     commit SHA the way the ISO pins its own files.
+   - The AUR recipe (`post-install.sh:258,279`) clones PKGBUILDs at git
+     master — same class of exposure; overlapping with item 4's review
+     pass, but pinning commits in `packages/aur.txt` closes it fully.
 
 3. **Finish Secure Boot.** post-install's sbctl step is interactive and
    hasn't been run on this machine (sbctl isn't installed). Beyond enrolling

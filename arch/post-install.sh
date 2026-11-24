@@ -6,6 +6,13 @@ set -euo pipefail
 
 REPO_URL="https://github.com/kirkelifson/dot-files.git"
 GAMING_LIST_URL="https://raw.githubusercontent.com/kirkelifson/dot-files/master/packages/pacman-gaming.txt"
+# Sunshine (Moonlight stream host): upstream pulled its packages from the
+# official repos/AUR ecosystem, so the supported Arch path is their prebuilt
+# release asset. Pinned tag + SHA256 — bump BOTH together when upgrading
+# (recompute the hash from the release page, never from the URL alone).
+SUNSHINE_VER="2026.914.233613"
+SUNSHINE_SHA256="17eb8c4d823a2693038f40aeeab56943ef0d5d6ace8ac90b3693905b0acbba87"
+SUNSHINE_URL="https://github.com/SunshineStream/Sunshine/releases/download/v${SUNSHINE_VER}/sunshine-${SUNSHINE_VER}-1-x86_64.pkg.tar.zst"
 
 step() { printf '\n\033[1;34m[+]\033[0m %s\n' "$*"; }
 WARNS=0 FAILS=0
@@ -323,6 +330,31 @@ if [[ -s packages/aur.txt ]]; then
 else
   warn "packages/aur.txt missing or empty — AUR packages skipped"
 fi
+
+step "Sunshine (Moonlight stream host, pinned ${SUNSHINE_VER}) — Mac remote desktop"
+if [[ "$(pacman -Q sunshine 2>/dev/null | awk '{print $2}')" == "${SUNSHINE_VER}-1" ]]; then
+  echo "  Sunshine ${SUNSHINE_VER}-1 already installed."
+else
+  asset="/tmp/sunshine-${SUNSHINE_VER}-1-x86_64.pkg.tar.zst"
+  curl -fsSL "$SUNSHINE_URL" -o "$asset" \
+    || die "could not download Sunshine ${SUNSHINE_VER} — check the release tag"
+  printf '%s  %s\n' "$SUNSHINE_SHA256" "$asset" | sha256sum -c - >/dev/null \
+    || die "Sunshine checksum mismatch — asset does not match the pinned hash, NOT installing"
+  pacman -U --noconfirm "$asset"
+  rm -f "$asset"
+  echo "  Installed Sunshine ${SUNSHINE_VER}-1."
+fi
+# avahi gives Moonlight mDNS auto-discovery; direct-IP connect works without it.
+systemctl enable --now avahi-daemon.service 2>/dev/null \
+  || warn "avahi-daemon not enabled — Moonlight discovery off (connect by IP instead)"
+# video group is required for KMS capture on Wayland; applies at next login.
+usermod -aG video "$TARGET_USER" 2>/dev/null \
+  || warn "could not add $TARGET_USER to the video group — KMS capture will fail"
+# Autostart with the session (sway config starts graphical-session.target and
+# imports WAYLAND_DISPLAY for it — without that the unit runs display-less).
+sudo -u "$TARGET_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$TARGET_USER")" \
+  systemctl --user enable sunshine.service \
+  || warn "could not enable the sunshine user unit — run: systemctl --user enable sunshine.service"
 
 step "Display manager (sddm) — installs with the desktop batch, enable now"
 systemctl enable sddm.service 2>/dev/null \
