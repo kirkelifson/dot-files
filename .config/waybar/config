@@ -14,6 +14,7 @@
     "modules-center": [],
     "modules-right": [
         "tray",
+        "custom/keepawake",
         "pulseaudio",
         "network",
         "custom/net-health",
@@ -94,6 +95,15 @@
         "format": "{text}",
         "interval": 10,
         "on-click": "sh -c 'exec $HOME/bin/waybar-net-health'"
+    },
+
+    "custom/keepawake": {
+        "exec": "sh -c 'exec $HOME/bin/keepawake status'",
+        "return-type": "json",
+        "format": "{text}",
+        "interval": 60,
+        "signal": 8,
+        "on-click": "sh -c 'exec $HOME/bin/keepawake toggle'"
     },
 
     "tray": {

@@ -10,6 +10,13 @@
 #   2. the microphone is being captured — voice/video calls
 set -u
 
+# 0) manual keep-awake toggle (bin/keepawake — the waybar ☕ module): inhibit
+#    ALL idle actions while the flag exists. Checked first so it overrides the
+#    checks below. Lives in XDG_RUNTIME_DIR, so it can't survive a logout.
+if [[ -f "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/keepawake.inhibit" ]]; then
+    exit 1
+fi
+
 # 1) fullscreen check: walk the sway tree for any real window with fullscreen_mode
 #    set. IMPORTANT: sway's get_tree reports fullscreen_mode=1 on WORKSPACE and
 #    __i3_scratch container nodes too — only type "con"/"floating_con" with an

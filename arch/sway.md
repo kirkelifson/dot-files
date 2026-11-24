@@ -57,4 +57,7 @@ Media:
 Session:
   Mod+Shift+l      Lock: aquarium screensaver takes over; first input brings
                    the real lock screen (press q in the fish to dismiss unlocked)
+  waybar ☀️/🌙      Keep-awake toggle (keepawake): click to inhibit ALL idle
+                   actions (screensaver, auto-lock, DPMS off) — like macOS
+                   KeepingYouAwake. State resets at logout/reboot. CLI: keepawake
   Mod+Shift+q      Exit sway (with confirmation)

@@ -132,6 +132,16 @@ window#waybar {
     color: #ff4444;
 }
 
+/* keep-awake toggle (bin/keepawake): ☀️ emoji = inhibiting idle, 🌙 = normal.
+   Both are Noto Color Emoji glyphs (fixed colors, no CSS state color applies) */
+#custom-keepawake.on {
+    color: #ffd75f;
+}
+
+#custom-keepawake.off {
+    color: #8899cc;
+}
+
 #tray {
     padding: 0 6px;
 }

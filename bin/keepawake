@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# keepawake — KeepingYouAwake-style toggle for the Wayland idle chain.
+#
+# While ON, ALL idle actions are inhibited: the 300s aquarium screensaver,
+# the 600s swaylock and the 900s DPMS off. Mechanism: a flag file that
+# arch/sway/scripts/idle-gate checks first — idle-gate is the single choke
+# point every swayidle timeout consults (directly, or via screensaver
+# should-lock). Manual Mod+Shift+L lock bypasses the gate and still works.
+#
+# The flag lives in $XDG_RUNTIME_DIR, so it self-clears on logout/reboot —
+# you can never come back from a reboot to a machine that never sleeps.
+#
+# Usage:
+#   keepawake            show status (waybar JSON when stdout is piped, else text)
+#   keepawake toggle     flip state and poke waybar to re-render the module
+#   keepawake on|off     set state explicitly and poke waybar
+#   keepawake status     always emit waybar JSON (used by the ☕ module exec)
+set -u
+
+RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+FLAG="$RUNTIME/keepawake.inhibit"
+WAYBAR_SIGNAL=8   # waybar custom module "signal": 8  →  pkill -RTMIN+8 waybar
+
+notify_waybar() {
+    # Module re-runs its exec on SIGRTMIN+8 (interval 60 is the fallback poll)
+    pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar 2>/dev/null || true
+}
+
+is_on() { [[ -f $FLAG ]]; }
+
+json() {
+    # ON: ☀️ (U+2600 + U+FE0F), OFF: 🌙 (U+1F319) — color-emoji presentation so
+    # Noto Color Emoji renders them as its bright chunky glyphs. Monochrome
+    # text forms (U+FE0E) were too thin/faint at 16px to read at a glance.
+    if is_on; then
+        printf '{"text":"☀️","class":"on","tooltip":"keep awake ON — screensaver, auto-lock and DPMS off are inhibited"}\n'
+    else
+        printf '{"text":"🌙","class":"off","tooltip":"keep awake off — normal idle chain (screensaver 5m, lock 10m, DPMS 15m)"}\n'
+    fi
+}
+
+case ${1:-toggle} in
+on)
+    touch "$FLAG"
+    notify_waybar
+    echo "keep awake ON"
+    ;;
+off)
+    rm -f "$FLAG"
+    notify_waybar
+    echo "keep awake OFF"
+    ;;
+toggle)
+    if is_on; then rm -f "$FLAG"; else touch "$FLAG"; fi
+    notify_waybar
+    if is_on; then echo "keep awake ON"; else echo "keep awake OFF"; fi
+    ;;
+status)
+    json
+    ;;
+*)
+    echo "usage: $0 [status|toggle|on|off]" >&2
+    exit 2
+    ;;
+esac
