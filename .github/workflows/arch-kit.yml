@@ -1,0 +1,83 @@
+# arch-kit superficial checks — CI-safe ONLY (no Docker ISO builds, no QEMU VMs).
+# The full install + post-install validation is a LOCAL workflow by design:
+#   arch/test/run-vm-test.sh  (guarded: refuses to run when $CI is set)
+# This workflow intentionally stays fast and read-only.
+name: arch-kit
+
+on:
+  push:
+    paths:
+      - "arch/**"
+      - "packages-pacman.txt"
+      - "packages-pacman-gaming.txt"
+      - ".github/workflows/arch-kit.yml"
+  schedule:
+    - cron: "0 6 * * 1" # weekly: package availability + CVE report
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: shellcheck + syntax + json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: shellcheck (warnings and above; info-level style notes ignored)
+        run: |
+          status=0
+          while IFS= read -r -d '' f; do
+            shellcheck --severity=warning --external-sources "$f" || status=1
+          done < <(find arch -name '*.sh' -print0)
+          exit $status
+      - name: bash -n (arch scripts)
+        run: find arch -name '*.sh' -print0 | xargs -0 -n1 bash -n
+      - name: python syntax (test harness)
+        run: python3 -m py_compile arch/test/*.py
+      - name: json syntax (archinstall configs)
+        run: |
+          status=0
+          for f in arch/archinstall/*.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" || status=1
+          done
+          exit $status
+
+  static:
+    name: config sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash syntax (arch scripts)
+        run: find arch -name '*.sh' -print0 | xargs -0 -n1 bash -n
+      - name: archinstall config sanity (schema, ESP flags, secrets)
+        run: python3 arch/test/check-configs.py
+
+  packages:
+    name: packages resolve in official repos
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: refresh pacman db
+        run: |
+          pacman-key --init
+          pacman -Sy --noconfirm
+      - name: every chosen package resolves
+        run: |
+          set -e
+          MISSING=0
+          PKGS=$(grep -hEv '^\s*(#|!|$)' packages-pacman.txt packages-pacman-gaming.txt arch/iso/packages.x86_64 | sort -u)
+          for p in $PKGS; do
+            pacman -Si "$p" >/dev/null 2>&1 || { echo "MISSING: $p"; MISSING=1; }
+          done
+          exit $MISSING
+
+  cves:
+    name: CVE report (advisory, non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: report open Arch security issues touching kit packages
+        run: python3 arch/test/cve-report.py
