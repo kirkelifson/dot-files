@@ -224,9 +224,13 @@ ln -sfn "/home/$TARGET_USER/dot-files/arch/sway/foot.ini" "$FOOT_DST"
 if [[ -s packages-aur.txt ]]; then
   step "AUR helper (paru) + packages-aur.txt"
   BUILD=$(mktemp -d); chown "$TARGET_USER":"$TARGET_USER" "$BUILD"
-  if sudo -u "$TARGET_USER" git clone -q --depth 1 https://aur.archlinux.org/paru.git "$BUILD/paru" \
-     && sudo -u "$TARGET_USER" bash -c "cd '$BUILD/paru' && makepkg -f --noconfirm >/dev/null 2>&1" \
-     && pacman -U --noconfirm "$BUILD"/paru/paru-*.pkg.tar.zst; then
+  # paru is a Rust build — minutes of cargo output — so only build it when
+  # missing, and never silence it: a silent makepkg looks hung and hides
+  # failures. Progress streams here; only the final pacman -U is quiet.
+  if pacman -Q paru >/dev/null 2>&1 \
+     || { sudo -u "$TARGET_USER" git clone -q --depth 1 https://aur.archlinux.org/paru.git "$BUILD/paru" \
+          && sudo -u "$TARGET_USER" bash -c "cd '$BUILD/paru' && makepkg -f --noconfirm" \
+          && pacman -U --noconfirm "$BUILD"/paru/paru-*.pkg.tar.zst; }; then
     # paru -S cannot be used from a script: it shells out to `sudo pacman`
     # as $TARGET_USER, which prompts for a password root can't answer
     # (root's credentials don't carry through `sudo -u`). And `paru -S -`
