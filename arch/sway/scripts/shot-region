@@ -1,0 +1,7 @@
+#!/bin/sh
+# Region screenshot → ~/shots/<ts>.png + clipboard. Bound to $mod+S in ../init.
+set -e
+mkdir -p "$HOME/shots"
+f="$HOME/shots/$(date +%s).png"
+grim -g "$(slurp)" "$f"
+wl-copy < "$f"

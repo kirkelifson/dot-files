@@ -1,0 +1,121 @@
+# sway config — dot-files Arch desktop.
+# Installed to ~/.config/sway/config by post-install.sh.
+# Sway reads this at startup; `swaymsg reload` applies edits live.
+#
+# Translated from the kit's original river init (riverctl → sway config).
+# The programs spawned here are the ecosystem; rationale: ../ARCH.md §4.
+
+######## Basics ########
+set $mod Mod4
+set $term foot
+
+font pango:monospace 12
+default_border pixel 2
+default_floating_border pixel 2
+input type:keyboard {
+    repeat_delay 300
+    repeat_rate 50
+}
+
+######## Displays (LG 27GP950-B: 4K 144 Hz VRR over DP with DSC) ########
+output DP-1 mode 3840x2160@144
+output DP-1 adaptive_sync on
+output DP-1 pos 0 0
+output DP-1 scale 1
+
+######## Autostart ########
+# waybar       — status bar: workspaces, window title, clock, CPU/GPU temp, volume
+exec waybar
+# mako         — notification daemon (Wayland-native); history via makoctl
+exec mako
+# polkit-gnome — polkit agent: GUI auth prompts for privilege elevation
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+# swayidle     — idle daemon: lock after 600s, DPMS off after 900s
+exec swayidle -w timeout 600 'swaylock -f' timeout 900 'swaymsg output DP-1 dpms off' resume 'swaymsg output DP-1 dpms on'
+# gammastep    — night light (start paused; toggle with the keybind below)
+exec gammastep -P -l 38.9:-77.0
+# cliphist     — clipboard history: listener feeding cliphist from wl-paste
+exec wl-paste --watch cliphist store
+# foot server  — foot terminal: pre-forked server makes new windows instant
+exec foot --server
+# XDG autostart entries (portals etc.)
+exec dex -a
+
+######## Launcher / terminal / clipboard ########
+bindsym $mod+Return exec $term
+bindsym $mod+d exec wofi --show drun
+bindsym $mod+p exec sh -c 'cliphist list | wofi --dmenu | cliphist decode | wl-copy'
+
+######## Workspaces (dwm tags → sway workspaces 1..9) ########
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+
+######## Focus / movement (dwm-style: J/K down/up the stack) ########
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+
+######## Splits (was rivertile main/stack) ########
+bindsym $mod+b splith
+bindsym $mod+v splitv
+# was $mod+h/l main-ratio adjust — nearest sway equivalent: resize the split
+bindsym $mod+h resize shrink width 40 px
+bindsym $mod+l resize grow width 40 px
+
+######## Mouse: move/resize floating views (left-drag / right-drag) ########
+floating_modifier $mod
+
+######## Float / fullscreen / close / exit ########
+bindsym $mod+space floating toggle
+bindsym $mod+f fullscreen toggle
+bindsym $mod+Shift+c kill
+bindsym $mod+Shift+q exec swaynag -m "Exit sway?" -B "Exit" "swaymsg exit"
+
+######## Screenshots: grim+slurp — region / full, to file + clipboard ########
+bindsym $mod+s exec ~/.config/sway/scripts/shot-region
+bindsym $mod+Shift+s exec ~/.config/sway/scripts/shot-full
+
+######## Media / brightness / night light ########
+bindsym $mod+Next exec playerctl play-pause
+bindsym $mod+Prior exec playerctl next
+bindsym XF86AudioRaiseVolume exec pamixer -i 5
+bindsym XF86AudioLowerVolume exec pamixer -d 5
+bindsym XF86AudioMute exec pamixer -t
+bindsym XF86MonBrightnessUp exec brightnessctl set +5%
+bindsym XF86MonBrightnessDown exec brightnessctl set 5%-
+bindsym $mod+n exec gammastep -t 6500:3400    # night light on
+bindsym $mod+Shift+n exec pkill gammastep     # night light off
+
+######## Rules ########
+# Float dialog-ish windows
+for_window [app_id="pavucontrol"] floating enable
+for_window [app_id="nm-connection-editor"] floating enable
+for_window [title="Picture-in-Picture"] floating enable
+# Allow tearing for fullscreen games (opt-in; per-window in sway ≥1.12)
+for_window [app_id="steam_app_*"] allow_tearing enable

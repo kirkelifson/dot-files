@@ -1,0 +1,28 @@
+# Packages on the live ISO (the installer medium itself).
+# The TARGET system's packages live in ../archinstall/user_configuration.json.
+archinstall
+archiso
+base
+base-devel
+zsh
+btrfs-progs
+efibootmgr
+fish
+git
+linux
+linux-firmware
+amd-ucode
+mkinitcpio
+networkmanager
+openssh
+python
+sudo
+# mkinitcpio-archiso provides the archiso/boot hooks (required!)
+mkinitcpio-archiso
+syslinux
+systemd-resolvconf
+tmux
+vim
+curl
+wget
+zram-generator

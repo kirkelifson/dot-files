@@ -1,0 +1,7 @@
+#!/bin/sh
+# Full-screen screenshot → ~/shots/<ts>.png + clipboard. Bound to $mod+Shift+S in ../init.
+set -e
+mkdir -p "$HOME/shots"
+f="$HOME/shots/$(date +%s).png"
+grim "$f"
+wl-copy < "$f"

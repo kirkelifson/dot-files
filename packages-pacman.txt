@@ -83,10 +83,33 @@ valkey
 postgresql
 
 # Networking & Security
+networkmanager
 nmap
 mtr
 gnupg
 qrencode
+
+# Display manager + sway WM session (sddm greets sway; see ARCH.md §4)
+sddm
+sway
+waybar
+foot
+wofi
+mako
+swaybg
+swaylock
+swayidle
+grim
+slurp
+# sway init helpers (spawned by arch/sway/config) — wl-clipboard already in core
+polkit-gnome
+gammastep
+cliphist
+dex
+pamixer
+playerctl
+brightnessctl
+xdg-desktop-portal-wlr
 
 # Containers
 podman
