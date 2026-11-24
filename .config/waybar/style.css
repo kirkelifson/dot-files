@@ -1,7 +1,7 @@
 /* Waybar style — dark, minimal, matches the 1c1c1c terminal aesthetic */
 
 * {
-    font-family: "GohuFont 14 Nerd Font Mono", "Liberation Mono", monospace;
+    font-family: "FiraCode Nerd Font Mono", "Liberation Mono", monospace;
     font-size: 16px;
     min-height: 0;
 }
