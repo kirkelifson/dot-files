@@ -59,10 +59,12 @@ jobs:
       image: archlinux:latest
     steps:
       - uses: actions/checkout@v4
-      - name: refresh pacman db
+      - name: refresh pacman db (multilib enabled; --disable-sandbox because
+          pacman's download sandbox fails inside containers)
         run: |
           pacman-key --init
-          pacman -Sy --noconfirm
+          printf '[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf
+          pacman -Sy --disable-sandbox --noconfirm
       - name: every chosen package resolves
         run: |
           set -e
