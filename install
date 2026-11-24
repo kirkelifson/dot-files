@@ -387,6 +387,17 @@ install_mise_runtimes() {
   fi
 }
 
+setup_launchd_gui_env() {
+  # macOS only: propagate the dot-files PATH/env into the launchd GUI
+  # environment, so apps launched from Finder/Dock (e.g. the Hermes desktop
+  # app and its background shells) inherit it. No-op elsewhere.
+  if [ "$os" = "Darwin" ]; then
+    echo "[+] Setting launchd GUI environment (PATH, EDITOR, locales)…"
+    bash "$(cd "$(dirname "$0")" && pwd)/macos/gui-env.sh"
+    echo -e "    Relaunch GUI apps (incl. Hermes Desktop) to pick it up."
+  fi
+}
+
 # --- Main ---
 if [ "$os" = "FreeBSD" ]; then
   export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
@@ -400,4 +411,5 @@ setup_vim_packages
 install_fonts
 setup_fish_shell
 install_mise_runtimes
+setup_launchd_gui_env
 echo -e "[!] Restart terminal session for changes to take effect."
