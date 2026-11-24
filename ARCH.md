@@ -194,9 +194,12 @@ harden because neither OS can damage the other's bootloader.
 2. **Windows updates resetting boot order** — re-assert with
    `efibootmgr -o <arch>,<windows>` (entries via `efibootmgr -v`) or just
    pick at F12; both entries always exist on separate drives.
-3. **Time skew** — Windows registry
-   `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation`,
-   `RealTimeIsUniversal` (DWORD) = 1. Arch is already UTC.
+3. **Time skew** — Arch stores hardware clock as UTC; Windows assumes
+   local time. Fix once from an **admin PowerShell** in Windows:
+   ```
+   reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f
+   ```
+   Reboot Windows for it to take effect. No change needed on the Arch side.
 4. **Fast Startup dirty NTFS** — `powercfg /h off` in Windows if you ever
    mount its data volumes from Linux (§6).
 
