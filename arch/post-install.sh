@@ -54,6 +54,23 @@ else
   sudo -u "$TARGET_USER" git clone "$REPO_URL" "/home/$TARGET_USER/dot-files"
 fi
 cd "/home/$TARGET_USER/dot-files"
+
+# Preflight: the kit files post-install (and the session it sets up) need,
+# checked BEFORE any package installs. Report ALL missing files at once.
+missing=()
+[[ -f arch/ssh/authorized_keys ]] \
+  || missing+=("arch/ssh/authorized_keys — sshd gets hardened pubkey-only; without keys you cannot ssh in")
+[[ -f arch/sway/config ]] || missing+=("arch/sway/config — sway session config")
+[[ -f arch/sway/foot.ini ]] || missing+=("arch/sway/foot.ini — foot terminal config")
+ls arch/sway/scripts/shot-* >/dev/null 2>&1 || missing+=("arch/sway/scripts/shot-* — screenshot scripts")
+[[ -f packages-pacman.txt ]] || missing+=("packages-pacman.txt — installed-system package list")
+if (( ${#missing[@]} )); then
+  echo "error: post-install preflight failed — ${#missing[@]} required file(s) missing from $PWD:" >&2
+  printf '  - %s\n' "${missing[@]}" >&2
+  echo "(git -C $PWD pull first, or push arch/ from the repo you maintain and re-clone)" >&2
+  exit 1
+fi
+
 pacman -S --needed --noconfirm - < <(grep -v '^#' packages-pacman.txt | grep -v '^$')
 
 step "Gaming packages"

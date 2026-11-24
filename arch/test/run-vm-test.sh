@@ -33,6 +33,30 @@ SHARE_TAG=vmshare
 SHARE_DIR="$DIR/vm-share"
 KEY="$DIR/keys/test_key"
 
+# Preflight: required files checked BEFORE any VM work, all missing reported.
+# keys/test_key and keys/rootpw are generated locally (gitignored) — test_key
+# is created on demand in launch_vm; rootpw must be created once by hand.
+missing=()
+command -v /opt/homebrew/bin/qemu-system-x86_64 >/dev/null 2>&1 \
+  || { command -v qemu-system-x86_64 >/dev/null 2>&1 || missing+=("qemu-system-x86_64 — brew install qemu"); }
+[[ -f /opt/homebrew/share/qemu/edk2-i386-vars.fd || -f /usr/share/OVMF/OVMF_VARS.fd ]] \
+  || missing+=("edk2/OVMF vars firmware — brew install qemu (macOS) or OVMF (Linux)")
+case "${1:-}" in
+  install) ;;
+  *) [[ -f "$DISK" ]] || missing+=("test-disk.qcow2 — run './run-vm-test.sh install' first to create it") ;;
+esac
+case "${1:-}" in
+  install|prep-ssh|post-install)
+    [[ -f "$DIR/keys/rootpw" ]] \
+      || missing+=("arch/test/keys/rootpw — throwaway VM root password; create with: umask 077; printf 'vmtest123\\n' > arch/test/keys/rootpw")
+    ;;
+esac
+if (( ${#missing[@]} )); then
+  echo "error: harness preflight failed — ${#missing[@]} required file(s)/tool(s) missing:" >&2
+  printf '  - %s\n' "${missing[@]}" >&2
+  exit 1
+fi
+
 vm_running() { pgrep -f "qemu-system-x86_64.*$DISK" >/dev/null 2>&1; }
 qmp() { (cd "$DIR" && python3 qmp.py "$@"); }
 wait_screen() { (cd "$DIR" && python3 waitfor.py "$1" "${2:-600}" "${3:-15}"); }

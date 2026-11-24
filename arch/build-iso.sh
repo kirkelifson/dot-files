@@ -19,6 +19,32 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+# Preflight: every file the build (and the install it produces) needs must be
+# present BEFORE any work starts. Report ALL missing files at once.
+missing=()
+[[ -f "$SCRIPT_DIR/archinstall/user_credentials.json" ]] \
+  || missing+=("arch/archinstall/user_credentials.json — plaintext user password baked into the ISO; copy archinstall/user_credentials.json.example and set a real password")
+[[ -f "$SCRIPT_DIR/archinstall/user_configuration.json" ]] \
+  || missing+=("arch/archinstall/user_configuration.json — archinstall config")
+[[ -f "$SCRIPT_DIR/archinstall/user_disk_layout.json" ]] \
+  || missing+=("arch/archinstall/user_disk_layout.json — disk layout")
+[[ -f "$ISO_DIR/airootfs/root/autostart.sh" ]] \
+  || missing+=("arch/iso/airootfs/root/autostart.sh — boot-time installer driver")
+[[ -f "$SCRIPT_DIR/ssh/authorized_keys" ]] \
+  || missing+=("arch/ssh/authorized_keys — your SSH pubkey; without it post-install hardens sshd with no way in over the network")
+[[ -f "$SCRIPT_DIR/sway/config" ]] || missing+=("arch/sway/config — sway session config")
+[[ -f "$SCRIPT_DIR/sway/foot.ini" ]] || missing+=("arch/sway/foot.ini — foot terminal config")
+ls "$SCRIPT_DIR"/sway/scripts/shot-* >/dev/null 2>&1 \
+  || missing+=("arch/sway/scripts/shot-* — screenshot scripts")
+for list in packages-pacman.txt packages-pacman-gaming.txt; do
+  [[ -f "$SCRIPT_DIR/../$list" ]] || missing+=("$list — installed-system package list")
+done
+if (( ${#missing[@]} )); then
+  echo "error: build preflight failed — ${#missing[@]} required file(s) missing:" >&2
+  printf '  - %s\n' "${missing[@]}" >&2
+  exit 1
+fi
+
 mkdir -p "$WORKDIR"
 
 # A completed build leaves a run-once marker; mkarchiso then skips silently.
