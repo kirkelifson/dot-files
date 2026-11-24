@@ -158,15 +158,12 @@ fi
 step "SSH: LAN-only, port 8631, pubkey auth only"
 SSHD_DIR=/etc/ssh/sshd_config.d
 install -d -m 755 "$SSHD_DIR"
-# Primary LAN IPv4: whatever the default route egresses through.
-LAN_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="src") print $(i+1); exit}' || true)
-if [[ -n ${LAN_IP:-} ]]; then
-  LISTEN="ListenAddress ${LAN_IP}"
-  echo "Binding sshd to LAN address: ${LAN_IP}"
-else
-  LISTEN="# ListenAddress not set — no default-route address detected"
-  warn "Could not detect a LAN address; sshd will listen on all interfaces."
-fi
+# Never bake ListenAddress in: the IP is whatever DHCP handed out on run
+# day, and a stale address makes sshd fail to bind at every boot (seen in
+# the field). Port 8631 + pubkey-only + AllowUsers is the hardening; bind
+# all interfaces and filter at the firewall if LAN-only matters.
+LISTEN="# ListenAddress intentionally not set — a baked-in DHCP address goes stale and breaks sshd at boot"
+warn "sshd will listen on all interfaces (LAN-only binding is fragile with DHCP — use a firewall)."
 cat > "$SSHD_DIR/10-lan-hardening.conf" <<EOF
 # Managed by dot-files arch/post-install.sh
 Port 8631
