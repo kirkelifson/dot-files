@@ -84,39 +84,29 @@ each item notes where it would live.
     match. Hook it into `set-wallpaper` so the whole desktop shifts with
     the background.
 
-15. **`cava`** — terminal audio visualizer; the PipeWire stack is complete
-    so it works out of the box. Fun in a scratchpad or on the lock screen
-    era of the fish.
-
-16. **Restyle the sddm theme.** The login screen is a cloned elarun with a
+15. **Restyle the sddm theme.** The login screen is a cloned elarun with a
     swapped background — functional but dated. A minimal custom QML
     matching the waybar palette (dark panel, no user list, clock) would
     make the login feel like the rest of the setup.
 
-17. **pacman.conf cosmetics + speed.** Still at defaults: add `Color`,
-    `ILoveCandy` (the pacman progress bar becomes Pac-Man — free joy), and
-    bump `ParallelDownloads` from 5 to 10-15. post-install can write these
-    idempotently.
+16. **pacman.conf cosmetics.** Still at defaults: add `Color` and
+    `ILoveCandy` (the pacman progress bar becomes Pac-Man — free joy).
+    post-install can write these idempotently.
 
 ## Install kit / image generation
 
-18. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
+17. **Mirrorlist automation.** Add `reflector` + `reflector.timer` so
     pacman always uses fast, fresh mirrors — big `pacman -Syu` runs (and
     the VM test's package-cache seeding) get noticeably faster.
 
-19. **post-install run log + summary.** The script's warns and fails
-    interleave with progress and are easy to miss. `tee` the whole run to
-    `/var/log/post-install-<date>.log` and print a final WARN/FAIL summary
-    block (the verify script already computes this — reuse its shape).
-
-20. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
+18. **CI smoke-boot for the ISO.** `arch/test/` is local-only by design,
     but a *separate*, minimal public CI job could boot the built ISO
     headless in QEMU and assert the kernel reaches the archinstall
     environment — catching ISO breakage (e.g. a bad package list) before
     you flash a USB stick. Keep the full VM-test suite local; this is just
     "does it boot".
 
-21. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
+19. **ISO checksums + reproducible builds.** `build-iso.sh` should emit
     `SHA256SUMS` next to the ISO (and optionally a signed digest once
     sbctl keys exist). Setting `SOURCE_DATE_EPOCH` / normalizing mtimes
     gets close to reproducible ISOs, so two builds of the same commit are
