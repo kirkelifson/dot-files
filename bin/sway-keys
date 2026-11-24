@@ -14,8 +14,11 @@ pick=$(grep -E '^bindsym|--locked|--release' "$CFG" \
         -e 's/^bindsym //' \
         -e 's/(--locked|--release|--to-code) /[\1] /' \
         -e 's/ exec /   →  run: /' \
-        -e 's/ mode "/   →  mode: /' \
-        -e 's/ (resize|move|workspace|layout|focus|split|fullscreen|floating|sticky|scratchpad|reload|kill|swap) /   →  \1 /' \
+        -e 's/ mode "([^"]*)"/   →  mode: \1/' \
+        -e '/→  mode: /!s/ (resize|move|workspace|layout|focus|split|fullscreen|floating|sticky|scratchpad|reload|kill|swap)( |$)/   →  \1 /' \
+        -e 's/ splith$/ split horizontal/' \
+        -e 's/ splitv$/ split vertical/' \
+        -e 's/ $//' \
     | sort -u \
     | wofi --dmenu --prompt "keys" --width 900 --height 600)
 
