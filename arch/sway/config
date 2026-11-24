@@ -150,7 +150,8 @@ bindsym $mod+t layout tabbed
 #   stacked (title bars stacked vertically) — $mod+s is screenshot, so $mod+u
 bindsym $mod+u layout stacking
 #   back to auto/manual tiling
-bindsym $mod+g layout default
+#   default tiling (splith) — NOTE: sway 1.12 dropped `layout default`
+bindsym $mod+g layout splith
 
 ######## Scratchpad (hidden stash for windows) ########
 # Move focused window to scratchpad (hidden)
