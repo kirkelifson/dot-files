@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Waybar custom module: connection quality (gateway latency + packet loss).
+# Emits waybar JSON: {"text", "class", "tooltip"} — class styled in waybar style.css:
+#   .good = green, .warn = amber, .bad = red
+# Used by the "custom/net-health" module in .config/waybar/config.
+set -u
+
+# Ping target: default gateway if we have one, else a public address
+TARGET=$(ip route show default 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "via") print $(i + 1)}' | head -1)
+IFACE=$(ip route show default 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "dev") print $(i + 1)}' | head -1)
+TARGET=${TARGET:-1.1.1.1}
+
+OUT=$(ping -c 3 -W 2 -q "$TARGET" 2>/dev/null)
+LOSS=$(sed -n 's/.*, \([0-9.]*\)% packet loss.*/\1/p' <<<"$OUT")
+AVG=$(sed -n 's/.*= [0-9.]*\/\([0-9.]*\)\/.*/\1/p' <<<"$OUT")
+JIT=$(sed -n 's/.*= \([0-9.]*\/[0-9.]*\/[0-9.]*\/\)\([0-9.]*\).*/\2/p' <<<"$OUT")
+
+if [[ -z ${LOSS:-} || ${LOSS%%.*} -eq 100 ]]; then
+    printf '{"text": "net ✗", "class": "bad", "tooltip": "no response from %s"}\n' "$TARGET"
+    exit 0
+fi
+
+AVG=${AVG:-0}
+JIT=${JIT:-0}
+
+if awk -v l="$LOSS" -v a="$AVG" 'BEGIN { exit !(l > 0 || a > 50) }'; then
+    CLASS="warn"
+else
+    CLASS="good"
+fi
+
+printf '{"text": "%sms", "class": "%s", "tooltip": "%s  %s\\nloss %s%%   avg %sms   jitter %sms"}\n' \
+    "$AVG" "$CLASS" "$IFACE" "$TARGET" "$LOSS" "$AVG" "$JIT"

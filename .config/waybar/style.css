@@ -119,6 +119,19 @@ window#waybar {
     color: #cc6666;
 }
 
+/* connection quality: gateway latency + packet loss (bin/waybar-net-health) */
+#custom-net-health {
+    color: #88bb88;
+}
+
+#custom-net-health.warn {
+    color: #cc9966;
+}
+
+#custom-net-health.bad {
+    color: #ff4444;
+}
+
 #tray {
     padding: 0 6px;
 }

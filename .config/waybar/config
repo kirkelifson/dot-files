@@ -16,6 +16,7 @@
         "tray",
         "pulseaudio",
         "network",
+        "custom/net-health",
         "cpu",
         "temperature#cpu",
         "temperature#gpu",
@@ -79,11 +80,19 @@
     },
 
     "network": {
-        "format-ethernet": "{ipaddr}",
-        "format-wifi": "{essid} {signalStrength}%",
+        "format-ethernet": "{bandwidthDownBytes} ↓ {bandwidthUpBytes} ↑",
+        "format-wifi": "{essid} {signalStrength}% {bandwidthDownBytes} ↓ {bandwidthUpBytes} ↑",
         "format-disconnected": "offline",
-        "tooltip-format": "{ifname}: {ipaddr}/{cidr} via {gwaddr}",
-        "interval": 10
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr} via {gwaddr}\n↓ {bandwidthDownBytes}/s   ↑ {bandwidthUpBytes}/s",
+        "interval": 2
+    },
+
+    "custom/net-health": {
+        "exec": "sh -c 'exec $HOME/bin/waybar-net-health'",
+        "return-type": "json",
+        "format": "{text}",
+        "interval": 10,
+        "on-click": "sh -c 'exec $HOME/bin/waybar-net-health'"
     },
 
     "tray": {
