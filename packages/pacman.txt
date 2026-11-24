@@ -1,6 +1,9 @@
 # Essential packages for Arch Linux (including Omarchy)
 # Install with: grep -v '^#' packages-pacman.txt | grep -v '^$' | sudo pacman -S --needed -
 # Official repos only (no AUR). Omarchy already ships many of these; --needed skips them.
+# Names verified against pacman -Si. Brewfile parity notes:
+#   coursier, terraform-docs, tfsec, tlrc, internetarchive are NOT in official
+#   repos (AUR only or retired) — tldr is covered by tealdeer below.
 
 # Core CLI tools
 coreutils
@@ -25,6 +28,8 @@ bat
 eza
 zoxide
 duf
+tealdeer
+hyperfine
 wl-clipboard
 
 # Clipboard (Wayland and X11)
@@ -39,6 +44,17 @@ mosh
 vim
 neovim
 
+# Git & Version Control
+github-cli
+lazygit
+git-delta
+git-absorb
+glab
+
+# CI / Linters
+shellcheck
+actionlint
+
 # Languages & Runtimes not covered by mise (see .config/mise/config.toml
 # for Ruby, Node, Python, Go, Elixir, Rust)
 ghc
@@ -47,6 +63,10 @@ haskell-language-server
 lua
 luarocks
 uv
+crystal
+sbcl
+racket
+python-pipx
 
 # Go Tooling
 gopls
@@ -91,6 +111,7 @@ nmap
 mtr
 gnupg
 qrencode
+age
 openssh
 
 # Bluetooth (game controllers — arch/README.md §7)
@@ -132,11 +153,27 @@ chromium
 
 # Containers
 podman
+dive
+lazydocker
+minikube
+
+# Infrastructure (awscli/terraform-docs/tfsec have no official Arch package —
+# brew on macOS, pip/cargo elsewhere; aws-vault IS packaged)
+aws-cli
+aws-vault
 
 # Other
 graphviz
 ffmpeg
 direnv
+yt-dlp
+glow
+composer
+weechat
+cmatrix
+ast-grep
+ollama
+qemu-desktop
 
 # System tuning (arch/README.md §11 — CPU/GPU control, fan curves)
 corectrl

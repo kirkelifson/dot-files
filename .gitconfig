@@ -27,7 +27,13 @@
   autoSetupRemote = true
   followTags = true
 [core]
+  pager = delta
   whitespace = trailing-space,space-before-tab,blank-at-eol,blank-at-eof,cr-at-eol
+[interactive]
+  diffFilter = delta --color-only
+[delta]
+  navigate = true
+  line-numbers = true
 [pull]
   ff = only
 [filter "lfs"]

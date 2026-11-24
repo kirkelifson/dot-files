@@ -30,6 +30,7 @@ brew "bat"              # cat with syntax highlighting
 brew "eza"              # Modern ls replacement (git integration, icons)
 brew "zoxide"           # Smarter cd that learns your directories
 brew "tlrc"             # tldr client - simplified man pages
+brew "hyperfine"        # Command-line benchmarking
 brew "duf"              # Modern df replacement
 brew "curlie"           # curl with httpie-style output
 brew "bandwhich"        # Bandwidth monitor by process/connection
@@ -44,6 +45,9 @@ brew "git"
 brew "git-lfs"
 brew "gh"               # GitHub CLI
 brew "lazygit"          # Terminal UI for git
+brew "git-delta"        # Syntax-highlighting pager for diffs (core.pager)
+brew "git-absorb"       # Auto-fixup commits onto the right parent
+brew "glab"             # GitLab CLI
 
 # --- CI / Linters ---
 brew "shellcheck"       # Bash linter, used by .github/workflows/lint.yml
@@ -108,6 +112,7 @@ brew "nmap"             # Network scanner
 brew "mtr"              # Traceroute + ping
 brew "qrencode"         # QR code generator
 brew "gnupg"            # GPG encryption
+brew "age"              # Modern file encryption
 
 # --- Search & Analysis ---
 brew "ast-grep"         # Structural code search

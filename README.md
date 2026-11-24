@@ -56,7 +56,7 @@ varies by FreeBSD release, architecture, and quarterly/latest repository.
 | Area | FreeBSD support in this repo |
 |---|---|
 | mise | Installed via the [FreeBSD port](https://cgit.freebsd.org/ports/tree/sysutils/mise/); activated in Fish. Automatic installation of the shared Ruby/Node/Python/Go/Elixir/Rust/usage pins is skipped. Install and validate each project's tools with `mise use tool@version`; backend/binary support varies. |
-| Development extras | GHC, cabal, Haskell LSP, Lua, uv, gopls, golangci-lint, delve, pnpm, CMake, Ninja, and GDB are omitted from this smaller package set. This does not mean they are unavailable in FreeBSD Ports; add them per project. |
+| Development extras | GHC, cabal, Haskell LSP, Lua, golangci-lint, pnpm, CMake, Ninja, and GDB are omitted from this smaller package set. This does not mean they are unavailable in FreeBSD Ports; add them per project. (gh, git-delta, git-absorb, gopls, delve, uv, ast-grep, awscli, hyperfine, age, yt-dlp, weechat, cmatrix, and ollama ARE included — names verified against the ports tree; anything missing at install time is reported and skipped.) |
 | Databases and media | PostgreSQL, Valkey/Redis, libvips, ImageMagick, Graphviz, FFmpeg, and additional runtime build libraries are omitted; install per project. |
 | Containers and desktop | Podman and the Omarchy/Hyprland desktop setup are outside this FreeBSD bootstrap. Homebrew casks and VS Code extensions are macOS-only installer features. Ghostty is not installed; its shared config is linked for an independently installed terminal. |
 | Clipboard | `wl-clipboard` for a local Wayland session, `xclip` for X11. Over SSH these need access to a display; the package set does not configure clipboard forwarding. |

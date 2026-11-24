@@ -1,5 +1,11 @@
-# Essential packages for Linux (Debian/Ubuntu)
-# Install with: xargs -a packages-apt.txt sudo apt-get install -y
+# Essential packages for Linux (Debian/Ubuntu) — names verified against the
+# resolute (26.04) archive index, the same release CI checks (packages.yml).
+# Install with: xargs -a packages/apt.txt sudo apt-get install -y
+# Brewfile parity notes (NOT in resolute, install manually — brew on macOS):
+#   uv (pipx/install script), pnpm (corepack), golangci-lint (go install),
+#   actionlint (go install), ast-grep (cargo), oha (cargo), tlrc (tealdeer
+#   below covers tldr), aws-vault (release binary), dive, lazydocker,
+#   minikube, terraform-docs, tfsec, ollama, curlie, bandwhich, urh
 
 # Core CLI tools
 coreutils
@@ -23,6 +29,8 @@ bat
 eza
 zoxide
 duf
+tealdeer
+hyperfine
 
 # Clipboard (Wayland and X11)
 wl-clipboard
@@ -37,6 +45,16 @@ mosh
 vim
 neovim
 
+# Git & Version Control
+gh
+lazygit
+git-delta
+git-absorb
+glab
+
+# CI / Linters
+shellcheck
+
 # Languages & Runtimes not covered by mise (see .config/mise/config.toml
 # for Ruby, Node, Python, Go, Elixir, Rust)
 ghc
@@ -45,6 +63,10 @@ cabal-install
 lua5.4
 luarocks
 # uv: not in apt — `pipx install uv` or Astral's install script (brew on macOS)
+pipx
+sbcl
+racket
+crystal
 
 # Go Tooling
 gopls
@@ -86,6 +108,7 @@ nmap
 mtr
 gnupg
 qrencode
+age
 
 # Containers
 podman
@@ -95,3 +118,10 @@ graphviz
 ffmpeg
 direnv
 btop
+yt-dlp
+glow
+composer
+weechat
+cmatrix
+internetarchive
+qemu-system-x86

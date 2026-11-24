@@ -17,6 +17,9 @@ fzf
 fd-find
 ripgrep
 mise
+gh
+git-delta
+git-absorb
 
 # Everyday CLI tools
 jq
@@ -30,11 +33,24 @@ eza
 zoxide
 direnv
 mosh
+hyperfine
+age
+yt-dlp
+weechat
+cmatrix
 
 # Clipboard and fonts (optional on headless/SSH servers)
 xclip
 wl-clipboard
 fontconfig
+
+# Development extras (all verified in the ports tree — devel/, textproc/)
+gopls
+delve
+uv
+ast-grep
+awscli
+ollama
 
 # Common source-build helpers; base FreeBSD supplies cc, make, and tar
 # Runtime-specific headers/libraries should be installed per project.
