@@ -1,0 +1,18 @@
+[Unit]
+Description=Waybar alert watcher — notify-send toasts when alert thresholds persist
+# Ordering only: start with the session. Harmless without one — notify-send
+# fails and the journal records why. SWAYSOCK (for the fullscreen/game check)
+# arrives via the sway config's import-environment exec line.
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/bin/waybar-alerts
+Restart=on-failure
+RestartSec=10
+# The user manager's bus — explicit so notify-send never autolaunches a bus
+# mako isn't listening on.
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""waybar-alerts: desktop notifications when the bar's alert states persist.
+
+Single source of truth is the waybar config: thresholds (cpu/memory "states",
+temperature warning/critical-threshold) and hwmon paths are read from there,
+so the bar and the notifications can never drift apart. The bar module itself
+only changes color and swaps in the "!" marker; this watcher sends the
+notify-send toasts.
+
+Noise rules:
+- SUSTAIN: a threshold must hold CONTINUOUSLY for a few minutes before the
+  first toast — transient spikes (a compile, a browser burst) never notify.
+  Brief dips inside the hysteresis band don't reset the sustain clock.
+- Games: while a fullscreen window is up (games legitimately pin CPU/GPU/RAM
+  for hours), warning toasts are suppressed entirely, critical percent toasts
+  are suppressed, and only a temp critical that overshoots the threshold by
+  OVERHEAT_MARGIN still fires — thermal runaway is worth interrupting a game
+  for, "92% CPU while gaming" is not.
+
+Run from sway's exec block (needs the session bus for notify-send).
+"""
+import json
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+WAYBAR_CONFIG = Path.home() / ".config/waybar/config"
+INTERVAL = 5          # seconds between samples (waybar polls at 3-5s)
+MARGIN = 3            # hysteresis: must drop this far below warning to clear
+SUSTAIN = 180         # threshold must hold this long before the first toast
+WARN_REPEAT = 900     # re-notify a persisting warning every 15 min
+CRIT_REPEAT = 600     # re-notify a persisting critical every 10 min
+OVERHEAT_MARGIN = 5   # fullscreen: temp critical only fires past crit+this
+
+LABELS = {"cpu": "CPU usage", "memory": "RAM", "temperature#cpu": "CPU temp",
+          "temperature#gpu": "GPU temp", "custom/spark-cpu": "CPU usage",
+          "custom/spark-mem": "RAM", "custom/spark-gpu": "GPU temp",
+          "custom/spark-tcpu": "CPU temp"}
+UNITS = {"cpu": "%", "memory": "%", "custom/spark-cpu": "%",
+         "custom/spark-mem": "%"}
+
+
+def load_sensors(config_path):
+    """Pull thresholds and hwmon paths out of the waybar config (JSONC).
+
+    Accepts both native modules (cpu/memory "states", temperature#*
+    thresholds) and the custom/spark-* blocks that replaced them — same keys,
+    so bar display and notifications stay in sync.
+    """
+    text = Path(config_path).read_text(encoding="utf-8")
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    cfg = json.loads(text)
+    sensors = []
+    for key, m in cfg.items():
+        if not isinstance(m, dict):
+            continue
+        if "states" in m and isinstance(m["states"], dict):
+            sensors.append({"key": key, "warn": m["states"].get("warning"),
+                            "crit": m["states"].get("critical")})
+        elif "hwmon-path" in m and m.get("warning-threshold") is not None:
+            sensors.append({"key": key, "warn": m.get("warning-threshold"),
+                            "crit": m.get("critical-threshold"),
+                            "hwmon": m.get("hwmon-path")})
+    return sensors
+
+
+def read_temp(path):
+    try:
+        return round(int(Path(path).read_text()) / 1000, 1)
+    except (OSError, ValueError):
+        return None
+
+
+def read_mem():
+    fields = {}
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                k, v = line.split(":", 1)
+                fields[k] = int(v.strip().split()[0])
+    except (OSError, ValueError, IndexError):
+        return None
+    total = fields.get("MemTotal")
+    avail = fields.get("MemAvailable")
+    if not total or avail is None:
+        return None
+    return round((total - avail) / total * 100, 1)
+
+
+def read_cpu(prev_times):
+    """Usage % since the previous sample; None on the first call."""
+    try:
+        with open("/proc/stat") as f:
+            parts = f.readline().split()[1:]
+        vals = [int(x) for x in parts]
+    except (OSError, ValueError, IndexError):
+        return None, None
+    if prev_times is None:
+        return None, vals
+    idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+    idle_prev = prev_times[3] + (prev_times[4] if len(prev_times) > 4 else 0)
+    total, total_prev = sum(vals), sum(prev_times)
+    if total <= total_prev:
+        return None, vals
+    return round(100.0 * (1 - (idle - idle_prev) / (total - total_prev)), 1), vals
+
+
+def read_all(sensors, prev_cpu):
+    values, cpu_prev = {}, prev_cpu
+    for s in sensors:
+        if "hwmon" not in s:  # percent sensor (cpu usage / RAM)
+            if s["key"] == "cpu" or s["key"] == "custom/spark-cpu":
+                values[s["key"]], cpu_prev = read_cpu(prev_cpu)
+            else:
+                values[s["key"]] = read_mem()
+        else:
+            values[s["key"]] = read_temp(s["hwmon"])
+    return values, cpu_prev
+
+
+def level(value, s):
+    """0 normal, 1 warning, 2 critical — None value stays at current level."""
+    if value is None:
+        return None
+    if s["crit"] is not None and value >= s["crit"]:
+        return 2
+    if value >= s["warn"]:
+        return 1
+    if value < s["warn"] - MARGIN:
+        return 0
+    return None  # hysteresis band: hold current state
+
+
+def fullscreen_active():
+    """True while a real window is fullscreen (games). Read-only sway query.
+
+    Per the sway IPC quirks: fullscreen_mode=1 also appears on workspace and
+    __i3_scratch nodes, so filter on type con/floating_con AND an app_id /
+    window_properties being set; the screensaver's fullscreen foot must not
+    count as a game.
+    """
+    try:
+        out = subprocess.run(["swaymsg", "-t", "get_tree", "--raw"],
+                             capture_output=True, text=True, timeout=5,
+                             check=True).stdout
+        tree = json.loads(out)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return False
+
+    def walk(node):
+        if (node.get("fullscreen_mode") == 1
+                and node.get("type") in ("con", "floating_con")
+                and (node.get("app_id") or node.get("window_properties"))
+                and node.get("app_id") != "screensaver"):
+            return True
+        return any(walk(c) for c in node.get("nodes", [])) or \
+            any(walk(c) for c in node.get("floating_nodes", []))
+
+    return walk(tree)
+
+
+class SensorState:
+    """Per-sensor alert bookkeeping (see evaluate())."""
+
+    def __init__(self):
+        self.above_since = None   # timestamp the value first crossed warning
+        self.level = 0
+        self.notified_level = 0   # tier actually toasted (0 = nothing sent)
+        self.last_sent = 0.0
+
+    def reset(self):
+        self.__init__()
+
+
+NAMES = {1: "warning", 2: "critical"}
+URGENCY = {1: "normal", 2: "critical"}
+
+
+def label_of(s):
+    return LABELS.get(s["key"], s["key"])
+
+
+def unit_of(s):
+    return UNITS.get(s["key"], "°C")
+
+
+def alert_body(s, value, tier):
+    unit = unit_of(s)
+    bound = s["crit"] if tier == 2 else s["warn"]
+    return "%s%s — %s for a while (>%s%s)" % (
+        value, unit, NAMES[tier], bound, unit)
+
+
+def evaluate(s, st, value, now_ts, fullscreen):
+    """Advance one sensor one sample. Returns toasts to send.
+
+    Pure apart from st mutation — the main loop just forwards the returned
+    (urgency, title, body) tuples, which keeps the state machine testable.
+    """
+    actions = []
+    new = level(value, s)
+    if value is None:
+        return actions  # unreadable sample: hold, never toast on it
+    if new == 0:
+        if st.notified_level:
+            actions.append(("normal", "%s back to normal" % label_of(s),
+                            "now %s%s" % (value, unit_of(s))))
+        st.reset()
+        return actions
+
+    if new is not None:
+        if st.above_since is None:
+            st.above_since = now_ts
+        st.level = new
+    elif st.above_since is None:
+        return actions  # unreadable/first sample, never above warning
+    # new is None -> hysteresis band or unreadable sample: hold st.level but
+    # keep the sustain clock running (a sustained condition that dips into
+    # the band must still toast)
+
+    tier = st.level
+    if now_ts - st.above_since < SUSTAIN:
+        return actions  # transient — say nothing
+
+    if fullscreen:
+        # games: high usage/temps are the expected steady state
+        if tier == 1:
+            return actions
+        if tier == 2 and ("hwmon" not in s or value < s["crit"] + OVERHEAT_MARGIN):
+            return actions
+
+    escalate = tier > st.notified_level
+    repeat = CRIT_REPEAT if tier == 2 else WARN_REPEAT
+    if escalate or now_ts - st.last_sent >= repeat:
+        actions.append((URGENCY[tier], "Waybar alert: %s" % label_of(s),
+                        alert_body(s, value, tier)))
+        st.last_sent = now_ts
+        st.notified_level = tier
+    return actions
+
+
+def notify(title, body, urgency):
+    if urgency == 2:
+        subprocess.run(["notify-send", "-u", "critical", "-a", "waybar-alerts",
+                        title, body], check=False)
+    else:
+        subprocess.run(["notify-send", "-a", "waybar-alerts", title, body],
+                       check=False)
+
+
+def main():
+    global SUSTAIN
+    args = sys.argv[1:]
+    config = WAYBAR_CONFIG
+    dry = once = False
+    sustain = SUSTAIN
+    it = iter(args)
+    for a in it:
+        if a == "--dry-run":
+            dry = True
+        elif a == "--print":
+            once = True
+        elif a == "--config":
+            config = Path(next(it))
+        elif a == "--sustain":
+            sustain = int(next(it))
+        else:
+            sys.exit("usage: waybar-alerts [--print | --dry-run] "
+                     "[--config FILE] [--sustain SECS]")
+
+    sensors = load_sensors(config)
+    if not sensors:
+        sys.exit("no alertable sensors found in %s" % config)
+
+    prev_cpu = None
+    if once:
+        values, _ = read_all(sensors, None)
+        time.sleep(1.0)  # cpu usage needs a delta
+        values, _ = read_all(sensors, None)
+        for s in sensors:
+            v = values[s["key"]]
+            print("%-18s %8s  warn>%s crit>%s sustain>%ss" %
+                  (s["key"], ("N/A" if v is None else v),
+                   s["warn"], s["crit"], sustain))
+        return
+
+    SUSTAIN = sustain
+
+    states = {s["key"]: SensorState() for s in sensors}
+    print("waybar-alerts: watching %d sensors from %s "
+          "(sustain %ss)" % (len(sensors), config, SUSTAIN), flush=True)
+    while True:
+        values, prev_cpu = read_all(sensors, prev_cpu)
+        now_ts = time.time()
+        fullscreen = fullscreen_active()
+        for s in sensors:
+            for urgency, title, body in evaluate(
+                    s, states[s["key"]], values[s["key"]], now_ts, fullscreen):
+                if dry:
+                    print("[dry-run] would notify (%s): %s: %s"
+                          % (urgency, title, body), flush=True)
+                else:
+                    notify(title, body, urgency)
+        time.sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    main()

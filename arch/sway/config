@@ -56,6 +56,9 @@ exec systemctl --user import-environment WAYLAND_DISPLAY DISPLAY SWAYSOCK \
 exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target
 # waybar       — status bar: workspaces, window title, clock, CPU/GPU temp, volume
 exec waybar
+# waybar-alerts runs as the systemd --user unit waybar-alerts.service
+# (arch/systemd/user/, enabled by post-install) — not an exec line, so systemd
+# owns its lifecycle and logs.
 # mako         — notification daemon (Wayland-native); history via makoctl
 exec mako
 # polkit-gnome — polkit agent: GUI auth prompts for privilege elevation

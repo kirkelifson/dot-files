@@ -481,17 +481,18 @@ step "Update nudges: weekly checkupdates + notify-send (user systemd timer)"
 # script/units live in the repo and are symlinked (edits apply live).
 USYS="/home/$TARGET_USER/.config/systemd/user"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "$USYS"
-for f in check-updates check-updates.service check-updates.timer sway-session.target; do
+for f in check-updates check-updates.service check-updates.timer \
+  sway-session.target waybar-alerts.service; do
   dst="$USYS/$f"
   [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"
   ln -sfn "/home/$TARGET_USER/dot-files/arch/systemd/user/$f" "$dst"
 done
 if pacman -Q pacman-contrib >/dev/null 2>&1; then
   sudo -u "$TARGET_USER" env XDG_RUNTIME_DIR="/run/user/$(id -u "$TARGET_USER")" \
-    systemctl --user enable --now check-updates.timer \
-    || warn "could not enable check-updates.timer — run by hand: systemctl --user enable --now check-updates.timer"
+    systemctl --user enable --now check-updates.timer waybar-alerts.service \
+    || warn "could not enable check-updates.timer/waybar-alerts.service — run by hand: systemctl --user enable --now check-updates.timer waybar-alerts.service"
 else
-  warn "pacman-contrib missing — install it, then: systemctl --user enable --now check-updates.timer"
+  warn "pacman-contrib missing — install it, then: systemctl --user enable --now check-updates.timer waybar-alerts.service"
 fi
 
 step "Silence TDX probe warning (AMD/VMs have no Intel TDX; the module logs an error every boot)"
