@@ -25,6 +25,11 @@ check_uncommitted_changes() {
     if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
       echo -e "[!] Warning: dot-files repo has uncommitted changes."
       echo -e "    You may want to commit or stash before running install."
+      if is_ci; then
+        # No stdin to answer a prompt with; read's EOF would kill the script
+        # under set -e. CI freshness is covered by the workflow's own checks.
+        return
+      fi
       read -r -p "    Continue anyway? [y/N] " answer
       if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
         echo -e "[!] Aborting."
