@@ -70,8 +70,19 @@ install_system_packages() {
     fi
   elif command -v pacman > /dev/null 2>&1; then
     if [ -f "$dir/packages/pacman.txt" ]; then
-      echo -e "[+] Installing pacman packages from packages/pacman.txt."
-      grep -v '^#' "$dir/packages/pacman.txt" | grep -v '^$' | sudo pacman -S --needed --noconfirm -
+      # Only escalate when something is actually missing: post-install.sh
+      # pre-installs this list as root before running ./install as the user,
+      # and a sudo password prompt just to hear "there is nothing to do" is
+      # pure friction (sudo -u contexts make the prompt especially confusing).
+      missing=$(comm -13 \
+        <(pacman -Qq | sort) \
+        <(grep -v '^#' "$dir/packages/pacman.txt" | grep -v '^$' | sort))
+      if [ -n "$missing" ]; then
+        echo -e "[+] Installing pacman packages from packages/pacman.txt."
+        printf '%s\n' "$missing" | sudo pacman -S --needed --noconfirm -
+      else
+        echo -e "[+] pacman packages already installed — nothing to do."
+      fi
     fi
   fi
 }
