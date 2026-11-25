@@ -136,7 +136,6 @@ brew "cmake"            # Build system
 brew "composer"         # PHP dependency manager
 brew "glow"             # Terminal markdown renderer
 brew "oha"              # HTTP load testing
-brew "opensearch"       # Search engine
 brew "termscp"          # Terminal file transfer
 brew "weechat"          # IRC client
 brew "automake"         # Build tool
