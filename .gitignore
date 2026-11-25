@@ -31,3 +31,8 @@ cmds-*.tmp
 
 __pycache__/
 *.pyc
+
+# pi credentials and runtime state — ~/.pi is symlinked into the repo
+.pi/agent/auth.json
+.pi/agent/models-store.json
+.pi/agent/sessions/
