@@ -27,6 +27,8 @@ the home directory; it is idempotent and safe to re-run at any time.
 - `bin/` — utility scripts, linked to `~/bin`. Per-project search dirs for
   `tmux-sessionizer` are edited in that script.
 - `test_install.py` — unit tests for `install`; run it after installer edits.
+- `CONTRIBUTING.md` — commit format and rules; every commit (human or agent)
+  follows it.
 - `arch/` — unattended Arch install kit; see `arch/README.md` and
   `arch/test/README.md`.
 
@@ -40,11 +42,20 @@ the home directory; it is idempotent and safe to re-run at any time.
   present).
 - **Guard optional binaries** (`if type -q eza; alias ls='…'; end`) so machines
   without a tool degrade to stock behavior instead of breaking the alias.
-- **Validate before claiming done**: `fish -n` on fish files, `bash -n` on
-  shell scripts, `vim -Nu ~/.vimrc -es -c quit` for vimrc, `sway --validate`
-  for sway configs, `ruby -c Brewfile` (it is a Ruby DSL).
 - The config files are their own documentation — read the file instead of
   assuming a binding, alias, or setting exists (or doesn't).
+
+## Testing
+
+Run the relevant checks before claiming done (and before committing — see
+CONTRIBUTING.md):
+
+- `python3 test_install.py` after any `install` edit.
+- Per-file validation: `fish -n` on fish files, `bash -n` on shell scripts,
+  `vim -Nu ~/.vimrc -es -c quit` for vimrc, `sway --validate` for sway
+  configs, `ruby -c Brewfile` (it is a Ruby DSL).
+- CI (below) runs the same checks remotely; lint locally first so pushes stay
+  green.
 
 ## CI (`.github/workflows/`)
 
