@@ -58,9 +58,10 @@ window#waybar {
 }
 
 /* ── right-side modules ── */
-#cpu,
-#memory,
-#temperature,
+#custom-spark-cpu,
+#custom-spark-tcpu,
+#custom-spark-mem,
+#custom-spark-gpu,
 #custom-media,
 #custom-net-rate,
 #pulseaudio,
@@ -71,9 +72,10 @@ window#waybar {
 }
 
 /* subtle separators via left border */
-#cpu,
-#memory,
-#temperature,
+#custom-spark-cpu,
+#custom-spark-tcpu,
+#custom-spark-mem,
+#custom-spark-gpu,
 #custom-media,
 #custom-net-rate,
 #pulseaudio,
@@ -87,23 +89,36 @@ window#waybar {
     font-weight: bold;
 }
 
-#cpu {
+/* rolling hover charts (bin/waybar-spark): cells inherit the module color;
+   alert classes swap it (same palette the native modules used) */
+#custom-spark-cpu {
     color: #88bb88;
 }
 
-#memory {
+#custom-spark-mem {
     color: #b088cc;
 }
 
-#temperature.cpu {
+#custom-spark-tcpu {
     color: #cc9966;
 }
 
-#temperature.gpu {
+#custom-spark-gpu {
     color: #cc8855;
 }
 
-#temperature.critical {
+/* alert states — warning/critical share the "!" marker text, color only */
+#custom-spark-cpu.warning,
+#custom-spark-tcpu.warning,
+#custom-spark-mem.warning,
+#custom-spark-gpu.warning {
+    color: #cc9966;
+}
+
+#custom-spark-cpu.critical,
+#custom-spark-tcpu.critical,
+#custom-spark-mem.critical,
+#custom-spark-gpu.critical {
     color: #ff4444;
 }
 

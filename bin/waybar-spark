@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""waybar-spark: rolling system history charts on waybar-module hover.
+
+Four instances (cpu = usage %, mem = used %, gpu = GPU temp, tcpu = CPU
+temp) each keep an in-memory rolling window — nothing is stored to disk and
+history dies with the process, by design. The bar itself stays minimal
+(label + alert marker + padded value, CONSTANT width); the graph renders in
+the hover tooltip as a block-char bar chart. Emits waybar JSON
+{text, class, tooltip} only on change. Thresholds + hwmon path are read from
+the waybar config (single source of truth, shared with bin/waybar-alerts
+which sends the notifications).
+"""
+import json
+import re
+import signal
+import sys
+import time
+from pathlib import Path
+
+INTERVAL = 10       # seconds per sample
+WINDOW = 30         # samples kept -> 5 min rolling window
+BELL = "!"          # alert marker, single cell — width never changes
+NBSP = "\u00a0"
+
+# display ranges: value -> chart height (cpu/mem are already 0-100)
+RANGES = {"cpu": (0, 100), "mem": (0, 100), "gpu": (40, 95), "tcpu": (45, 95)}
+UNITS = {"cpu": "%", "mem": "%", "gpu": "°", "tcpu": "°"}
+LABELS = {"cpu": "CPU", "mem": "MEM", "gpu": "GPU", "tcpu": "CPU temp"}
+BAR_LABELS = {"cpu": "CPU", "mem": "MEM", "gpu": "GPU", "tcpu": "CPU"}
+CONFIG_KEYS = {"cpu": "custom/spark-cpu", "mem": "custom/spark-mem",
+               "gpu": "custom/spark-gpu", "tcpu": "custom/spark-tcpu"}
+
+
+def load_module(config_path, key):
+    text = Path(config_path).read_text(encoding="utf-8")
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    cfg = json.loads(text)
+    return cfg.get(CONFIG_KEYS[key], {})
+
+
+def read_temp(path):
+    return round(int(Path(path).read_text()) / 1000, 1)
+
+
+def read_mem():
+    fields = {}
+    with open("/proc/meminfo") as f:
+        for line in f:
+            k, v = line.split(":", 1)
+            fields[k] = int(v.strip().split()[0])
+    total, avail = fields["MemTotal"], fields["MemAvailable"]
+    return round((total - avail) / total * 100, 1)
+
+
+def read_cpu(prev):
+    with open("/proc/stat") as f:
+        vals = [int(x) for x in f.readline().split()[1:]]
+    if prev is None:
+        return None, vals
+    idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+    idle_p = prev[3] + (prev[4] if len(prev) > 4 else 0)
+    if sum(vals) <= sum(prev):
+        return None, vals
+    return round(100.0 * (1 - (idle - idle_p) / (sum(vals) - sum(prev))), 1), vals
+
+
+def render(sensor, hist, value, thresholds):
+    lo, hi = RANGES[sensor]
+    cls = ""
+    bell = " "
+    if value is not None and thresholds.get("warn") is not None:
+        if thresholds.get("crit") is not None and value >= thresholds["crit"]:
+            cls, bell = "critical", BELL
+        elif value >= thresholds["warn"]:
+            cls, bell = "warning", BELL
+    label = LABELS[sensor]
+    num = ("%.0f" % value) if value is not None else "--"
+    # NBSP fill: Pango collapses plain-space runs, NBSP keeps the width fixed
+    text = "%s%s%3s%s" % (BAR_LABELS[sensor], bell, num.rjust(3, NBSP),
+                          UNITS[sensor])
+    tooltip = chart_tooltip(sensor, hist, value, lo, hi)
+    return {"text": text, "class": cls, "tooltip": tooltip}
+
+
+def chart_tooltip(sensor, hist, value, lo, hi):
+    """Bar chart of the rolling window, one block column per sample."""
+    span = max(hi - lo, 1e-9)
+    rows = 6
+    lines = []
+    for r in range(rows - 1, -1, -1):  # top row first
+        lines.append("".join("█" if (v - lo) / span * rows > r else NBSP
+                             for v in hist))
+    unit = UNITS[sensor]
+    now = "--" if value is None else value
+    stats = "now %s%s" % (now, unit)
+    if hist:
+        stats += "   min %.0f   max %.0f %s" % (min(hist), max(hist), unit)
+    header = "%s — last %d min (%ds samples)" % (
+        LABELS[sensor], WINDOW * INTERVAL // 60, INTERVAL)
+    return header + "\n" + "\n".join(lines) + "\n" + stats
+
+
+def main():
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)  # waybar reloads kill stdout
+    if len(sys.argv) != 2 or sys.argv[1] not in RANGES:
+        sys.exit("usage: waybar-spark cpu|mem|gpu")
+    sensor = sys.argv[1]
+    mod = load_module(Path.home() / ".config/waybar/config", sensor)
+    thresholds = {"warn": mod.get("states", {}).get("warning")
+                  if "states" in mod else mod.get("warning-threshold"),
+                  "crit": mod.get("states", {}).get("critical")
+                  if "states" in mod else mod.get("critical-threshold")}
+    hwmon = mod.get("hwmon-path")
+
+    def sample(prev_cpu):
+        if sensor == "cpu":
+            return read_cpu(prev_cpu)
+        if sensor == "mem":
+            return read_mem(), prev_cpu
+        return read_temp(hwmon), prev_cpu
+
+    hist = []
+    prev_cpu = None
+    last = None
+    while True:
+        value, prev_cpu = sample(prev_cpu)
+        if value is not None:
+            hist.append(value)
+            if len(hist) > WINDOW:
+                hist.pop(0)
+        if len(hist) < WINDOW:  # prefill so the bar is full-width from frame 1
+            hist = [hist[-1]] * WINDOW if hist else hist
+        out = render(sensor, hist, hist[-1] if hist else None, thresholds)
+        if out != last:  # change-dedupe: no waybar re-render on quiet systems
+            print(json.dumps(out), flush=True)
+            last = out
+        time.sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    main()
