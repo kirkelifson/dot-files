@@ -483,6 +483,13 @@ link_agent_configs() {
     dst="$HOME/$link"
     [ -f "$src" ] || continue
     mkdir -p "$(dirname "$dst")"
+    # If $dst already resolves to $src — e.g. ~/.pi is dir-linked into the repo
+    # by link_dotfiles before this runs — ln -sfn would replace the tracked
+    # file with a dangling symlink to itself and dirty the repo.
+    if [ "$dst" -ef "$src" ]; then
+      echo -e "\t[>] $link already in place (via directory link)"
+      continue
+    fi
     if [ -e "$dst" ] && [ ! -L "$dst" ]; then
       backup_path "$dst" "$dst-backup"
     fi
