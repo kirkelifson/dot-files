@@ -1,0 +1,24 @@
+{
+  "_comment": "Load tuning for kirk's M5 MacBook Air (32 GB). Sampling (temperature 1.0, top-p 1.0, top-k 0, min-p 0.0, reasoning effort) is model-level and lives in the agent configs, not here — it is identical on every machine. Load tuning is machine-level: on the 32 GB Air, eval batch 2048 Metal-OOMs at 64K context during decode (weights fit, activation buffers do not) — eval 512 fixes it without giving up context.",
+  "thinkingmachines/inkling-2-mini": {
+    "context_length": 65536,
+    "eval_batch_size": 512,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "qwen/qwen3.8-27b": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "google/gemma-4-31b-qat": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "prism-ml/bonsai-27b": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  }
+}

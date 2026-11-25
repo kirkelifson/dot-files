@@ -1,0 +1,9 @@
+# LM Studio model set shared by every machine (see bin/lmstudio-sync).
+# One model id per line; lines starting with # are ignored.
+# Chat models used by the coding agents:
+thinkingmachines/inkling-2-mini
+qwen/qwen3.8-27b
+google/gemma-4-31b-qat
+prism-ml/bonsai-27b
+# Embedding model — only needed for RAG/experimental retrieval features:
+# text-embedding-nomic-embed-text-v1.5

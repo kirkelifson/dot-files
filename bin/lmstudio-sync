@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# lmstudio-sync — manage the shared LM Studio model set across machines over HTTP.
+#
+# Works against the local server (http://127.0.0.1:1234) or any LM Studio on the
+# LAN with "Serve on Local Network" enabled — installs models, reports what is
+# present, and loads models with per-machine tuning from dot-files/lmstudio/defaults/.
+#
+# Usage:
+#   lmstudio-sync status  [url]                  — downloaded vs. wanted models + loaded configs
+#   lmstudio-sync install <url> [model ...]      — download missing models (default: all of models.txt)
+#   lmstudio-sync load    <url> <profile> [model] — load with tuning from defaults/<profile>.json
+#   lmstudio-sync catalog [query] [opts]         — browse the model catalog
+#       sort=downloads|date|params|trending      — ordering (trending = HF in-demand now)
+#       caps=tools,vision,reasoning              — capability-matching entries float to the top;
+#                                                  with sort=downloads/date they are filtered to matches
+#       window=all|month|quarter|year            — HF top-chart window (published-since + downloads)
+#       limit=N                                  — entries per section (default 6)
+#   Model arg forms for install: catalog id "publisher/name", HF url, HF url@QUANT.
+#   Bare slugs are rejected by LM Studio — and downloads cannot be cancelled via the API.
+# URL form: http://<host>:1234 (a trailing /v1 is stripped). Auth: set LM_API_TOKEN
+# if the target server has API tokens enabled. jq is required.
+
+set -euo pipefail
+
+# Resolve the repo through ~/bin being a symlink to dot-files/bin.
+SOURCE="${BASH_SOURCE[0]:-$0}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  case "$SOURCE" in /*) ;; *) SOURCE="$DIR/$SOURCE" ;; esac
+done
+REPO="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+MODELS_FILE="$REPO/lmstudio/models.txt"
+DEFAULTS_DIR="$REPO/lmstudio/defaults"
+
+die() { echo "lmstudio-sync: $*" >&2; exit 1; }
+command -v jq > /dev/null 2>&1 || die "jq is required (see the Brewfile)"
+
+norm_url() {
+  local url="${1%/}"
+  url="${url%/v1}"
+  url="${url%/api}"
+  echo "$url"
+}
+
+api() { # api <method> <url> <endpoint> [json-body]
+  local method="$1" base="$2" endpoint="$3" body="${4:-}"
+  local auth=()
+  [ -n "${LM_API_TOKEN:-}" ] && auth=(-H "Authorization: Bearer $LM_API_TOKEN")
+  if [ -n "$body" ]; then
+    curl -sS --max-time 30 -X "$method" "$base$endpoint" -H "Content-Type: application/json" ${auth[@]+"${auth[@]}"} -d "$body"
+  else
+    curl -sS --max-time 30 -X "$method" "$base$endpoint" -H "Content-Type: application/json" ${auth[@]+"${auth[@]}"}
+  fi
+}
+
+wanted_models() {
+  grep -v '^[[:space:]]*#' "$MODELS_FILE" | sed '/^[[:space:]]*$/d'
+}
+
+cmd_status() {
+  local base; base="$(norm_url "${1:-http://127.0.0.1:1234}")"
+  local payload; payload="$(api GET "$base" /api/v1/models)" || die "unreachable: $base"
+  echo "Server: $base"
+  echo "$payload" | jq -r '.models[]
+    | "\(.key)  [\(.type)]  \(if (.loaded_instances | length) > 0 then "LOADED ctx=\(.loaded_instances[0].config.context_length // "?")" else "not loaded" end)"'
+  echo
+  echo "Missing from models.txt:"
+  local missing=0 model
+  while IFS= read -r model; do
+    if ! echo "$payload" | jq -e --arg m "$model" '.models[] | select(.key == $m)' > /dev/null; then
+      echo "  - $model"
+      missing=1
+    fi
+  done < <(wanted_models)
+  [ "$missing" -eq 0 ] && echo "  (none)"
+}
+
+cmd_install() {
+  local base; base="$(norm_url "${1:-http://127.0.0.1:1234}")"
+  [ "$#" -gt 0 ] && shift
+  local payload; payload="$(api GET "$base" /api/v1/models)" || die "unreachable: $base"
+  echo "$payload" | jq -e '.models' > /dev/null 2>&1 || die "unexpected response from $base: $(echo "$payload" | head -c 200)"
+  local model job_id status
+  if [ "$#" -gt 0 ]; then
+    for model in "$@"; do
+      install_one "$base" "$payload" "$model" || return 1
+    done
+  else
+    while IFS= read -r model; do
+      install_one "$base" "$payload" "$model" || return 1
+    done < <(wanted_models)
+  fi
+  echo "Install pass complete on $base"
+}
+
+install_one() { # install_one <base> <payload> <model>
+  # <model> forms: catalog id "publisher/name", HF url, HF url@QUANT, or repo path "owner/repo"
+  local base="$1" payload="$2" model="$3" job_id status quant=""
+  local body_model="$model"
+  case "$model" in
+    *@*) body_model="${model%@*}"; quant="${model##*@}" ;;
+  esac
+  if echo "$payload" | jq -e --arg m "$model" '.models[] | select(.key == $m)' > /dev/null; then
+    echo "[=] $model already present"
+    return 0
+  fi
+  echo "[+] downloading $model ..."
+  local body
+  body="$(jq -nc --arg m "$body_model" --arg q "$quant" '{model: $m} + (if $q == "" then {} else {quantization: $q} end)')"
+  job_id="$(api POST "$base" /api/v1/models/download "$body" | jq -r '.job_id // empty')"
+  if [ -z "$job_id" ]; then
+    # The download response may report already_downloaded without a job id.
+    echo "[=] $model reported already downloaded"
+    return 0
+  fi
+  while :; do
+    sleep 3
+    status="$(api GET "$base" "/api/v1/models/download/status/$job_id")"
+    case "$(echo "$status" | jq -r '.status // .state // empty')" in
+      complete|completed|downloaded|ready)
+        echo "[+] $model done"; break ;;
+      failed|error|canceled|cancelled)
+        die "$model download failed: $(echo "$status" | jq -c '.')" ;;
+      *)
+        printf '    %s\n' "$(echo "$status" | jq -c '{status: (.status // .state), progress: (.progress // .bytes_progress // "?")}')"
+        ;;
+    esac
+  done
+}
+
+cmd_load() {
+  local base; base="$(norm_url "${1:?usage: lmstudio-sync load <url> <profile> [model]}")"
+  local profile="${2:?usage: lmstudio-sync load <url> <profile> [model]}"
+  local profile_file="$DEFAULTS_DIR/$profile.json"
+  [ -f "$profile_file" ] || die "no profile $profile_file (profiles: $(find "$DEFAULTS_DIR" -maxdepth 1 -name '*.json' -exec basename {} .json \; | tr '\n' ' '))"
+  shift 2
+  local model_list
+  if [ "$#" -gt 0 ]; then
+    model_list="$*"
+  else
+    model_list="$(jq -r 'keys[] | select(startswith("_") | not)' "$profile_file")"
+  fi
+  local model body result current want
+  printf '%s\n' "$model_list" | while IFS= read -r model; do
+    [ -n "$model" ] || continue
+    # Skip when the model is already loaded with the window this profile wants.
+    current="$(api GET "$base" /api/v1/models | jq -r --arg m "$model" \
+      '.models[] | select(.key == $m) | .loaded_instances[0].config.context_length // empty')"
+    want="$(jq -r --arg m "$model" '.[$m].context_length // empty' "$profile_file")"
+    if [ -n "$current" ] && { [ -z "$want" ] || [ "$current" = "$want" ]; }; then
+      echo "[=] $model already loaded (ctx=$current)"
+      continue
+    fi
+    body="$(jq -nc --arg m "$model" --argjson cfg "$(jq -c --arg m "$model" '.[$m]' "$profile_file")" \
+      '$cfg + {model: $m, echo_load_config: true}')"
+    echo "[>] loading $model (profile: $profile)"
+    result="$(api POST "$base" /api/v1/models/load "$body")"
+    echo "$result" | jq -r 'if .error then
+        "    LOAD FAILED: \(.error.message // (.error | tostring))" | .[0:400]
+      elif .load_config then
+        "    loaded in \(.load_time_seconds)s: " + (.load_config | to_entries | map("\(.key)=\(.value)") | join(", "))
+      else . end'
+  done
+}
+
+cmd_catalog() { # catalog [query] [sort=downloads|date|params|trending] [caps=tools,vision,reasoning] [window=all|month|quarter|year] [limit=N]
+  local query="" sort=downloads caps="" window=all limit=6 opt
+  for opt in "$@"; do
+    case "$opt" in
+      sort=*)    sort="${opt#sort=}" ;;
+      caps=*)    caps="${opt#caps=}" ;;
+      window=*)  window="${opt#window=}" ;;
+      limit=*)   limit="${opt#limit=}" ;;
+      *) if [ -z "$query" ]; then query="$opt"; else die "unexpected argument: $opt"; fi ;;
+    esac
+  done
+  local ram_gb
+  ram_gb="$(sysctl -n hw.memsize 2>/dev/null | awk '{printf "%.1f", $1/1073741824}')"
+  [ -z "$ram_gb" ] && ram_gb="$(awk '/MemTotal/ {printf "%.1f", $2/1048576}' /proc/meminfo 2>/dev/null)"
+  [ -z "$ram_gb" ] && die "cannot determine RAM (sysctl/procfs unavailable)"
+  python3 "$REPO/bin/lmstudio-catalog.py" "$query" "$sort" "$caps" "$window" "$limit" "$ram_gb"
+}
+
+case "${1:-}" in
+  status)  shift; cmd_status "$@" ;;
+  install) shift; cmd_install "$@" ;;
+  load)    shift; cmd_load "$@" ;;
+  catalog) shift; cmd_catalog "$@" ;;
+  *) sed -n '2,16p' "$SOURCE" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac

@@ -1,0 +1,23 @@
+{
+  "_comment": "Load tuning for the M1 Max. Decode is memory-bandwidth-bound (~400 GB/s vs the Air's ~150 GB/s), so these MoE models decode roughly 2-3x faster here. With 64 GB the 64K window fits at LM Studio's native eval batch 2048, so no batch override. If this machine is the 32 GB M1 Max, copy the air.json values instead (same decode-time OOM applies). physical_batch_size is not settable via the REST load endpoint; the disk default config covers it when loading via the UI or lms.",
+  "thinkingmachines/inkling-2-mini": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "qwen/qwen3.8-27b": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "google/gemma-4-31b-qat": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  },
+  "prism-ml/bonsai-27b": {
+    "context_length": 65536,
+    "flash_attention": true,
+    "offload_kv_cache_to_gpu": true
+  }
+}
