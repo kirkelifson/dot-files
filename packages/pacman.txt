@@ -167,6 +167,9 @@ aws-vault
 # Other
 graphviz
 ffmpeg
+# SomaFM radio player backend (bin/somafm, waybar custom/somafm module) —
+# volume control is mpv's own (input-ipc-server), independent of system audio
+mpv
 direnv
 yt-dlp
 glow

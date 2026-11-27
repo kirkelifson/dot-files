@@ -1,0 +1,487 @@
+#!/usr/bin/python3
+"""somafm — SomaFM radio player for the waybar custom/somafm module.
+
+One script, several subcommands:
+
+  watch        long-running waybar renderer (emits {text,class,tooltip} JSON
+               on change; the module has NO interval — long-running script)
+  toggle       play/pause the current station (click)
+  stop         stop playback
+  play <id>    switch to channel <id> and play
+  vol N        mpv volume set/adjust: "60", "+5", "-5" (scroll; independent
+               from system volume — it is mpv's own software volume)
+  menu         toggle the anchored waybar popup (waybar-somafm-menu) — also
+               the default when this script is run with no arguments
+  picker       (internal) fzf UI in the CURRENT terminal (no window spawn);
+               runs FZF_DEFAULT_OPTS-free: fish exports a bat file-preview
+               that makes no sense for channel rows
+  info         one-shot dump of the JSON watch would emit now (debugging)
+  list         print channels sorted favorites-first, then listeners (debug)
+  viz [bars]   visualizer in the CURRENT terminal (Ctrl+C quits, nothing
+               else changes): default = scrolling spectrogram with live
+               audio levels (cava raw -> cava-spectrogram); "bars" = cava's
+               plain frequency bars. Both capture the system audio feed
+
+State:
+  ~/.config/somafm/favorites          one channel id per line (persisted)
+  $XDG_RUNTIME_DIR/somafm/current     {"id": ..., "volume": N}
+  $XDG_RUNTIME_DIR/somafm/cache.json  channels.json + fetched_at timestamp
+  $XDG_RUNTIME_DIR/somafm/mpv.pid     player pid
+
+Server politeness: ONE channels.json request every 3 min (listeners + last
+playing for every channel in a single response). Playback goes to the
+ice1.somafm.com mount via the channel's own pls playlist URL from the API.
+Now-playing comes from mpv's ICY media-title, not extra network polls.
+"""
+
+import json
+import os
+import signal
+import socket
+import subprocess
+import sys
+import threading
+import time
+import urllib.request
+
+CH_URL = "https://api.somafm.com/channels.json"
+STATE_DIR = os.environ.get("XDG_RUNTIME_DIR",
+                           f"/run/user/{os.getuid()}") + "/somafm"
+SOCK = f"{STATE_DIR}/mpv.sock"
+CUR_FILE = f"{STATE_DIR}/current"
+CACHE_FILE = f"{STATE_DIR}/cache.json"
+PID_FILE = f"{STATE_DIR}/mpv.pid"
+FAV_DIR = os.path.expanduser("~/.config/somafm")
+FAV_FILE = f"{FAV_DIR}/favorites"
+REFRESH_SECS = 180           # channels.json poll interval (be nice to SomaFM)
+VOL_MAX = 100                # mpv is started with --volume-max=$VOL_MAX
+
+NOTE = "\N{MUSICAL NOTE}"    # ♪ U+266A (Noto Sans Symbols covers it)
+HEART = "\N{HEAVY BLACK HEART}"
+PLAY_GLYPH = "\N{BLACK RIGHT-POINTING TRIANGLE}"  # ▶
+PAUSE_GLYPH = "\N{DOUBLE VERTICAL LINE}"          # ‖
+
+
+# ---------------------------------------------------------------- state ----
+
+def read_favs():
+    try:
+        with open(FAV_FILE) as f:
+            return {line.strip() for line in f if line.strip()}
+    except FileNotFoundError:
+        return set()
+
+
+def write_favs(favs):
+    os.makedirs(FAV_DIR, exist_ok=True)
+    tmp = FAV_FILE + ".tmp"
+    with open(tmp, "w") as f:
+        f.write("\n".join(sorted(favs)) + "\n")
+    os.replace(tmp, FAV_FILE)
+
+
+def read_current():
+    try:
+        with open(CUR_FILE) as f:
+            d = json.load(f)
+        return d.get("id", ""), max(0, min(VOL_MAX, int(d.get("volume", 60))))
+    except Exception:
+        return "", 60
+
+
+def write_current(cid=None, volume=None):
+    old_id, old_vol = read_current()
+    d = {"id": cid if cid is not None else old_id,
+         "volume": int(volume) if volume is not None else old_vol}
+    os.makedirs(STATE_DIR, exist_ok=True)
+    tmp = CUR_FILE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(d, f)
+    os.replace(tmp, CUR_FILE)
+
+
+def load_channels(force=False):
+    """Channel list from cache, refreshed at most once per REFRESH_SECS.
+    A failed fetch keeps serving the stale cache."""
+    try:
+        with open(CACHE_FILE) as f:
+            cache = json.load(f)
+        chans, age = cache["channels"], time.time() - cache["fetched_at"]
+    except Exception:
+        chans, age = [], None
+    if force or not chans or age is None or age >= REFRESH_SECS:
+        fetched = fetch_channels()
+        if fetched is not None:
+            chans = fetched
+    return chans
+
+
+def fetch_channels():
+    try:
+        req = urllib.request.Request(
+            CH_URL, headers={"User-Agent": "somafm-waybar/1.0"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.load(r)
+        chans = []
+        for c in data.get("channels", []):
+            chans.append({
+                "id": c.get("id", ""),
+                "title": c.get("title", c.get("id", "")),
+                "description": c.get("description", ""),
+                "listeners": int(c.get("listeners") or 0),
+                "lastPlaying": c.get("lastPlaying") or "",
+                "pls": next((p["url"] for p in c.get("playlists", [])
+                             if p.get("format") == "mp3"), ""),
+            })
+        if not chans:
+            return None
+        os.makedirs(STATE_DIR, exist_ok=True)
+        tmp = CACHE_FILE + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"fetched_at": time.time(), "channels": chans}, f)
+        os.replace(tmp, CACHE_FILE)
+        return chans
+    except Exception:
+        return None
+
+
+# ------------------------------------------------------------------ mpv ----
+
+def ipc(cmd, timeout=1.0):
+    """One IPC exchange with the running mpv; None if mpv is not running."""
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        s.connect(SOCK)
+        s.sendall(json.dumps({"command": cmd}).encode() + b"\n")
+        buf = b""
+        while b"\n" not in buf:
+            chunk = s.recv(4096)
+            if not chunk:
+                break
+            buf += chunk
+        s.close()
+        msg = json.loads(buf.split(b"\n")[0])
+        if msg.get("error") != "success":
+            return None
+        return msg.get("data")
+    except Exception:
+        return None
+
+
+def player_state():
+    """(playing, paused, volume, song) — from mpv if it is running, else
+    from the persisted state file."""
+    _, saved_vol = read_current()
+    vol = ipc(["get_property", "volume"])
+    if vol is None:                       # mpv dead or never started
+        return False, False, saved_vol, ""
+    paused = bool(ipc(["get_property", "pause"]))
+    song = ipc(["get_property", "media-title"]) or ""
+    return True, paused, int(vol), song
+
+
+def quit_mpv():
+    """Stop the player, keeping its last volume on disk."""
+    vol = ipc(["get_property", "volume"])
+    if vol is not None:
+        write_current(volume=int(vol))
+        ipc(["quit"])
+        for _ in range(15):
+            if ipc(["get_property", "volume"], 0.3) is None:
+                break
+            time.sleep(0.1)
+    try:
+        with open(PID_FILE) as f:
+            os.kill(int(f.read()), signal.SIGTERM)
+    except Exception:
+        pass
+
+
+def channel_stream(chans, cid):
+    """Best mp3 playlist URL for the channel (from the API cache); falls
+    back to the universal 128k mount."""
+    for c in chans:
+        if c["id"] == cid and c["pls"]:
+            return c["pls"]
+    return f"https://ice1.somafm.com/{cid}-128-mp3"
+
+
+def play(cid):
+    chans = load_channels()
+    quit_mpv()                            # stop a previous station, keep volume
+    _, vol = read_current()
+    write_current(cid=cid, volume=vol)
+    title = next((c["title"] for c in chans if c["id"] == cid), cid)
+    try:
+        p = subprocess.Popen(
+            ["mpv", "--no-video", "--really-quiet",
+             f"--volume-max={VOL_MAX}", f"--volume={vol}",
+             f"--input-ipc-server={SOCK}",
+             f"--force-media-title=SomaFM: {title}",
+             channel_stream(chans, cid)],
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, start_new_session=True)
+    except FileNotFoundError:
+        sys.stderr.write("somafm: mpv not found — sudo pacman -S mpv\n")
+        return 1
+    with open(PID_FILE, "w") as f:
+        f.write(str(p.pid))
+    return 0
+
+
+# --------------------------------------------------------------- actions ---
+
+def act_toggle():
+    playing, paused, _, _ = player_state()
+    cid, _ = read_current()
+    if playing and not paused:
+        ipc(["set_property", "pause", True])
+    elif playing and paused:
+        ipc(["set_property", "pause", False])
+    elif cid:
+        play(cid)      # player died or was stopped — resume last station
+
+
+def act_vol(arg):
+    _, _, vol, _ = player_state()
+    if arg[:1] in ("+", "-"):
+        new = vol + int(arg)
+    else:
+        new = int(arg)
+    new = max(0, min(VOL_MAX, new))
+    if ipc(["get_property", "volume"]) is not None:
+        ipc(["set_property", "volume", new])
+    write_current(volume=new)
+
+
+def act_stop():
+    quit_mpv()
+    cid, _ = read_current()
+    write_current(cid="")                 # station cleared, volume kept
+    del cid
+
+
+def act_fav(cid):
+    favs = read_favs()
+    if cid in favs:
+        favs.discard(cid)
+    else:
+        favs.add(cid)
+    write_favs(favs)
+
+
+# --------------------------------------------------------------- display ---
+
+def sorted_channels(chans):
+    favs = read_favs()
+    return sorted(chans, key=lambda c: (c["id"] not in favs,
+                                        -c["listeners"], c["title"].lower()))
+
+
+def render(chans):
+    playing, paused, vol, song = player_state()
+    cid, _ = read_current()
+    favs = read_favs()
+    ch = next((c for c in chans if c["id"] == cid), None)
+    title = ch["title"] if ch else (cid or "")
+    if playing and paused:
+        text, cls = f"{NOTE} {title} {PAUSE_GLYPH}", "paused"
+    elif playing:
+        text, cls = f"{NOTE} {title} {vol}%", "playing"
+    else:
+        text, cls = NOTE, "stopped"
+    tip = []
+    if ch:
+        tip.append(f"{ch['title']} · {ch['listeners']:,} listening")
+        if ch["description"]:
+            tip.append(ch["description"])
+    tip.append(f"{PLAY_GLYPH} {song}" if song else
+               (f"last: {ch['lastPlaying']}" if ch and ch["lastPlaying"]
+                else "stopped"))
+    tip.append(f"volume {vol}%")
+    tip.append("")
+    tip.append("click play/pause · scroll volume · right-click channels")
+    tip.append(f"{HEART} {len(favs)} favorite(s)")
+    return {"text": text, "class": cls, "tooltip": "\n".join(tip)[:2000],
+            "_meta": {"cid": cid, "playing": playing, "paused": paused,
+                      "song": song, "vol": vol, "favcount": len(favs)}}
+
+
+def cmd_watch():
+    os.makedirs(STATE_DIR, exist_ok=True)
+
+    def refresher():
+        while True:
+            load_channels()
+            time.sleep(REFRESH_SECS)
+
+    threading.Thread(target=refresher, daemon=True).start()
+    prev = None
+    while True:
+        try:
+            out = render(load_channels())
+            meta = out.pop("_meta")
+            sig = (out["text"], out["class"], out["tooltip"])
+        except Exception as e:  # never let the module go blank or the loop die
+            out = {"text": f"{NOTE} !", "class": "stopped",
+                   "tooltip": f"somafm error: {e.__class__.__name__}"}
+            sig = (out["text"], out["class"], out["tooltip"])
+        if sig != prev:
+            print(json.dumps(out), flush=True)
+            prev = sig
+        time.sleep(2)
+
+
+# ------------------------------------------------------------ menu/fzf -----
+
+def picker_display(chans):
+    favs = read_favs()
+    lines = []
+    for c in sorted_channels(chans):
+        heart = HEART if c["id"] in favs else " "
+        song = f" — {c['lastPlaying']}" if c["lastPlaying"] else ""
+        lines.append(f"{heart} {c['title']}\t{c['id']}"
+                     f"\t{c['listeners']:,} listening{song}")
+    return "\n".join(lines)
+
+
+def cmd_picker():
+    """Runs inside the floating foot window. --print-query lets a ctrl-f
+    favorite toggle rebuild the list while preserving the typed query."""
+    query = ""
+    while True:
+        chans = load_channels() or load_channels(force=True) or []
+        p = subprocess.run(
+            ["fzf", "--delimiter=\t", "--with-nth=1,3", "--expect=enter,ctrl-f,ctrl-s",
+             "--print-query", "--no-multi", "--info=hidden",
+             f"--query={query}",
+             "--header=enter play · ctrl-f favorite · ctrl-s stop · esc close",
+             "--prompt=somafm❯ "],
+            input=picker_display(chans), text=True, capture_output=True,
+            env={k: v for k, v in os.environ.items()
+                 if k != "FZF_DEFAULT_OPTS"})  # fish exports a bat file-preview; channel rows are not files
+        out = (p.stdout or "").split("\n")
+        key = out[0] if out and out[0] != "" else ("enter" if len(out) > 1 else "")
+        query = out[1] if len(out) > 1 else ""
+        sel = out[2] if len(out) > 2 else ""
+        try:
+            cid = sel.split("\t")[1] if "\t" in sel else ""
+        except IndexError:
+            cid = ""
+        if key.startswith("ctrl-f") and cid:
+            act_fav(cid)
+            continue
+        if key.startswith("ctrl-s"):
+            act_stop()
+            continue
+        if key == "enter" and cid:
+            sys.exit(play(cid))
+        break  # esc or no selection
+    time.sleep(0.2)
+
+
+def cmd_menu():
+    """Toggle the anchored waybar popup (gtk-layer-shell, no window). Kept
+    as the CLI entry so `somafm` alone does the right thing. SOMAFM_POPUP=1
+    tells the popup its parent is short-lived by design (else its orphan
+    guard closes it within 500 ms)."""
+    popup = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         "waybar-somafm-menu")
+    env = dict(os.environ, SOMAFM_POPUP="1")
+    try:
+        subprocess.Popen(
+            [popup, "toggle"], env=env,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, start_new_session=True)
+    except FileNotFoundError:
+        sys.stderr.write("somafm: %s not found\n" % popup)
+        return 1
+    return 0
+
+
+# ----------------------------------------------------------------- main ----
+
+def cmd_viz(mode="spectrogram"):
+    """Terminal visualizer for the current terminal — no window spawn. The
+    renderer owns the alt-screen and restores it on Ctrl+C. exec (not
+    spawn) so this process BECOMES the pipeline: Ctrl+C reaches both ends
+    and no somafm process lingers behind the visualizer."""
+    cfg = os.path.expanduser("~/.config/cava/config-raw")
+    renderer = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                            "cava-spectrogram")
+    if mode == "bars":
+        if not os.path.exists(os.path.expanduser("~/.config/cava/config")):
+            sys.stderr.write("somafm: ~/.config/cava/config missing\n")
+            return 1
+        print("cava bars — Ctrl+C quits", flush=True)
+        os.execvp("cava", ["cava"])  # default config: 64 bars, gradient
+        return 0
+    if not (os.path.exists(cfg) and os.path.exists(renderer)):
+        sys.stderr.write(f"somafm: {cfg} or {renderer} missing\n")
+        return 1
+    playing, paused, vol, _ = player_state()
+    cid, _ = read_current()
+    state = (f"{cid or '—'} {'paused' if paused else 'playing'}"
+             if playing else "nothing playing (showing system audio)")
+    print(f"somafm viz · {state} · Ctrl+C quits", flush=True)
+    os.execvp("sh", ["sh", "-c",
+                     f'exec cava -p "{cfg}" | exec "{renderer}"'])
+    return 0
+
+
+def cmd_list():
+    chans = load_channels() or load_channels(force=True) or []
+    if not chans:
+        print("no channels (API unreachable?)", file=sys.stderr)
+        return 1
+    favs = read_favs()
+    for c in sorted_channels(chans):
+        mark = "*" if c["id"] in favs else " "
+        print(f"{mark} {c['id']:<16} {c['listeners']:>6}  {c['title']}")
+
+
+def cmd_info():
+    chans = load_channels() or load_channels(force=True) or []
+    out = render(chans)
+    meta = out.pop("_meta")
+    print(json.dumps(out, indent=2))
+    print(json.dumps(meta, indent=2), file=sys.stderr)
+
+
+def main():
+    argv = sys.argv[1:]
+    if not argv:
+        sys.exit(cmd_menu())  # bare `somafm` = toggle the anchored popup
+    cmd, *args = argv
+    if cmd == "watch":
+        cmd_watch()
+    elif cmd == "toggle":
+        act_toggle()
+    elif cmd == "stop":
+        act_stop()
+    elif cmd == "play" and args:
+        sys.exit(play(args[0]))
+    elif cmd == "vol" and args:
+        act_vol(args[0])
+    elif cmd == "fav" and args:
+        act_fav(args[0])
+    elif cmd == "menu":
+        sys.exit(cmd_menu())
+    elif cmd == "picker":
+        cmd_picker()
+    elif cmd == "info":
+        cmd_info()
+    elif cmd == "list":
+        sys.exit(cmd_list())
+    elif cmd == "viz":
+        sys.exit(cmd_viz(args[0] if args else "spectrogram"))
+    else:
+        print(__doc__, file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    sys.exit(main())

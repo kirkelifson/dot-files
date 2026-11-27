@@ -1,0 +1,420 @@
+#!/usr/bin/python3
+"""waybar-somafm-menu: channel picker popup for the waybar SomaFM module.
+
+Right-click the somafm module ("custom/somafm" on-click-right) to toggle.
+Same layer-shell pattern as bin/waybar-media-menu / bin/waybar-calendar:
+gtk3 + gtk-layer-shell + python-gobject, all in the official repos. The
+popup is anchored to the bar — nothing opens as a normal tiling window.
+
+Channels sort favorites-first, then by listener count (shared logic from
+bin/somafm, imported so the 3-min API throttle is honored by every client).
+Click a row's ▶ to play it (on the current station it toggles pause), click
+the ♥ to toggle favorite; the footer has stop and player-volume controls.
+Rows live-update every 500 ms; Esc closes. The menu is a child of its
+spawner and checks getppid() every refresh: if waybar (or the terminal that
+launched it) dies, the menu closes with it.
+"""
+import importlib.machinery
+import importlib.util
+import os
+import signal
+import sys
+import threading
+import time
+import traceback
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, GLib, GLibUnix, Gtk, GtkLayerShell  # noqa: E402
+
+# reuse bin/somafm as a library: favorites, sort order, player IPC, play().
+# The file has no .py extension, so spec_from_file_location returns None —
+# build the spec from an explicit SourceFileLoader instead
+_menu_dir = os.path.dirname(os.path.realpath(__file__))
+_loader = importlib.machinery.SourceFileLoader(
+    "somafm", os.path.join(_menu_dir, "somafm"))
+_spec = importlib.util.spec_from_loader(_loader.name, _loader)
+somafm = importlib.util.module_from_spec(_spec)
+_loader.exec_module(somafm)
+
+LAUNCHER_PID = os.getppid() if not os.environ.get("SOMAFM_POPUP") else None
+# None = detached CLI spawn (`somafm menu` sets SOMAFM_POPUP): its parent
+# exits on purpose, so parent tracking must be off (see sync)
+PIDFILE = "/tmp/waybar-somafm-menu.pid"
+ERRLOG = "/tmp/waybar-somafm-menu.err"
+REFRESH_MS = 500
+UI_SYNC_SECS = 60            # menu's own channel refresher (throttled upstream)
+LIST_HEIGHT = 640            # scrolled list height (~21 rows)
+
+CSS = b"""
+window {
+    background-color: rgba(20, 20, 24, 0.97);
+    border-radius: 8px;
+    border: 1px solid #33333a;
+    padding: 10px;
+}
+box {
+    font-family: "FiraCode Nerd Font Mono", monospace;
+    font-size: 14px;
+    color: #c8c8c8;
+}
+header, footer {
+    color: #666670;
+    font-size: 12px;
+    padding-bottom: 6px;
+    padding-top: 4px;
+}
+button {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    color: #77777c;
+    min-width: 20px;
+}
+button:hover {
+    color: #c8c8c8;
+}
+button.heart {
+    color: #997788;
+}
+button.favheart {
+    color: #ff3355;
+}
+button.playbtn {
+    color: #50b4b4;
+}
+button.now {
+    color: #50b4b4;
+    font-weight: bold;
+}
+label {
+    padding: 4px 8px 4px 0;
+}
+label.listeners {
+    color: #666670;
+    font-size: 11px;
+}
+label.song {
+    color: #77777c;
+    font-size: 11px;
+    font-style: italic;
+}
+label.now {
+    color: #50b4b4;
+}
+scrollbar { background: transparent; }
+"""
+
+
+def rows_snapshot():
+    """Data layer: rows in display order + player state. Pure/fast — reads
+    the shared cache file and talks to the local mpv socket only. Network
+    fetches happen on the background thread, never here."""
+    chans = somafm.load_channels() or []
+    favs = somafm.read_favs()
+    playing, paused, vol, song = somafm.player_state()
+    cid, _ = somafm.read_current()
+    return {"rows": somafm.sorted_channels(chans), "favs": favs,
+            "playing": playing, "paused": paused, "vol": vol, "song": song,
+            "cid": cid,
+            "current_title": next((c["title"] for c in chans
+                                   if c["id"] == cid), "")}
+
+
+class Menu:
+    def __init__(self):
+        self.win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        GtkLayerShell.init_for_window(self.win)
+        GtkLayerShell.set_layer(self.win, GtkLayerShell.Layer.OVERLAY)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.TOP, True)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.RIGHT, True)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.TOP, 42)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.RIGHT, 8)
+        GtkLayerShell.set_keyboard_mode(self.win,
+                                        GtkLayerShell.KeyboardMode.ON_DEMAND)
+
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        self.outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.header = Gtk.Label(label="somafm")
+        self.header.get_style_context().add_class("header")
+        self.outer.add(self.header)
+
+        # 51 channels do not fit any screen: scroll the list, keep header and
+        # footer fixed
+        self.scrolled = Gtk.ScrolledWindow()
+        self.scrolled.set_policy(Gtk.PolicyType.NEVER,
+                                 Gtk.PolicyType.AUTOMATIC)
+        self.scrolled.set_min_content_height(LIST_HEIGHT)
+        self.rows = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.scrolled.add(self.rows)
+        self.outer.add(self.scrolled)
+
+        self.empty = Gtk.Label(label="loading stations…")
+        self.outer.add(self.empty)
+        self.outer.add(self.make_footer())
+        self.win.add(self.outer)
+
+        self.row_by_id = {}
+        self.rows_sig = None      # rebuild rows when the sort order changes
+        self.win.connect("key-press-event", self.on_key)
+        self.win.connect("destroy", Gtk.main_quit)
+        # diagnostics: the popup once vanished on hover with the loop still
+        # alive. Log every unmap/pointer event + widget-state transition to
+        # ERRLOG so a recurrence leaves ground truth, not guesses
+        self.win.connect("map-event", self._log_evt, "MAP")
+        self.win.connect("unmap-event", self._log_evt, "UNMAP")
+        self.win.connect("enter-notify-event", self._log_evt, "pointer-enter")
+        self.win.connect("leave-notify-event", self._log_evt, "pointer-leave")
+        GLib.timeout_add(REFRESH_MS, self.sync)
+
+        # network refresher on a thread: the 500 ms UI sync must never block
+        # on the API; the module's own throttle keeps this polite (one fetch
+        # per 3 min regardless of how many clients share the cache)
+        def refresher():
+            somafm.load_channels(force=True)
+            while True:
+                time.sleep(UI_SYNC_SECS)
+                somafm.load_channels()
+
+        threading.Thread(target=refresher, daemon=True).start()
+
+    def make_footer(self):
+        bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.vol_label = Gtk.Label(label="vol —")
+        self.vol_label.get_style_context().add_class("listeners")
+        for label, cb in (("−", self.vol_down), ("+", self.vol_up),
+                          ("stop", self.stop)):
+            btn = Gtk.Button(label=label)
+            btn.get_style_context().add_class("ctrl")
+            btn.connect("clicked", cb)
+            bar.add(btn)
+        bar.add(self.vol_label)
+        return bar
+
+    # ------------------------------------------------------------ actions --
+    def play(self, _btn, cid):
+        cur, _ = somafm.read_current()
+        playing, _paused, _vol, _song = somafm.player_state()
+        if cid == cur and playing:
+            somafm.act_toggle()      # same station: pause/resume, don't restart
+        else:
+            somafm.play(cid)
+        GLib.timeout_add(250, self.sync)
+        return True
+
+    def fav(self, _btn, cid):
+        somafm.act_fav(cid)
+        self.rows_sig = None         # favorites re-sort → rebuild rows
+        GLib.timeout_add(100, self.sync)
+        return True
+
+    def vol_up(self, _btn):
+        somafm.act_vol("+5")
+        GLib.timeout_add(100, self.sync)
+        return True
+
+    def vol_down(self, _btn):
+        somafm.act_vol("-5")
+        GLib.timeout_add(100, self.sync)
+        return True
+
+    def stop(self, _btn):
+        somafm.act_stop()
+        GLib.timeout_add(100, self.sync)
+        return True
+
+    def on_key(self, _w, event):
+        if event.keyval == Gdk.KEY_Escape:
+            Gtk.main_quit()
+            return True
+        return False
+
+    # -------------------------------------------------------------- sync ---
+    def _log_evt(self, _w, event, tag):
+        try:
+            with open(ERRLOG, "a") as f:
+                f.write("%s %s mapped=%s visible=%s\n" % (
+                    time.strftime("%H:%M:%S"), tag,
+                    self.win.get_mapped(), self.win.get_visible()))
+        except OSError:
+            pass
+        return False  # never swallow the event
+
+    def sync(self):
+        ppid = os.getppid()
+        # SOMAFM_POPUP=1 (detached `somafm menu` spawn): LAUNCHER_PID is None
+        # and the parent exits by design — parent tracking must stay off, or
+        # the popup reparents to pid 1 and self-closes within one tick
+        if LAUNCHER_PID is not None and (ppid == 1 or ppid != LAUNCHER_PID):
+            # our spawner (waybar, or a terminal that launched us) is gone —
+            # reparented to init, or we started after it already died. Never
+            # outlive it: this is what keeps waybar reloads/restarts from
+            # leaving orphaned popups.
+            if Gtk.main_level() > 0:  # else main()'s startup guard handles it
+                Gtk.main_quit()
+            return False
+        try:
+            self._sync()
+        except Exception:
+            # an exception inside a GLib callback silently REMOVES the
+            # callback, freezing the menu on its initial state — log it and
+            # keep the refresh timer alive instead
+            traceback.print_exc()
+            try:
+                with open(ERRLOG, "a") as f:
+                    traceback.print_exc(file=f)
+            except OSError:
+                pass
+        return True
+
+    def _sync(self):
+        state = rows_snapshot()
+        chans = state["rows"]
+        # rebuild rows whenever the sort order (or the channel set) changes;
+        # song/state updates below are per-widget, no rebuild
+        sig = tuple((c["id"], c["id"] in state["favs"]) for c in chans)
+        if sig != self.rows_sig:
+            self.rows_sig = sig
+            for row in self.row_by_id.values():
+                row["box"].destroy()
+            self.row_by_id = {}
+            self.empty.set_visible(not chans)
+            self.scrolled.set_visible(bool(chans))
+            for c in chans:
+                is_current = c["id"] == state["cid"]
+                box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+                heart = Gtk.Button(label=somafm.HEART
+                                   if c["id"] in state["favs"] else "♡")
+                heart.get_style_context().add_class(
+                    "favheart" if c["id"] in state["favs"] else "heart")
+                heart.connect("clicked", self.fav, c["id"])
+                playbtn = Gtk.Button(label=somafm.PAUSE_GLYPH if (
+                    is_current and state["playing"] and not state["paused"])
+                    else somafm.PLAY_GLYPH)
+                playbtn.get_style_context().add_class("playbtn")
+                playbtn.connect("clicked", self.play, c["id"])
+                title = Gtk.Label(label=c["title"])
+                title.set_halign(Gtk.Align.START)
+                title.get_style_context().add_class(
+                    "now" if is_current else "plain")
+                listeners = Gtk.Label(label=f"{c['listeners']:,}")
+                listeners.get_style_context().add_class("listeners")
+                # now-playing lives ONLY on the current station's row: live
+                # song (mpv ICY) if playing, else the channel's lastPlaying
+                song = Gtk.Label(label="")
+                song.get_style_context().add_class("song")
+                song.set_halign(Gtk.Align.START)
+                song.set_visible(is_current)
+                box.add(heart)
+                box.add(playbtn)
+                box.add(title)
+                box.add(listeners)
+                box.add(song)
+                self.rows.add(box)
+                self.row_by_id[c["id"]] = {"box": box, "playbtn": playbtn,
+                                           "title": title,
+                                           "listeners": listeners,
+                                           "song": song}
+        else:
+            for c in chans:
+                row = self.row_by_id.get(c["id"])
+                if not row:
+                    continue
+                is_current = c["id"] == state["cid"]
+                row["song"].set_visible(is_current)
+                if is_current:
+                    row["song"].set_label(state["song"] or c["lastPlaying"])
+                # play button follows the running player even if mpv was
+                # toggled from the bar or died
+                row["playbtn"].set_label(
+                    somafm.PAUSE_GLYPH if is_current and state["playing"]
+                    and not state["paused"] else somafm.PLAY_GLYPH)
+        if state["playing"]:
+            line = somafm.PAUSE_GLYPH if state["paused"] else somafm.PLAY_GLYPH
+            self.header.set_label(
+                f"somafm · {line} {state['current_title'] or state['cid']}"
+                f" · {state['vol']}%")
+        else:
+            self.header.set_label("somafm · stopped")
+        self.vol_label.set_label(f"vol {state['vol']}%")
+        self.win.show()  # NOT show_all: it would re-show the hidden label
+        return True
+
+
+def running_pids():
+    """Live menu instances, found by exact /proc cmdline match: argv[0] is a
+    python interpreter and argv[1] resolves to this script. pgrep -f can't
+    be used here: it matches any process whose full cmdline merely CONTAINS
+    the path (shells, editors, test harnesses), and sweeping those kills
+    unrelated processes."""
+    script = os.path.realpath(__file__)
+    mine = os.getpid()
+    pids = set()
+    for ent in os.listdir("/proc"):
+        if not ent.isdigit() or int(ent) == mine:
+            continue
+        try:
+            with open("/proc/%s/cmdline" % ent, "rb") as f:
+                argv = f.read().rstrip(b"\0").split(b"\0")
+        except OSError:
+            continue
+        if (len(argv) >= 2
+                and os.path.basename(argv[0].decode("utf-8", "replace"))
+                .startswith("python")
+                and os.path.realpath(argv[1].decode("utf-8", "replace"))
+                == script):
+            pids.add(int(ent))
+    return pids
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "toggle"
+    if mode == "toggle":
+        pids = running_pids()
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+        if pids:
+            return  # was open: toggled closed
+    try:
+        open(ERRLOG, "w").close()  # fresh error log per launch
+    except OSError:
+        pass
+    with open(PIDFILE, "w") as f:
+        f.write(str(os.getpid()))
+
+    try:
+        err = open(ERRLOG, "a")  # keep OUR stderr: Gtk/Gdk warnings die with
+        sys.stderr = err         # sway's log otherwise, unseen
+    except OSError:
+        err = None
+    GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, Gtk.main_quit)
+    menu = Menu()
+    if LAUNCHER_PID is not None and (
+            os.getppid() != LAUNCHER_PID or os.getppid() == 1):
+        return  # spawner died during startup — sync's quit was a no-op
+    menu.win.show()  # children's visibility was set by Menu()'s first sync
+    try:
+        Gtk.main()
+    finally:
+        try:
+            # only remove the pidfile if it is still OURS — a successor
+            # instance may already have replaced it
+            if open(PIDFILE).read().strip() == str(os.getpid()):
+                os.remove(PIDFILE)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    main()

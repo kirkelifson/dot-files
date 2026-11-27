@@ -63,6 +63,7 @@ window#waybar {
 #custom-spark-mem,
 #custom-spark-gpu,
 #custom-media,
+#custom-somafm,
 #custom-net-rate,
 #custom-bluetooth,
 #pulseaudio,
@@ -78,6 +79,7 @@ window#waybar {
 #custom-spark-mem,
 #custom-spark-gpu,
 #custom-media,
+#custom-somafm,
 #custom-net-rate,
 #custom-bluetooth,
 #pulseaudio,
@@ -185,6 +187,25 @@ window#waybar {
 
 #custom-keepawake.off {
     color: #8899cc;
+}
+
+/* SomaFM radio (bin/somafm): ♪ glyph + state; playing shows station + player
+   volume. Bright playing color, dimmed idle states (distinct glyph per state) */
+#custom-somafm.playing {
+    color: #50b4b4;
+    font-weight: bold;
+}
+
+#custom-somafm.paused {
+    color: #cc9966;
+}
+
+#custom-somafm.stopped {
+    color: #666666;
+}
+
+#custom-somafm.stopped:hover {
+    color: #999999;
 }
 
 #tray {
