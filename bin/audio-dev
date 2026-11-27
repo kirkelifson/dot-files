@@ -1,0 +1,130 @@
+#!/usr/bin/python3
+"""audio-dev — cycle the default PipeWire/WirePlumber audio device.
+
+Usage:
+  audio-dev sink next [--dry]      next output device
+  audio-dev source next [--dry]    next input device
+  audio-dev sink <node-id>         set a specific output
+  audio-dev source <node-id>       set a specific input
+  audio-dev list                   show devices, mark current defaults
+
+Why: `wpctl set-default` goes through WirePlumber, so the choice persists
+across reboots (~/.local/state/wireplumber/default-nodes) — unlike plain
+pactl writes that some setups lose. The waybar VOL module wires right-click
+= cycle output, middle-click = cycle input; left-click stays pavucontrol
+for per-stream routing. A transient mako toast confirms each swap.
+"""
+import os
+import re
+import subprocess
+import sys
+
+RUNTIME = {"XDG_RUNTIME_DIR": os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")}
+
+
+def wpctl(*args):
+    r = subprocess.run(["wpctl", *args], capture_output=True, text=True,
+                       env=dict(os.environ, **RUNTIME), timeout=10)
+    if r.returncode != 0:
+        sys.stderr.write(f"audio-dev: wpctl {' '.join(args)} failed: {r.stderr.strip()}\n")
+        sys.exit(1)
+    return r.stdout
+
+
+def devices(kind):
+    """[(id, name, is_default)] for kind 'Sinks'|'Sources', from wpctl
+    status. (WirePlumber 1.x has no get-default; the * marker is it.)"""
+    want = "Sinks" if kind == "Sinks" else "Sources"
+    out, inside = [], False
+    for line in wpctl("status").splitlines():
+        if re.match(r"\s*[├└]─ .+:", line):
+            inside = line.rstrip().endswith(f"{want}:")
+            continue
+        if inside:
+            clean = line.replace("│", " ").replace("├─", " ").replace("└─", " ")
+            clean = clean.strip()
+            if not clean or clean.startswith("Filters") or clean.startswith("Streams"):
+                continue
+            m = re.match(r"(?:\*\s+)?(\d+)\.\s+(.*)", clean)
+            if m:
+                did, name = int(m.group(1)), m.group(2)
+                star = clean.startswith("*")
+                name = re.sub(r"\s*\[vol:.*$", "", name).strip()
+                if not name.startswith("auto_null"):
+                    out.append((did, name, star))
+    return out
+
+
+def current(kind):
+    starred = [d for d, _, s in devices(kind) if s]
+    return starred[0] if starred else devices(kind)[0][0]
+
+
+def notify(title, body):
+    try:
+        subprocess.Popen(["notify-send", "-t", "1500", "-a", "audio",
+                          title, body],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        pass
+
+
+def set_default(kind, did, dry=False):
+    devs = {d: n for d, n, _ in devices(kind)}
+    if did not in devs:
+        sys.stderr.write(f"audio-dev: node {did} is not a {kind.rstrip('s')}\n")
+        return 1
+    cur = current(kind)
+    if dry:
+        print(f"[dry] {kind.rstrip('s')}: {devs[cur]} -> {devs[did]}")
+        return 0
+    subprocess.run(["wpctl", "set-default", str(did)], check=True,
+                   capture_output=True, env=dict(os.environ, **RUNTIME))
+    now = current(kind)
+    if now != did:
+        sys.stderr.write(f"audio-dev: set-default did not stick (want {did}, got {now})\n")
+        return 1
+    label = "output" if kind == "Sinks" else "input"
+    notify(f"{label} ▸ {devs[did]}", "default device switched")
+    print(f"{label}: {devs[did]}")
+    return 0
+
+
+def cycle(kind, dry=False):
+    devs = devices(kind)
+    if not devs:
+        sys.stderr.write(f"audio-dev: no {kind.rstrip('s')} devices\n")
+        return 1
+    cur = current(kind)
+    ids = [d for d, _, _ in devs]
+    nxt = ids[(ids.index(cur) + 1) % len(ids)] if cur in ids else ids[0]
+    return set_default(kind, nxt, dry)
+
+
+def main():
+    args = sys.argv[1:]
+    dry = "--dry" in args
+    args = [a for a in args if a != "--dry"]
+    if not args or args[0] in ("list",):
+        kind_map = {"Sinks": "output", "Sources": "input"}
+        for kind in ("Sinks", "Sources"):
+            cur = current(kind)
+            for did, name, _star in devices(kind):
+                mark = "*" if did == cur else " "
+                print(f"{mark} {kind_map[kind]:<6} {did:<4} {name}")
+        return 0
+    kind = {"sink": "Sinks", "output": "Sinks",
+            "source": "Sources", "input": "Sources"}.get(args[0])
+    if kind is None or len(args) < 2:
+        print(__doc__, file=sys.stderr)
+        return 2
+    if args[1] == "next":
+        return cycle(kind, dry)
+    if args[1].isdigit():
+        return set_default(kind, int(args[1]), dry)
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

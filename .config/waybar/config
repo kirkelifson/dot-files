@@ -94,6 +94,9 @@
         "format": "VOL {volume}%",
         "format-muted": "MUTE",
         "on-click": "pavucontrol",
+        // tooltip shows the active device ({desc}); cycle via right/middle
+        "on-click-right": "sh -c 'exec $HOME/bin/audio-dev sink next'",
+        "on-click-middle": "sh -c 'exec $HOME/bin/audio-dev source next'",
         "tooltip-format": "{desc}"
     },
 
