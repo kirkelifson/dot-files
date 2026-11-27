@@ -95,6 +95,11 @@ end
 
 # --- Interactive only ---
 if status is-interactive
+    # Cmdgen: turn English on the commandline into a shell command (Ctrl+G)
+    if type -q hermes
+        bind \cg cmdgen
+    end
+
     # fzf keybindings and completion
     if type -q fzf; and fzf --help | string match -q -- '*--fish*'
         fzf --fish | source
