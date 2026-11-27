@@ -233,7 +233,9 @@ for_window [window_type="dialog"] floating enable
 # workspace and reads as "the desktop closed", though it never actually exits.
 # Moonlight captures the whole output, so the stream follows focus to ws 9;
 # $mod+1..8 (or the workspace keys) shows the desktop alongside again.
-for_window [class="^Steam$"] move container to workspace number 9, workspace number 9
+# (?i): the current Steam client maps with lowercase class "steam" (older
+# builds used "Steam"), so match case-insensitively.
+for_window [class="(?i)^steam$"] move container to workspace number 9, workspace number 9
 # Allow tearing for fullscreen games (opt-in; per-window in sway ≥1.12)
 for_window [app_id="steam_app_*"] allow_tearing enable
 # XWayland drag smoothness — render X11 windows 90ms before vblank instead of
