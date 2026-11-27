@@ -3,6 +3,10 @@
 # Run by the check-updates.timer systemd user unit. Arch never auto-updates;
 # this only makes pending upgrades visible. Every pacman transaction is
 # snapshotted by snapper (snap-pac), so applying the listed updates is low-drama.
+#
+# NOTE: notify-send exits before the click can be delivered, so the actual
+# sending is delegated to check-updates-notify — a D-Bus sender has to STAY
+# ALIVE for notification actions to work. That file must sit next to this one.
 set -euo pipefail
 
 # checkupdates exits non-zero both on "no updates" and on errors (e.g. the
@@ -17,11 +21,11 @@ fi
 list=$(head -n 5 <<<"$updates" | awk '{print $1 " → " $NF}')
 suffix=""
 if (( count > 5 )); then
-  suffix=$'\n…and '"$((count - 5))"' more'
+  suffix=$'and '"$((count - 5))"' more — '
 fi
 
-notify-send -a "Arch updates" -u normal \
-  "$count package update(s) available" \
-  "$list${suffix}
+body="$list
+${suffix}click to open the updater (password prompt inside)"
 
-Apply with: sudo pacman -Syu"
+exec "$(dirname "$0")/check-updates-notify" \
+  "$count package update(s) available" "$body"

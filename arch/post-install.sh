@@ -486,7 +486,7 @@ step "Update nudges: weekly checkupdates + notify-send (user systemd timer)"
 # script/units live in the repo and are symlinked (edits apply live).
 USYS="/home/$TARGET_USER/.config/systemd/user"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "$USYS"
-for f in check-updates check-updates.service check-updates.timer \
+for f in check-updates check-updates-notify check-updates.service check-updates.timer \
   sway-session.target waybar-alerts.service; do
   dst="$USYS/$f"
   [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"

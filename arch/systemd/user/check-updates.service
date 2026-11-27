@@ -6,6 +6,9 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
+# the process STAYS ALIVE until the notification is acted on/closed (the D-Bus
+# sender must outlive the click) — exempt it from the oneshot start timeout
+TimeoutStartSec=infinity
 # The user manager's bus — explicit so notify-send never autolaunches a bus
 # mako isn't listening on.
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus

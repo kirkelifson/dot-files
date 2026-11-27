@@ -1,0 +1,99 @@
+#!/usr/bin/python3
+"""check-updates-notify — send the update notification and STAY with it.
+
+D-Bus notification actions are delivered to the bus connection that SENT
+the notification. A bare `notify-send -A ...` exits immediately, so the
+click has no handler (hit live: mako clicks did nothing). This helper sends
+the notification itself and sits in a GLib loop until mako reports the
+notification was acted on or closed — the check-updates oneshot unit lives
+exactly as long as its notification (capped at 24h so a never-clicked nudge
+can't block the next weekly run).
+
+On the update action (mako left-click on "Update now"): launches bin/
+sys-update — a foot terminal running `sudo pacman -Syu`, password typed
+inside that terminal. CHECK_UPDATES_DRY=1 prints the command instead.
+
+usage: check-updates-notify <summary> <body>
+"""
+import os
+import subprocess
+import sys
+
+import gi
+
+gi.require_version("GLib", "2.0")
+gi.require_version("Gio", "2.0")
+from gi.repository import Gio, GLib  # noqa: E402
+
+USAGE = "usage: check-updates-notify <summary> <body>"
+WAIT_CAP_SECS = 24 * 3600
+
+if len(sys.argv) != 3:
+    sys.exit(USAGE)
+SUMMARY, BODY = sys.argv[1], sys.argv[2]
+
+sys_update = os.path.expanduser("~/bin/sys-update")
+
+
+def launch_update():
+    """Detach the terminal so the notification sender's death (oneshot unit
+    exiting when this helper quits) can't take the update with it."""
+    if os.environ.get("CHECK_UPDATES_DRY"):
+        print("dry-run: would launch %s" % sys_update, flush=True)
+        return
+    subprocess.Popen((sys_update,), start_new_session=True,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+proxy = Gio.DBusProxy.new_sync(
+    bus, Gio.DBusProxyFlags.NONE, None,
+    "org.freedesktop.Notifications", "/org/freedesktop/Notifications",
+    "org.freedesktop.Notifications", None)
+
+nid = proxy.call_sync(
+    "Notify",
+    GLib.Variant(
+        "(susssasa{sv}i)",
+        ("Arch updates",           # app_name — mako groups by it
+         0,                        # replaces_id: a fresh nudge, not an edit
+         "software-update-available",
+         SUMMARY,
+         BODY,
+         ("default", "Update now"),  # actions flattened (key, label)
+         {},                       # hints
+         0)),                      # timeout 0 — mako keeps it until dismissed
+    Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
+
+quitting = False
+
+
+def quit_loop():
+    global quitting
+    quitting = True
+    loop.quit()
+    return False
+
+
+def on_signal(conn, sender, path, iface, sig, params):
+    # mako (the one connection named org.freedesktop.Notifications) owns all
+    # delivery — but still filter on OUR notification id
+    if sig == "ActionInvoked":
+        sig_nid, key = params.unpack()
+        if sig_nid == nid and key == "default":
+            launch_update()
+            quit_loop()
+    elif sig == "NotificationClosed":
+        sig_nid, _reason = params.unpack()
+        if sig_nid == nid:
+            quit_loop()
+    return True
+
+
+bus.signal_subscribe("org.freedesktop.Notifications",
+                     "org.freedesktop.Notifications", None,
+                     "/org/freedesktop/Notifications", None, 0, on_signal)
+GLib.timeout_add_seconds(WAIT_CAP_SECS, quit_loop)  # never block next week's run
+
+loop = GLib.MainLoop()
+loop.run()

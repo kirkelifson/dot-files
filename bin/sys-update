@@ -1,0 +1,15 @@
+#!/bin/bash
+# sys-update — the pacman update terminal, independent of how it is started.
+# Invoked by the check-updates notification's click action; also fine to run
+# from a keybind or terminal. PASSWORD PROMPT: pacman runs via sudo inside
+# the new terminal — it must be an interactive terminal to read it, which is
+# exactly why the notification click opens one instead of updating in place.
+set -u
+
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  # no graphical session (e.g. SSH): run right here
+  exec sudo pacman -Syu
+fi
+
+exec foot --title "system update" --app-id "system-update" \
+  sh -c 'sudo pacman -Syu; rc=$?; echo; echo "-- update finished (exit $rc) — press enter to close --"; read r'
