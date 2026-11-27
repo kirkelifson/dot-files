@@ -16,7 +16,9 @@ CLAIM="$RUNTIME/screensaver.locking"
 
 if [[ -f $FLAG ]] && mkdir "$CLAIM" 2>/dev/null; then
     rm -f "$FLAG"
-    pgrep -x swaylock >/dev/null || swaylock -f   # never stack lock screens
+    # log swaylock's stderr: if it ever dies while the session is locked, sway
+    # shows its solid-red lock fill and the reason must come from here
+    pgrep -x swaylock >/dev/null || swaylock -f 2>>"$RUNTIME/screensaver-lock.err"   # never stack lock screens
     rmdir "$CLAIM" 2>/dev/null
 fi
 

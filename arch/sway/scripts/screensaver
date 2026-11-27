@@ -8,9 +8,15 @@
 #                lock view. Session is technically unlocked while it shows;
 #                the real lock lands on first input (idle-resume) and the
 #                600s auto-lock is the safety net. Press 'q' in the fish to
-#                dismiss it without locking (exit code 0); Ctrl+C or a crash
-#                exits non-zero and locks instead — never a free unlock.
+#                dismiss it without locking (exit code 0); a crash exits
+#                non-zero and locks instead — never a free unlock. Ctrl+C is
+#                IGNORED (the wrapper traps SIGINT, so the fish inherits the
+#                ignore): killing the fish via Ctrl+C left FLAG set on an
+#                unlocked desktop, and the surprise lock outliving its
+#                swaylock strands the session on sway's solid-red lock fill.
 #   stop         kill fish + clear state
+#   lock         guarded auto-lock (600s swayidle timeout): never stacks a
+#                second lock client on one that is already running
 #   should-lock  exit 0 when the 600s lock / 900s dpms timeouts may run:
 #                fish active (user locked manually = intent) or gate clear.
 #                CRITICAL: without the flag check, idle-gate would see the
@@ -39,9 +45,10 @@ launch() {
     # foot -F = fullscreen on the focused output. The wrapper decides by
     # asciiquarium's exit code (verified live): 'q' exits 0 = intentional
     # dismissal -> clean up so the next input does NOT lock. ANY other exit
-    # (Ctrl+C kills it with rc=1, or a crash) -> idle-resume brings up the
-    # REAL lock. Dismissing by Ctrl+C was the unlock bypass.
-    swaymsg exec "foot --app-id=screensaver -F sh -c '/usr/bin/asciiquarium; rc=\$?; if [ \$rc -eq 0 ]; then $BASE/screensaver stop; else $BASE/idle-resume; fi'"
+    # (a crash) -> idle-resume brings up the REAL lock. Dismissing by Ctrl+C
+    # was the unlock bypass, so the wrapper traps SIGINT: sh ignores it and
+    # the ignore is inherited by asciiquarium, making Ctrl+C a complete no-op.
+    swaymsg exec "foot --app-id=screensaver -F sh -c 'trap \"\" INT; /usr/bin/asciiquarium; rc=\$?; if [ \$rc -eq 0 ]; then $BASE/screensaver stop; else $BASE/idle-resume; fi'"
 }
 
 kill_watcher() {
@@ -91,6 +98,12 @@ stop)
     kill_watcher
     rm -f "$FLAG"
     rmdir "$CLAIM" 2>/dev/null
+    ;;
+lock)
+    # guarded auto-lock for the 600s swayidle timeout: never stack a second
+    # lock client on one that is already running (a failed acquire would exit
+    # silently via -f's daemonize)
+    pgrep -x swaylock >/dev/null || exec swaylock -f
     ;;
 should-lock)
     [[ -f $FLAG ]] && exit 0
