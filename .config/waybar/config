@@ -57,7 +57,7 @@
         "return-type": "json",
         "format": "{text}",
         "states": {
-            "warning": 70,
+            "warning": 85,
             "critical": 90
         }
     },
