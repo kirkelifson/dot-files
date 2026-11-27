@@ -62,7 +62,7 @@ varies by FreeBSD release, architecture, and quarterly/latest repository.
 | Databases and media | PostgreSQL, Valkey/Redis, libvips, ImageMagick, Graphviz, FFmpeg, and additional runtime build libraries are omitted; install per project. |
 | Containers and desktop | Podman and the Omarchy/Hyprland desktop setup are outside this FreeBSD bootstrap. Homebrew casks and VS Code extensions are macOS-only installer features. Ghostty is not installed; its shared config is linked for an independently installed terminal. |
 | Clipboard | `wl-clipboard` for a local Wayland session, `xclip` for X11. Over SSH these need access to a display; the package set does not configure clipboard forwarding. |
-| Agent layout | `tmux-agents` requires separately installed AI CLIs and GNU `watch`; FreeBSD base `watch` is a different utility. Use `tmux-sessionizer` for the supported core session workflow. |
+| Agent layout | `tmux-agents` requires separately installed AI CLIs and GNU `watch`; FreeBSD base `watch` is a different utility. `tai` needs the same agent CLIs plus Linux tooling (`journalctl`/`ss`) for its monitor pane. Use `tmux-sessionizer` for the supported core session workflow. |
 | Platform utilities | `apt-gpg` and `update-server` remain Debian/Ubuntu-only; `osx-restart-*` remain macOS-only. |
 
 ### Machine-Specific Config
@@ -80,6 +80,19 @@ tmux-sessionizer          # or prefix+f inside tmux
 ```
 
 Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to search. The defaults (`~/code`, `~/projects`, `~/work`, `~/src`, `~/dot-files`) are skipped silently if they don't exist — add your actual project dirs.
+
+### tai — agentic project sessions
+
+Project-centric tmux sessions named after the leading agent harness (`hermes-myproj`, `pi-myproj`, ...), laid out with two agent panes, a monitor pane (lazygit by default, with btop / network log / lazydocker on its in-pane menu via `bin/tai-monitor`), and a small free shell:
+
+```bash
+tai --new myproj          # mkdir + git init + hermes project + session
+tai myproj                # attach (any harness), or create if not running
+tai --force myproj        # duplicate session even if one exists
+tai -H pi myproj          # pick the leading harness (default hermes)
+```
+
+Edit the projects root and default harness at the top of `bin/tai` (`TAI_PROJECTS_DIR`, `TAI_HARNESS`). An uninstalled harness degrades to a plain shell in its panes.
 
 ---
 

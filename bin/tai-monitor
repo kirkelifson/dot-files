@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# tai-monitor — the monitor pane for `tai` sessions.
+#
+# Defaults to lazygit in the pane's working directory (the project dir). When
+# it exits, a menu rotates through the other views; pick one with a keypress:
+#
+#   [1] btop (system stats)   [3] lazydocker
+#   [2] network log           [4] lazygit        [q] quit to a shell
+
+run_view() {
+  case "$1" in
+    1)
+      if command -v btop >/dev/null 2>&1; then btop; else top; fi
+      ;;
+    2)
+      if command -v journalctl >/dev/null 2>&1; then
+        journalctl -f -n 20 -g 'net|link|dhcp|eth|wlan|iwd|r8169|NetworkManager'
+      else
+        while sleep 2; do clear; ss -tuln; done
+      fi
+      ;;
+    3)
+      if command -v lazydocker >/dev/null 2>&1; then
+        lazydocker
+      else
+        echo 'lazydocker not installed'; sleep 2
+      fi
+      ;;
+    4)
+      if command -v lazygit >/dev/null 2>&1; then
+        lazygit
+      else
+        echo 'lazygit not installed'; sleep 2
+      fi
+      ;;
+  esac
+}
+
+first="${1:-4}" # default view: lazygit
+while :; do
+  clear
+  printf 'monitor: [1] stats  [2] net log  [3] lazydocker  [4] lazygit  [q] quit\n'
+  if [ -n "$first" ]; then
+    k="$first"
+    first=""
+  else
+    read -rsn1 k || exit 0
+    [ "$k" = q ] && exit 0
+  fi
+  case "$k" in
+    1 | 2 | 3 | 4) run_view "$k" ;;
+  esac
+done
