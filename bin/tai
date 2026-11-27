@@ -4,14 +4,15 @@
 # One tmux session per project, named after the agent harness that leads it
 # (e.g. hermes-myproj, pi-myproj). Default layout of the `agents` window:
 #
-#   +----------------------+---------------------------+
-#   |                      | monitor (tai-monitor:     |
-#   | harness pane 1       | lazygit by default;       |
-#   |                      | btop / net log /          |
-#   +----------------------+ lazydocker via its menu) |
-#   | harness pane 2       |                           |
-#   +----------------------+---------------------------+
-#   | free shell (full-width work terminal)            |
+#   +----------------------------------+--------------+
+#   |                                  | monitor      |
+#   | harness pane 1                   |              |
+#   |                                  +--------------+
+#   |                                  | term (shell) |
+#   +----------------------------------+              |
+#   | harness pane 2                   |              |
+#   +----------------------------------+--------------+
+#   | free shell (full-width work terminal, 7 rows)   |
 #   +--------------------------------------------------+
 #
 # Usage:
@@ -57,7 +58,7 @@ harness_pane_cmd() {
 
 create_session() { # $1 = project dir, $2 = harness; prints the session name
   local dir="$1" harness="$2"
-  local safename base name i agent_cmd p1 p2 mon_id shell_id
+  local safename base name i agent_cmd p1 p2 mon_id term_id shell_id
 
   safename="$(basename "$dir" | tr . _)"
   base="$harness-$safename"
@@ -70,28 +71,52 @@ create_session() { # $1 = project dir, $2 = harness; prints the session name
 
   agent_cmd="$(harness_pane_cmd "$harness")"
 
+  # Create the window at the size of the client that will attach. Detached
+  # sessions default to 80x24, the splits are computed against that, and the
+  # later resize when the client attaches re-stretches every pane (the 5-row
+  # strip balloons). Inside tmux use the current client's size; outside, the
+  # real terminal size.
+  if [ -n "${TMUX:-}" ]; then
+    geom="$(tmux display-message -p '#{client_width} #{client_height}')"
+  else
+    geom="$(tput cols 2>/dev/null || echo 0) $(tput lines 2>/dev/null || echo 0)"
+  fi
+  local ww hh
+  ww="${geom%% *}"; hh="${geom#* }"
+  case "$ww" in '' | *[!0-9]*) ww=120 ;; esac
+  case "$hh" in '' | *[!0-9]*) hh=40 ;; esac
+  [ "$ww" -ge 10 ] 2>/dev/null || ww=120
+  [ "$hh" -ge 10 ] 2>/dev/null || hh=40
+
   # Pane commands run as the pane's process (not typed via send-keys), so
   # there's no race with the pane's shell startup. Target everything by pane
   # ID: pane indexes start at pane-base-index (1 in ~/.tmux.conf), so a
   # hardcoded ".0" never resolves.
   p1="$(tmux new-session -dP -F '#{pane_id}' -s "$name" -n agents \
-    -c "$dir" "$agent_cmd")"
-  # full-width work terminal along the bottom — split it off first, so the
-  # agents + monitor above it span the whole window width
-  shell_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v -l 30% \
+    -x "$ww" -y "$hh" -c "$dir" "$agent_cmd")"
+  # bottom shell: 7 fixed rows; re-applied by the window-resized hook
+  shell_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v -l 7 \
     -c "$dir")"
-  # top, right: monitor pane (lazygit etc.) — split the columns first, then
-  # stack the left column, so both top panes run the full top-row height
-  mon_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -h -l 45% \
+  # right column (30%): monitor on top, full column height at first
+  mon_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -h -l 30% \
     -c "$dir" tai-monitor)"
-  # top, left, bottom: second agent pane
-  p2="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v \
+  # monitor column: term takes the bottom 75%, monitor keeps the top 25%
+  term_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$mon_id" -v -l 75% \
+    -c "$dir")"
+  # left side, agent panes stacked: agent 2 slightly taller (55%)
+  p2="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v -l 55% \
     -c "$dir" "$agent_cmd")"
 
   tmux select-pane -t "$p1" -T "$harness:1"
   tmux select-pane -t "$p2" -T "$harness:2"
   tmux select-pane -t "$mon_id" -T monitor
+  tmux select-pane -t "$term_id" -T term
   tmux select-pane -t "$shell_id" -T shell
+  # The hook fires per resize event, often mid-stretch (that's why it's
+  # delayed by 1s and serialized with flock inside tai-relayout): tmux
+  # re-stretches panes whenever the client size changes, so the ratios need
+  # a settling pass after each change.
+  tmux set-hook -g window-resized "run-shell -d 1 'tai-relayout #{window_id}'"
   tmux select-pane -t "$p1"
 
   printf '%s' "$name"

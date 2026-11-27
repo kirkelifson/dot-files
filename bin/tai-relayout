@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# tai-relayout — re-apply the `agents` window proportions after a resize.
+#
+# tai registers this as the window-resized hook (delayed + serialized), because
+# tmux re-stretches panes whenever the client size changes, which distorts the
+# fixed 7-row shell and the monitor/term ratios. It verifies its own work
+# against live geometry and retries, because a resize storm can tear reads and
+# leave a half-applied pass. Skips any window that doesn't look like a tai
+# `agents` layout (identified positionally: one full-width pane along the
+# bottom), so other windows are never touched.
+#
+# Layout ratios must match bin/tai's create_session:
+#   agent column  70% wide, agent 1 = 45% of the column height
+#   monitor       top 25% of the column height
+#   term          the rest of the monitor column
+#   shell         7 fixed rows along the bottom
+
+apply_pass() { # $1 = window, $2 = width, $3 = height; prints nothing
+  local win="$1" w="$2" h="$3"
+  local shell_id top aw ah mh panes monitor_id agent1_id
+
+  # Bottom shell: the one pane spanning the full window width at the bottom.
+  shell_id="$(tmux list-panes -t "$win" -F '#{pane_id} #{pane_width} #{pane_top} #{pane_height}' |
+    awk -v w="$w" -v h="$h" '$2 == w && $3 + $4 >= h {print $1}')"
+  [ -n "$shell_id" ] || return 1
+  [ "$(printf '%s\n' "$shell_id" | grep -c .)" -eq 1 ] || return 1
+  tmux resize-pane -t "$shell_id" -y 7 || return 1
+
+  top=$((h - 8)) # rows available to agent + monitor columns
+  [ "$top" -ge 10 ] || return 1
+  aw=$((w * 70 / 100))
+  ah=$((top * 45 / 100))
+  mh=$((top * 25 / 100))
+
+  panes="$(tmux list-panes -t "$win" -F '#{pane_id} #{pane_top} #{pane_left} #{pane_height}')"
+
+  # Match by COLUMN, never by target coordinates: the column boundary moves
+  # as the previous command in this pass resizes the agent side.
+  monitor_id="$(printf '%s\n' "$panes" |
+    awk -v sh_top="$((h - 7))" '$2 == 0 && $3 > 0 && $2 + $4 <= sh_top {print $1}')"
+  agent1_id="$(printf '%s\n' "$panes" |
+    awk -v sh_top="$((h - 7))" '$2 == 0 && $3 == 0 && $2 + $4 <= sh_top {print $1}')"
+  [ -n "$agent1_id" ] || return 1
+  [ -n "$monitor_id" ] || return 1
+
+  tmux resize-pane -t "$agent1_id" -x "$aw" || return 1
+  tmux resize-pane -t "$monitor_id" -y "$mh"
+  tmux resize-pane -t "$agent1_id" -y "$ah"
+}
+
+check_pass() { # $1 = window; rc 0 when every ratio matches the LIVE geometry
+  local win="$1" w h
+  w="$(tmux display-message -p -t "$win" '#{window_width}')" || return 1
+  h="$(tmux display-message -p -t "$win" '#{window_height}')" || return 1
+  local top=$((h - 8)) aw=$((w * 70 / 100)) ah=$((top * 45 / 100)) mh=$((top * 25 / 100))
+  [ "$top" -ge 10 ] || return 1
+
+  tmux list-panes -t "$win" -F '#{pane_width} #{pane_height} #{pane_top} #{pane_left}' |
+    awk -v aw="$aw" -v ah="$ah" -v mh="$mh" -v w="$w" '
+      $4 == 0 && $3 == 0 { if ($1 != aw || $2 != ah) bad = 1 }
+      $4 >  0 && $3 == 0 { seen_m = 1; if ($1 != w - aw - 1 || $2 != mh) bad = 1 }
+      $1 == w            { seen_s = 1; if ($2 != 7) bad = 1 }
+      END { if (bad || !seen_m || !seen_s) exit 1 }'
+}
+
+main() {
+  local win="${1:-}"
+  [ -n "$win" ] || return 0
+  # Only ever touch windows tai created.
+  [ "$(tmux display-message -p -t "$win" '#{window_name}' 2>/dev/null)" = agents ] || return 0
+
+  # Serialize: a resize storm fires the hook repeatedly; overlapping runs read
+  # each other's half-finished geometry and wreck the layout.
+  local lock="/tmp/tai-relayout-${win#%}.lock"
+  exec 9>"$lock" || return 0
+  flock -n 9 || return 0
+
+  local i pass_ok=0
+  for i in 1 2 3 4 5; do
+    if check_pass "$win"; then pass_ok=1; break; fi
+    local w h
+    w="$(tmux display-message -p -t "$win" '#{window_width}')" || return 0
+    h="$(tmux display-message -p -t "$win" '#{window_height}')" || return 0
+    apply_pass "$win" "$w" "$h" || return 0
+    sleep 0.3
+  done
+
+  # Still not settled (a stretch is chewing through the window beneath us):
+  # ask for one more settling pass once things calm down.
+  if [ "$pass_ok" -eq 0 ]; then
+    tmux run-shell -d 2 "tai-relayout $win" 2>/dev/null
+  fi
+}
+
+main "${1:-}"
