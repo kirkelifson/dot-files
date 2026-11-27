@@ -110,6 +110,7 @@ postgresql
 # Networking & Security
 networkmanager
 cifs-utils
+smbclient
 nmap
 mtr
 gnupg
