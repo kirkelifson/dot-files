@@ -9,9 +9,10 @@
 #   | harness pane 1       | lazygit by default;       |
 #   |                      | btop / net log /          |
 #   +----------------------+ lazydocker via its menu) |
-#   | harness pane 2       +---------------------------+
-#   |                      | small free shell          |
+#   | harness pane 2       |                           |
 #   +----------------------+---------------------------+
+#   | free shell (full-width work terminal)            |
+#   +--------------------------------------------------+
 #
 # Usage:
 #   tai                       fzf-pick an existing session
@@ -75,14 +76,15 @@ create_session() { # $1 = project dir, $2 = harness; prints the session name
   # hardcoded ".0" never resolves.
   p1="$(tmux new-session -dP -F '#{pane_id}' -s "$name" -n agents \
     -c "$dir" "$agent_cmd")"
-  # right column, top: monitor pane (lazygit etc.) — split the columns first,
-  # then stack each one, so both columns run the full window height
+  # full-width work terminal along the bottom — split it off first, so the
+  # agents + monitor above it span the whole window width
+  shell_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v -l 30% \
+    -c "$dir")"
+  # top, right: monitor pane (lazygit etc.) — split the columns first, then
+  # stack the left column, so both top panes run the full top-row height
   mon_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -h -l 45% \
     -c "$dir" tai-monitor)"
-  # right column, bottom: small free shell
-  shell_id="$(tmux split-window -d -P -F '#{pane_id}' -t "$mon_id" \
-    -v -l 10 -c "$dir")"
-  # left column, bottom half: second agent pane
+  # top, left, bottom: second agent pane
   p2="$(tmux split-window -d -P -F '#{pane_id}' -t "$p1" -v \
     -c "$dir" "$agent_cmd")"
 

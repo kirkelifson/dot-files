@@ -83,7 +83,7 @@ Edit `search_dirs` in `bin/tmux-sessionizer` to configure which directories to s
 
 ### tai — agentic project sessions
 
-Project-centric tmux sessions named after the leading agent harness (`hermes-myproj`, `pi-myproj`, ...), laid out with two agent panes, a monitor pane (lazygit by default, with btop / network log / lazydocker on its in-pane menu via `bin/tai-monitor`), and a small free shell:
+Project-centric tmux sessions named after the leading agent harness (`hermes-myproj`, `pi-myproj`, ...), laid out with two agent panes and a monitor pane (lazygit by default, with btop / network log / lazydocker on its in-pane menu via `bin/tai-monitor`) across the top, and a full-width free shell along the bottom:
 
 ```bash
 tai --new myproj          # mkdir + git init + hermes project + session
