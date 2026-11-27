@@ -28,7 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+        run: |
+          # packages.microsoft.com (preinstalled on runner images) 403s
+          # intermittently and && aborts before shellcheck ever installs
+          # (hit live 2026-11-27, first sign was "no longer signed").
+          # The binary comes from the ubuntu archive, not the MS repo.
+          sudo rm -f /etc/apt/sources.list.d/microsoft*.list
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
       - name: shellcheck (warnings and above; info-level style notes ignored)
         run: |
           status=0
