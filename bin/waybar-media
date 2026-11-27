@@ -2,19 +2,14 @@
 """waybar-media: now-playing waybar module (MPRIS via playerctl).
 
 Continuous mode (no args): polls all MPRIS players once a second and emits
-{text,class,tooltip} JSON lines when anything changes. Shows the playing
-source in preference to paused ones. Polling (rather than playerctl -F
-follow) is deliberate: -F prints its current query immediately on startup
-(so a "wake on one line" loop hot-spins) and does not emit for players that
-appear after it starts.
+{text,class,tooltip} JSON lines when anything changes. The bar shows the
+track title (never the app name) next to a play glyph.
 Firefox's single MPRIS bus points at a stale session when several tabs play
 (upstream bug 1710229: pausing one tab doesn't move the bus to the tab
-that's still playing), so any app with audio actually FLOWING (uncorked
-PulseAudio sink-input) but no "Playing" MPRIS player is shown from its
-stream's media.name (the real tab title) instead of the lying bus.
+that's still playing), so an app with audio actually FLOWING (uncorked
+PulseAudio sink-input) but no "Playing" MPRIS player also counts as playing.
 "click" mode: toggles play/pause on the MPRIS player shown in the bar
 (state file written by the loop; falls back to playerctl's active player).
-The source menu popup lives in waybar-media-menu (right-click the module).
 """
 import json
 import os
@@ -28,19 +23,6 @@ FMT = "{{playerName}}\t{{status}}\t{{artist}}\t{{title}}"
 POLL = 1.0  # seconds between playerctl sweeps
 STATE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"),
                      "waybar-media.player")
-
-PRETTY = {
-    "firefox": "Firefox", "spotify": "Spotify", "mpv": "mpv", "vlc": "VLC",
-    "chromium": "Chromium", "google-chrome": "Chrome", "brave": "Brave",
-    "strawberry": "Strawberry", "audacious": "Audacious", "cellist": "Cellist",
-    "elisa": "Elisa", "lollypop": "Lollypop", "smplayer": "SMPlayer",
-    "cmus": "cmus", "ncspot": "ncspot", "jellyfin": "Jellyfin",
-}
-
-
-def pretty(name):
-    base = name.split(".")[0]
-    return PRETTY.get(base, base[:1].upper() + base[1:])
 
 
 def snapshot():
@@ -105,42 +87,30 @@ def clean_tab_title(raw):
 def render(players):
     """(waybar payload, state-file name or None) for this snapshot.
 
-    MPRIS is trusted when a player reports Playing; apps whose audio is
-    flowing (uncorked sink-input) without a Playing MPRIS player are shown
-    from their PulseAudio stream title instead — that is the Firefox
-    stale-bus case (bug 1710229).
+    The bar shows the play glyph plus the track title — never the app name.
+    A track counts while its source audibly plays: a Playing MPRIS player,
+    or audio flowing in an uncorked sink-input without one (the Firefox
+    stale-bus case, bug 1710229, using the stream's media.name as track).
+    Empty otherwise, so with "hide-empty-text" the module leaves the bar.
     """
     streams = audio_streams()
-    mpris_playing = {p["name"].split(".")[0].lower()
-                     for p in players if p["status"] == "Playing"}
-    entries = [{"name": p["name"], "status": p["status"],
-                "track": p["track"], "mpris": True} for p in players]
-    seen = set()
+    playing = [p for p in players if p["status"] == "Playing"]
+    mpris_bases = {p["name"].split(".")[0].lower() for p in playing}
+    cands = [(p["track"], p["name"]) for p in playing]
     for app, raw in streams:
-        if app.lower() in mpris_playing:
+        if app.lower() in mpris_bases:
             continue  # MPRIS already reports this app playing — trust it
         title = clean_tab_title(raw)
-        if not title or title in seen:
-            continue
-        seen.add(title)
-        entries.append({"name": app, "status": "Playing", "track": title,
-                        "mpris": False})
-
-    player = next((e for e in entries if e["status"] == "Playing"),
-                  entries[0] if entries else None)
-    if not player:
+        if title:
+            cands.append((title, None))
+    if not cands:
         return {"text": "", "class": "none", "tooltip": ""}, None
-    playing = player["status"] == "Playing"
-    glyph = "\uf04b" if playing else "\uf04c"  # Nerd Font play / pause
+    track, player_name = cands[0]
     return {
-        "text": "%s %s %s" % (glyph, pretty(player["name"]),
-                              player["track"]),
-        "class": "playing" if playing else "paused",
-        "tooltip": "\n".join(
-            "%s: %s [%s]" % (pretty(e["name"]), e["track"],
-                             e["status"].lower())
-            for e in entries),
-    }, (player["name"] if player.get("mpris") else None)
+        "text": "\uf04b %s" % track,  # Nerd Font play glyph + track
+        "class": "playing",
+        "tooltip": "",
+    }, player_name
 
 
 def toggle():

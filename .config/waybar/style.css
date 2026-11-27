@@ -146,13 +146,9 @@ window#waybar {
     color: #cccc77;
 }
 
-/* now-playing (bin/waybar-media); text itself carries a play/pause glyph */
+/* now-playing (bin/waybar-media): glyph + track title, no app name */
 #custom-media {
     color: #6cc6cc;
-}
-
-#custom-media.paused {
-    color: #77777c;
 }
 
 #pulseaudio.muted {
