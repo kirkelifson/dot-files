@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# waybar-nightlight — waybar module for the blue-light filter (gammastep).
+#
+# Shows on/off as 🌇 (warm filter active, gammastep at 3400K) / 🔅 (normal
+# colors). Both are Noto Color Emoji glyphs, same approach as the keepawake
+# module's ☀️/🌙 (on_class color notes in style.css do not recolor emoji).
+#
+# State is read from the same $XDG_RUNTIME_DIR file
+# arch/sway/scripts/toggle-nightlight maintains — so the Mod+n keybinding and
+# this module can never disagree. A missing file means gammastep was started
+# directly by sway's exec (ON); the pgrep check catches gammastep dying
+# without anyone toggling. Ask toggle (not this script) to change state —
+# it pokes this module via signal 9; interval 10 is the fallback poll.
+#
+# Usage:
+#   waybar-nightlight status   emit waybar JSON (module exec)
+#   waybar-nightlight toggle   flip via toggle-nightlight, then emit JSON
+set -u
+
+STATE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nightlight.state"
+TOGGLE="$HOME/.config/sway/scripts/toggle-nightlight"
+
+json() {
+    if pgrep -x gammastep >/dev/null && [[ $(cat "$STATE" 2>/dev/null || echo on) == on ]]; then
+        printf '{"text":"🌇","class":"on","tooltip":"blue-light filter ON — gammastep 3400K\\n(left/right-click toggles, Mod+n too)"}\n'
+    else
+        printf '{"text":"🔅","class":"off","tooltip":"blue-light filter OFF — normal colors\\n(left/right-click toggles, Mod+n too)"}\n'
+    fi
+}
+
+case ${1:-status} in
+    status) json ;;
+    toggle) "$TOGGLE"; json ;;   # toggle-nightlight already poked waybar
+    *) echo "usage: $0 [status|toggle]" >&2; exit 2 ;;
+esac

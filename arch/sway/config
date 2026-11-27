@@ -71,7 +71,7 @@ exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 #   `resume` command — a trailing `resume X` binds to the LAST timeout (900s!), so
 #   lock-on-input must hang off the 300s timer (watcher covers manual <5min returns).
 exec swayidle -w timeout 300 '~/.config/sway/scripts/screensaver start' resume '~/.config/sway/scripts/idle-resume' timeout 600 '~/.config/sway/scripts/screensaver should-lock && ~/.config/sway/scripts/screensaver lock' timeout 900 '~/.config/sway/scripts/screensaver should-lock && swaymsg output DP-1 dpms off'
-# gammastep    — night light; starts off; Mod+n toggles on/off
+# gammastep    — night light; starts ON at 3400K; Mod+n toggles on/off
 exec gammastep -P -O 3400 -l 38.9:-77.0
 # cliphist     — clipboard history: listener feeding cliphist from wl-paste
 exec wl-paste --watch cliphist store

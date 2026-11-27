@@ -1,10 +1,34 @@
 #!/bin/sh
-# toggle-nightlight — toggle gammastep on/off
-# Sends SIGUSR1 to pause/resume gammastep (built-in toggle).
-# If gammastep isn't running at all, start it.
+# toggle-nightlight — toggle the gammastep blue-light filter on/off.
+#
+# Toggle-off sends SIGUSR1, gammastep's documented pause/resume toggle: it
+# resets colors and pauses. NOTE: on this build the process actually EXITS
+# within ~1s of the pause (not a crash of ours), so "off" usually means the
+# process is gone, which the start branch below reverses. A state file in
+# $XDG_RUNTIME_DIR records on/off so bin/waybar-nightlight (and Mod+n callers
+# via its toggle command) agree on the current mode — gammastep itself offers
+# no way to query state. Missing file → gammastep was started directly by
+# sway's exec line (which applies 3400K immediately), i.e. ON.
+#
+# The waybar module re-renders on SIGRTMIN+9 ("signal": 9 in its config);
+# the interval there is the fallback poll. Runtime file self-clears on
+# logout/reboot, along with the gammastep process, so state never lies.
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+STATE="$RUNTIME_DIR/nightlight.state"
+WAYBAR_SIGNAL=9   # waybar custom module "signal": 9  →  pkill -RTMIN+9 waybar
 
 if pgrep -x gammastep >/dev/null; then
+    cur=$(cat "$STATE" 2>/dev/null || echo on)
     pkill -USR1 gammastep
+    if [ "$cur" = "on" ]; then
+        printf 'off\n' > "$STATE"
+    else
+        printf 'on\n' > "$STATE"
+    fi
 else
+    # Not running at all (crashed, or first run before sway's exec): start ON.
     gammastep -P -O 3400 -l 38.9:-77.0 &
+    printf 'on\n' > "$STATE"
 fi
+
+pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar 2>/dev/null || true
