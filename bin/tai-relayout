@@ -52,7 +52,8 @@ check_pass() { # $1 = window; rc 0 when every ratio matches the LIVE geometry
   local win="$1" w h
   w="$(tmux display-message -p -t "$win" '#{window_width}')" || return 1
   h="$(tmux display-message -p -t "$win" '#{window_height}')" || return 1
-  local top=$((h - 8)) aw=$((w * 70 / 100)) ah=$((top * 45 / 100)) mh=$((top * 25 / 100))
+  local top=$((h - 8))
+  local aw=$((w * 70 / 100)) ah=$((top * 45 / 100)) mh=$((top * 25 / 100))
   [ "$top" -ge 10 ] || return 1
 
   tmux list-panes -t "$win" -F '#{pane_width} #{pane_height} #{pane_top} #{pane_left}' |
@@ -75,8 +76,8 @@ main() {
   exec 9>"$lock" || return 0
   flock -n 9 || return 0
 
-  local i pass_ok=0
-  for i in 1 2 3 4 5; do
+  local pass_ok=0
+  for _ in 1 2 3 4 5; do
     if check_pass "$win"; then pass_ok=1; break; fi
     local w h
     w="$(tmux display-message -p -t "$win" '#{window_width}')" || return 0
