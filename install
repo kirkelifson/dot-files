@@ -195,6 +195,12 @@ link_dotfiles() {
     fi
   fi
 
+  # ~/bin: same guard as the top-level dotfiles — back up a pre-existing REAL
+  # directory (local scripts are untracked data) rather than hitting ln -sfn's
+  # silent no-op on real directories (exit 0, nothing linked)
+  if [ -e ~/bin ] && [ ! -L ~/bin ]; then
+    backup_path ~/bin ~/bin-backup
+  fi
   echo -e "\t[>] Linking $dir/bin"
   ln -sfn "$dir/bin" ~
 }

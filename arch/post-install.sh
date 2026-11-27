@@ -275,9 +275,13 @@ for src in "$SWAY_SRC/config" "$SWAY_SRC/scripts/"*; do
   ln -sfn "$src" "$dst"
 done
 # Waybar config ships in the main dot-files installer (link_config_dirs) —
-# nothing to do here unless it's missing (e.g. installer never ran):
-if [[ ! -L "/home/$TARGET_USER/.config/waybar" ]]; then
-  ln -sfn "/home/$TARGET_USER/dot-files/.config/waybar" "/home/$TARGET_USER/.config/waybar"
+# nothing to do here unless it's missing or still a regular file/dir (e.g.
+# installer never ran or half-failed). ln -sfn over a real dir is a docile
+# no-op, so move untracked content aside (never overwrite) first:
+WAYBAR_DST="/home/$TARGET_USER/.config/waybar"
+if [[ ! -L $WAYBAR_DST ]]; then
+  [[ -e $WAYBAR_DST ]] && mv "$WAYBAR_DST" "$WAYBAR_DST.pre-symlink"
+  ln -sfn "/home/$TARGET_USER/dot-files/.config/waybar" "$WAYBAR_DST"
 fi
 
 step "foot terminal config (14pt — foot's 8pt default is tiny at 4K)"

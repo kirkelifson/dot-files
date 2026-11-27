@@ -55,6 +55,21 @@ class InstallTests(unittest.TestCase):
             grep -qx saved "$HOME/backup.2"
         ''')
 
+    def test_pre_existing_real_bin_is_backed_up_and_linked(self):
+        # ln -sfn over an untracked real ~/bin is a docile no-op (exit 0,
+        # nothing linked) — the guard must move it aside first
+        self.run_shell('''
+            mkdir "$HOME/bin"
+            echo local > "$HOME/bin/my-local-script"
+            link_dotfiles
+            test -L "$HOME/bin"
+            test -e "$dir/bin/somafm"
+            grep -qx local "$HOME/bin-backup/my-local-script"
+            # re-run (already a symlink) must not touch the backup
+            link_dotfiles
+            grep -qx local "$HOME/bin-backup/my-local-script"
+        ''')
+
     def test_mise_migration_and_existing_local_config(self):
         self.run_shell('''
             mkdir -p "$HOME/.config"
