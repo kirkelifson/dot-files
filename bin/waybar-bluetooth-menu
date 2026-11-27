@@ -80,6 +80,12 @@ button.pending { color: #cc9966; }
 label.name { padding: 4px 8px 4px 0; }
 label.state { color: #666670; font-size: 12px; }
 label.state.on { color: #88bb88; }
+/* the click-outside catcher maps fullscreen but must stay invisible */
+window.backdrop {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
 """
 
 
@@ -182,6 +188,24 @@ def job_scan_off():
 
 class Menu:
     def __init__(self):
+        self.backdrop = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        GtkLayerShell.init_for_window(self.backdrop)
+        # one layer BELOW the menu, anchored to every edge: any click lands
+        # here and closes the menu — click-outside-to-close. Transparent.
+        GtkLayerShell.set_layer(self.backdrop, GtkLayerShell.Layer.TOP)
+        for edge in (GtkLayerShell.Edge.TOP, GtkLayerShell.Edge.BOTTOM,
+                     GtkLayerShell.Edge.LEFT, GtkLayerShell.Edge.RIGHT):
+            GtkLayerShell.set_anchor(self.backdrop, edge, True)
+        screen = Gdk.Screen.get_default()
+        rgba = screen.get_rgba_visual()
+        if rgba is not None:
+            self.backdrop.set_visual(rgba)
+            self.backdrop.set_app_paintable(True)
+        self.backdrop.get_style_context().add_class("backdrop")
+        self.backdrop.set_decorated(False)
+        self.backdrop.connect("button-press-event", self.dismiss)
+        self.backdrop.connect("destroy", Gtk.main_quit)
+
         self.win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
         GtkLayerShell.init_for_window(self.win)
         GtkLayerShell.set_layer(self.win, GtkLayerShell.Layer.OVERLAY)
@@ -286,6 +310,12 @@ class Menu:
             Gtk.main_quit()
             return True
         return False
+
+    def dismiss(self, _w, _event):
+        """Any click on the fullscreen backdrop closes the menu."""
+        if Gtk.main_level() > 0:
+            Gtk.main_quit()
+        return True
 
     # -------------------------------------------------------------- sync ---
     def sync(self):
@@ -407,6 +437,8 @@ def main():
     menu = Menu()
     if os.getppid() != LAUNCHER_PID or os.getppid() == 1:
         return  # spawner died during startup — sync's quit was a no-op
+    menu.backdrop.show_all()  # click-outside catcher first (menu's overlay
+    # layer sits above it and needs a sibling surface to land clicks on)
     menu.win.show_all()  # full tree shown BEFORE first map: a layer-shell
     # surface that maps with zero visible content gets configured 0x0 and
     # stays invisible forever (hit live; somafm-menu dodges it only through
