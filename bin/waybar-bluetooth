@@ -1,0 +1,175 @@
+#!/usr/bin/python3
+"""waybar-bluetooth: status renderer + shared helpers for the bar module.
+
+Renders {text, class, tooltip} JSON for waybar's custom/bluetooth module:
+connected device icons, full per-device state on hover. Run-once script —
+the module config provides the poll interval (run-once + `interval` is the
+required shape; a never-exiting exec with `interval` renders blank).
+
+Icon per device kind is guessed from the advertised name, so no per-device
+config: headphones / speakers / gamepads get their own glyph. bin/
+waybar-bluetooth-menu imports this file as its bluetoothctl library.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+# advertised-name regex -> icon. First match wins; extend here for new gear.
+ICONS = (
+    (r"1000xm[4-6]|\bsony\b|wh-1|wf-1", "🎧"),
+    (r"r1700|edifier|\bspeaker\b|\bhomepod\b", "🔊"),
+    (r"controller|dualshock|dualsense|gamepad", "🎮"),
+)
+FALLBACK_ICON = "✦"
+
+
+def run(*args, timeout=20):
+    """bluetoothctl args -> (returncode, combined output). Never raises:
+    a dead/absent daemon reads as a failure, not a crash."""
+    try:
+        p = subprocess.run(("bluetoothctl",) + args, capture_output=True,
+                           text=True, timeout=timeout)
+        return p.returncode, (p.stdout or "") + (p.stderr or "")
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        return 1, ""
+
+
+def known_devices():
+    """[(mac, name)] — every device bluez knows: paired AND discovered
+    recently (the menu uses the latter to offer new pairings)."""
+    rc, out = run("devices")
+    if rc != 0:
+        return []
+    devs = []
+    for line in out.splitlines():
+        m = re.match(r"Device ([0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5}) (.+)$",
+                     line.strip())
+        if m:
+            devs.append((m.group(1), m.group(2)))
+    return devs
+
+
+def info(mac):
+    """Full per-device state from `bluetoothctl info <mac>`."""
+    d = {"name": "", "connected": False, "paired": False, "trusted": False,
+         "battery": None}
+    for line in run("info", mac)[1].splitlines():
+        s = line.strip()
+        if s.startswith("Name:"):
+            d["name"] = s.split(":", 1)[1].strip()
+        elif s.startswith("Connected:"):
+            d["connected"] = s.endswith("yes")
+        elif s.startswith("Paired:"):
+            d["paired"] = s.endswith("yes")
+        elif s.startswith("Trusted:"):
+            d["trusted"] = s.endswith("yes")
+        elif s.startswith("Battery Percentage:"):
+            m = re.search(r"\((\d+)\)", s)
+            if m:
+                d["battery"] = int(m.group(1))
+    return d
+
+
+def adapter_powered():
+    return "Powered: yes" in run("show")[1]
+
+
+def icon(name):
+    low = (name or "").lower()
+    for pat, ic in ICONS:
+        if re.search(pat, low):
+            return ic
+    return FALLBACK_ICON
+
+
+# ---- state cache -----------------------------------------------------------
+# Per-boot snapshot of the device rows, shared by the bar renderer and the
+# menu: the menu pre-renders from it so opening shows the last-known device
+# list instantly instead of a ~1 s empty flash while bluetoothctl answers.
+
+def _cache_path():
+    runtime = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
+    return os.path.join(runtime, "waybar-bluetooth", "cache.json")
+
+
+def _save_cache(rows):
+    try:
+        os.makedirs(os.path.dirname(_cache_path()), exist_ok=True)
+        slim = [{k: r[k] for k in ("mac", "name", "icon", "connected",
+                                   "paired", "battery")}
+                for r in rows]  # never cache what another op is doing
+        with open(_cache_path(), "w") as f:
+            json.dump({"time": time.time(), "rows": slim}, f)
+    except OSError:
+        pass
+
+
+def cached_rows():
+    """The last snapshot's device rows (pending states stripped), or []."""
+    try:
+        with open(_cache_path()) as f:
+            rows = json.load(f).get("rows", [])
+    except (OSError, ValueError):
+        return []
+    for r in rows:
+        r.setdefault("pending", None)
+    return rows
+
+
+def device_rows(pending=None):
+    """Rows for the menu/status UI: one dict per known device. Also
+    refreshed in the state cache. pending (mac -> op label) overlays the
+    in-flight operation onto the row that started it."""
+    rows = []
+    for mac, known_name in known_devices():
+        inf = info(mac)
+        name = inf["name"] or known_name
+        if not name:
+            continue  # anonymous rotating-MAC advertiser — hide it
+        rows.append({"mac": mac, "name": name, "icon": icon(name),
+                     "connected": inf["connected"],
+                     # post-power-cycle quirk: Paired reads back "no" until
+                     # the first use flips it — Trusted never flakes, so
+                     # treat trusted as paired (both true = bonded)
+                     "paired": inf["paired"] or inf["trusted"],
+                     "battery": inf["battery"],
+                     "pending": (pending or {}).get(mac)})
+    # connected first, then paired-but-off, then the rest — name within
+    rows.sort(key=lambda r: (not r["connected"], not r["paired"],
+                             r["name"].lower()))
+    _save_cache(rows)
+    return rows
+
+
+def render():
+    if not adapter_powered():
+        return {"text": "bt", "class": "off",
+                "tooltip": "bluetooth adapter off"}
+    icons, lines = [], []
+    for r in device_rows():
+        mark = r["icon"]
+        state = "connected" if r["connected"] else (
+            "paired" if r["paired"] else "discovered")
+        if r["battery"] is not None:
+            state += f"  — battery {r['battery']}%"
+        lines.append(f"{mark}  {r['name']}  ({state})")
+        if r["connected"]:
+            icons.append(mark)
+    if lines:
+        lines.append("")
+        lines.append("click: connect / disconnect / scan / pair")
+    return {"text": "".join(icons) if icons else "bt",
+            "class": "connected" if icons else "empty",
+            "tooltip": "\n".join(lines) if lines
+                       else "no paired devices yet — click, then scan"}
+
+
+def main():
+    print(json.dumps(render()))
+
+
+if __name__ == "__main__":
+    main()

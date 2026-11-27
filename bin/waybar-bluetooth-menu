@@ -1,0 +1,430 @@
+#!/usr/bin/python3
+"""waybar-bluetooth-menu: device popup for the waybar bluetooth module.
+
+Click the module ("custom/bluetooth" on-click) to toggle. Same layer-shell
+pattern as bin/waybar-somafm-menu / bin/waybar-media-menu: gtk3 +
+gtk-layer-shell + python-gobject, anchored to the bar — never a tiling
+window. Each known device gets a row with a connect/disconnect toggle;
+unpaired devices (found via the footer scan button) get a pair button.
+
+All bluetoothctl operations run on ONE worker thread in a queue: a laptop
+audio device's `connect` can block for many seconds, and concurrent
+adapter ops on bluetoothctl are unreliable. The 500 ms UI sync only reads
+state (via bin/waybar-bluetooth, imported as the shared library) and never
+blocks. Waybar is nudged with RTMIN+7 (the module's `signal: 7`) whenever
+an operation changes device state, so the bar's icons update instantly.
+The menu is a child of its spawner and checks getppid() every refresh: if
+waybar (or the terminal that launched it) dies, the menu closes with it.
+"""
+import importlib.machinery
+import importlib.util
+import os
+import queue
+import signal
+import subprocess
+import sys
+import threading
+import time
+import traceback
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, GLib, GLibUnix, Gtk, GtkLayerShell  # noqa: E402
+
+# bin/waybar-bluetooth is the shared library (status renderer + bluetoothctl
+# helpers); extensionless file → SourceFileLoader, not spec_from_file_location
+_menu_dir = os.path.dirname(os.path.realpath(__file__))
+_loader = importlib.machinery.SourceFileLoader(
+    "waybarbluetooth", os.path.join(_menu_dir, "waybar-bluetooth"))
+_spec = importlib.util.spec_from_loader(_loader.name, _loader)
+bt = importlib.util.module_from_spec(_spec)
+_loader.exec_module(bt)
+
+LAUNCHER_PID = os.getppid()  # snapshot as early as possible (see sync)
+PIDFILE = "/tmp/waybar-bluetooth-menu.pid"
+ERRLOG = "/tmp/waybar-bluetooth-menu.err"
+REFRESH_MS = 500
+SCAN_SECS = 12               # discovery window started by the scan button
+WAYBAR_SIGNAL = 7            # module config "signal": 7 → bar refresh
+
+CSS = b"""
+window {
+    background-color: rgba(20, 20, 24, 0.97);
+    border-radius: 8px;
+    border: 1px solid #33333a;
+    padding: 10px;
+}
+box {
+    font-family: "FiraCode Nerd Font Mono", monospace;
+    font-size: 14px;
+    color: #c8c8c8;
+}
+header, footer {
+    color: #666670;
+    font-size: 12px;
+    padding-bottom: 6px;
+    padding-top: 4px;
+}
+button {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    color: #77777c;
+}
+button:hover { color: #c8c8c8; }
+button.action { color: #50b4b4; }
+button.pending { color: #cc9966; }
+label.name { padding: 4px 8px 4px 0; }
+label.state { color: #666670; font-size: 12px; }
+label.state.on { color: #88bb88; }
+"""
+
+
+def rows_snapshot(pending):
+    """Data layer for the 500 ms sync — delegates to the shared library
+    (which also refreshes the state cache the next launch pre-renders from)."""
+    return bt.device_rows(pending)
+
+
+# ------------------------------------------------------------- job queue --
+JOBS = queue.Queue()
+
+
+def worker_loop():
+    while True:
+        fn = JOBS.get()
+        try:
+            fn()
+            time.sleep(0.5)  # give bluez a beat to publish the new state
+        except Exception:
+            traceback.print_exc()
+        JOBS.task_done()
+
+
+def notify_waybar():
+    """Instant refresh of the bar module (module config has signal: 7)."""
+    subprocess.run(("pkill", "-RTMIN+%d" % WAYBAR_SIGNAL, "-x", "waybar"),
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def job_connect(mac):
+    bt.run("connect", mac, timeout=30)
+    notify_waybar()
+
+
+def job_disconnect(mac):
+    bt.run("disconnect", mac, timeout=20)
+    notify_waybar()
+
+
+def job_pair(mac):
+    rc, out = bt.run("pair", mac, timeout=35)
+    if "success" in out.lower() and rc == 0:
+        bt.run("trust", mac)  # auto-reconnect permission for headsets
+        job_connect(mac)
+    else:
+        notify_waybar()
+
+
+SCAN_PROC = None  # persistent `bluetoothctl scan on` handle; discovery dies
+                  # with its client, so a one-shot run + timeout found nothing
+
+
+def _wait(pred, timeout_s, step=0.5):
+    for _ in range(int(timeout_s / step)):
+        if pred():
+            return True
+        time.sleep(step)
+    return False
+
+
+def _discovering():
+    return "Discovering: yes" in bt.run("show")[1]
+
+
+def _powered(state):
+    return "Powered: %s" % state in bt.run("show")[1]
+
+
+def job_scan_on():
+    global SCAN_PROC
+    job_scan_off()  # never two scanners
+    SCAN_PROC = subprocess.Popen(
+        ("bluetoothctl", "scan", "on"),
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if _wait(_discovering, 5):
+        return
+    # The AX200 controller wedges occasionally: the client holds a discovery
+    # session but the radio NEVER starts scanning — zero devices, silently
+    # (verified live 2026-11-27). Bounce the controller, then rescan. NOTE:
+    # this drops any live BT connections (headphones), unavoidable for a
+    # wedged adapter — a menu scan is explicit user intent.
+    bt.run("power", "off")
+    _wait(lambda: _powered("no"), 5)
+    bt.run("power", "on")
+    _wait(lambda: _powered("yes"), 5)
+    job_scan_off()
+    SCAN_PROC = subprocess.Popen(
+        ("bluetoothctl", "scan", "on"),
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def job_scan_off():
+    global SCAN_PROC
+    p = SCAN_PROC
+    if p is not None and p.poll() is None:
+        p.terminate()
+    SCAN_PROC = None
+
+
+class Menu:
+    def __init__(self):
+        self.win = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
+        GtkLayerShell.init_for_window(self.win)
+        GtkLayerShell.set_layer(self.win, GtkLayerShell.Layer.OVERLAY)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.TOP, True)
+        GtkLayerShell.set_anchor(self.win, GtkLayerShell.Edge.RIGHT, True)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.TOP, 42)
+        GtkLayerShell.set_margin(self.win, GtkLayerShell.Edge.RIGHT, 8)
+        GtkLayerShell.set_keyboard_mode(self.win,
+                                        GtkLayerShell.KeyboardMode.ON_DEMAND)
+
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        self.outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.header = Gtk.Label(label="bluetooth")
+        self.header.get_style_context().add_class("header")
+        self.outer.add(self.header)
+
+        self.rows = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.outer.add(self.rows)
+        self.empty = Gtk.Label(label="no devices yet — hit scan below")
+        self.outer.add(self.empty)
+
+        # footer: scan toggle + status line
+        footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.scanbtn = Gtk.Button(label="scan")
+        self.scanbtn.get_style_context().add_class("action")
+        self.scanbtn.connect("clicked", self.scan)
+        self.status = Gtk.Label(label="")
+        self.status.get_style_context().add_class("state")
+        footer.add(self.scanbtn)
+        footer.add(self.status)
+        self.outer.add(footer)
+        self.win.add(self.outer)
+
+        self.pending = {}      # mac -> "connect" / "disconnect" / "pair"
+        self.scanning = False
+        self.rows_sig = None
+        self.row_by_mac = {}
+        self.win.connect("key-press-event", self.on_key)
+        self.win.connect("destroy", Gtk.main_quit)
+        # pre-render from the state cache so the popup opens already showing
+        # its device list; the first live sync corrects anything stale
+        cached = bt.cached_rows()
+        if cached:
+            self._rebuild_rows(cached)
+        GLib.timeout_add(REFRESH_MS, self.sync)
+        threading.Thread(target=worker_loop, daemon=True).start()
+
+    # ------------------------------------------------------------ actions --
+    def scan(self, _btn):
+        if self.scanning:
+            self._scan_stop()
+            return
+        self.scanning = True
+        self.scanbtn.set_label("scanning…")
+        JOBS.put(job_scan_on)
+        GLib.timeout_add(SCAN_SECS * 1000, self._scan_deadline)
+
+    def _scan_deadline(self):
+        self._scan_stop()
+        return False
+
+    def _scan_stop(self):
+        self.scanning = False
+        self.scanbtn.set_label("scan")
+        JOBS.put(job_scan_off)
+        return False
+
+    def toggle(self, _btn, mac):
+        rows = {r["mac"]: r for r in rows_snapshot(self.pending)}
+        r = rows.get(mac)
+        if r is None:
+            return True
+        if r["pending"]:  # ignore double-clicks while an op is in flight
+            return True
+        if not r["paired"]:
+            op = "pair"
+            fn = job_pair
+        elif r["connected"]:
+            op = "disconnect"
+            fn = job_disconnect
+        else:
+            op = "connect"
+            fn = job_connect
+        self.pending[mac] = op
+        self.status.set_label("%s %s…" % (op, r["name"]))
+        JOBS.put(lambda m=mac, f=fn: self._run(m, f))
+        return True
+
+    def _run(self, mac, fn):
+        try:
+            fn(mac)
+        finally:
+            self.pending.pop(mac, None)
+
+    def on_key(self, _w, event):
+        if event.keyval == Gdk.KEY_Escape:
+            Gtk.main_quit()
+            return True
+        return False
+
+    # -------------------------------------------------------------- sync ---
+    def sync(self):
+        ppid = os.getppid()
+        if ppid == 1 or ppid != LAUNCHER_PID:
+            # spawner gone — never outlive it (waybar reload/restart safety)
+            if Gtk.main_level() > 0:
+                Gtk.main_quit()
+            return False
+        try:
+            self._sync()
+        except Exception:
+            # an exception inside a GLib callback silently REMOVES the
+            # callback, freezing the menu — log it and keep the timer alive
+            traceback.print_exc()
+            try:
+                with open(ERRLOG, "a") as f:
+                    traceback.print_exc(file=f)
+            except OSError:
+                pass
+        return True
+
+    def _rebuild_rows(self, devrows):
+        self.rows_sig = tuple((r["mac"], r["connected"], r["paired"], r["pending"])
+                              for r in devrows)
+        for row in self.row_by_mac.values():
+            row["box"].destroy()
+        self.row_by_mac = {}
+        self.empty.set_visible(not devrows)
+        for r in devrows:
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            btn = Gtk.Button(label=r["pending"] or (
+                "pair" if not r["paired"] else
+                "disconnect" if r["connected"] else "connect"))
+            btn.get_style_context().add_class("action" if not r["pending"]
+                                              else "pending")
+            btn.connect("clicked", self.toggle, r["mac"])
+            mark = Gtk.Label(label=r["icon"])
+            name = Gtk.Label(label=r["name"])
+            name.get_style_context().add_class("name")
+            state = "on" if r["connected"] else ""
+            label = "connected" if r["connected"] else (
+                "new — pair below" if not r["paired"] else "disconnected")
+            if r["battery"] is not None:
+                label += "  ⚡%d%%" % r["battery"]
+            st = Gtk.Label(label=label)
+            st.get_style_context().add_class("state")
+            st.get_style_context().add_class(state)
+            box.add(mark)
+            box.add(name)
+            box.add(btn)
+            box.add(st)
+            self.rows.add(box)
+            self.row_by_mac[r["mac"]] = {"box": box}
+        self.rows.show_all()
+
+    def _sync(self):
+        devrows = rows_snapshot(self.pending)
+        sig = tuple((r["mac"], r["connected"], r["paired"], r["pending"])
+                    for r in devrows)
+        if sig != self.rows_sig:
+            self._rebuild_rows(devrows)
+        nconn = sum(1 for r in devrows if r["connected"])
+        if self.scanning:
+            self.header.set_label(
+                "bluetooth · scanning — %d seen" % len(devrows))
+        else:
+            self.header.set_label("bluetooth · %d connected" % nconn)
+        if not self.pending:
+            self.status.set_label("")
+        self.win.show()  # keep-alive; children were shown before first map
+
+
+def running_pids():
+    """Live menu instances, found by exact /proc cmdline match: argv[0] is a
+    python interpreter and argv[1] resolves to this script. pgrep -f can't
+    be used here: it matches any process whose full cmdline merely CONTAINS
+    the path (shells, editors, test harnesses), and sweeping those kills
+    unrelated processes."""
+    script = os.path.realpath(__file__)
+    mine = os.getpid()
+    pids = set()
+    for ent in os.listdir("/proc"):
+        if not ent.isdigit() or int(ent) == mine:
+            continue
+        try:
+            with open("/proc/%s/cmdline" % ent, "rb") as f:
+                argv = f.read().rstrip(b"\0").split(b"\0")
+        except OSError:
+            continue
+        if (len(argv) >= 2
+                and os.path.basename(argv[0].decode("utf-8", "replace"))
+                .startswith("python")
+                and os.path.realpath(argv[1].decode("utf-8", "replace"))
+                == script):
+            pids.add(int(ent))
+    return pids
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "toggle"
+    if mode == "toggle":
+        pids = running_pids()
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+        if pids:
+            return  # was open: toggled closed
+    try:
+        open(ERRLOG, "w").close()  # fresh error log per launch
+    except OSError:
+        pass
+    with open(PIDFILE, "w") as f:
+        f.write(str(os.getpid()))
+
+    GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, Gtk.main_quit)
+    menu = Menu()
+    if os.getppid() != LAUNCHER_PID or os.getppid() == 1:
+        return  # spawner died during startup — sync's quit was a no-op
+    menu.win.show_all()  # full tree shown BEFORE first map: a layer-shell
+    # surface that maps with zero visible content gets configured 0x0 and
+    # stays invisible forever (hit live; somafm-menu dodges it only through
+    # its scrolled list's forced min height)
+    # show_all re-shows everything, including a hidden empty label when the
+    # cache pre-render built rows — re-assert its visibility after mapping
+    menu.empty.set_visible(not menu.row_by_mac)
+    try:
+        Gtk.main()
+    finally:
+        try:
+            # only remove the pidfile if it is still OURS — a successor
+            # instance may already have replaced it
+            if open(PIDFILE).read().strip() == str(os.getpid()):
+                os.remove(PIDFILE)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    main()

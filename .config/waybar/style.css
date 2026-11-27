@@ -64,6 +64,7 @@ window#waybar {
 #custom-spark-gpu,
 #custom-media,
 #custom-net-rate,
+#custom-bluetooth,
 #pulseaudio,
 #network,
 #clock,
@@ -78,10 +79,25 @@ window#waybar {
 #custom-spark-gpu,
 #custom-media,
 #custom-net-rate,
+#custom-bluetooth,
 #pulseaudio,
 #network,
 #clock {
     border-left: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+/* bluetooth (bin/waybar-bluetooth): muted with nothing connected, lit-up
+   device icons while connected */
+#custom-bluetooth.empty {
+    color: #666670;
+}
+
+#custom-bluetooth.connected {
+    color: #88bb88;
+}
+
+#custom-bluetooth.off {
+    color: #cc6655;
 }
 
 #clock {

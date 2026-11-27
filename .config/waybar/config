@@ -17,6 +17,7 @@
         "custom/keepawake",
         "custom/media",
         "pulseaudio",
+        "custom/bluetooth",
         "custom/net-rate",
         "custom/net-health",
         "custom/spark-cpu",
@@ -93,6 +94,20 @@
         "format-muted": "MUTE",
         "on-click": "pavucontrol",
         "tooltip-format": "{desc}"
+    },
+
+    // Bluetooth (bin/waybar-bluetooth): icons of connected devices, full
+    // state on hover. Click opens the device menu (bin/waybar-bluetooth-menu:
+    // connect / disconnect / scan / pair). signal 7 → instant refresh after
+    // menu actions; interval is the slow fallback poll.
+    "custom/bluetooth": {
+        "exec": "sh -c 'exec $HOME/bin/waybar-bluetooth'",
+        "return-type": "json",
+        "format": "{text}",
+        "interval": 10,
+        "signal": 7,
+        "on-click": "sh -c 'exec $HOME/bin/waybar-bluetooth-menu toggle'",
+        "on-click-right": "sh -c 'exec $HOME/bin/waybar-bluetooth-menu toggle'"
     },
 
     "custom/net-rate": {
