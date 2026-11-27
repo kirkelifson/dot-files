@@ -16,6 +16,8 @@
 #   "web terms"  duckduckgo search in the browser
 #   "run x" / "open x" / "exec x"  same as the prefixes suggest
 # A plain query that matches nothing runs as a shell command.
+# Launching a desktop app that is already open focuses its window instead
+# of spawning a duplicate (app_id/class matched against the .desktop id).
 
 set -u
 
@@ -23,10 +25,38 @@ HIST_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/launcher-history"
 APP_HIST="${XDG_CACHE_HOME:-$HOME/.cache}/launcher-app-history"
 SELF="$(readlink -f "$0")"
 
+# ------------------------------------------------------- window inventory --
+# Every open window as TSV:  app_id-or-class \t focused(0/1) \t con id \t title.
+# sway 1.12 dropped `-t get_windows`; both the ctrl-w list and the
+# already-open check below walk get_tree instead.
+window_lines() {
+    swaymsg -t get_tree 2>/dev/null | jq -r '
+        .. | objects
+        | select((.nodes // []) == [] and (has("app_id") or has("window_properties")))
+        | [ (.app_id // .window_properties.class // "?"),
+            (if .focused == true then 1 else 0 end),
+            (.id | tostring),
+            (.title // .name // "?") ] | @tsv' 2>/dev/null
+}
+
+# con id of an already-running window for desktop id $1: wayland app_id /
+# XWayland class matched case-insensitively against the full id (minus
+# .desktop) or its last dot-segment (org.gnome.Foo → foo); a focused window
+# wins over the rest. Prints nothing when the app is not open.
+running_window_id() {
+    local id=${1%.desktop}
+    local short=${id##*.} match
+    [ -n "$id" ] || return 0
+    match=$(window_lines | awk -F'\t' -v a="${id,,}" -v b="${short,,}" '
+        tolower($1) == a || tolower($1) == b { print $2 "\t" $3 }' | sort -r \
+        | awk 'NR == 1 { print $2 }')
+    printf '%s' "$match"
+}
+
 # ---------------------------------------------------------------- preview --
 if [ "${1:-}" = "--preview" ]; then
     shift
-    IFS=$'\t' read -r _display payload _ <<<"$1"
+    IFS=$'\t' read -r _display payload appid _ <<<"$1"
     kind=${payload%%:*}
     arg=${payload#*:}
     case "$kind" in
@@ -42,8 +72,14 @@ if [ "${1:-}" = "--preview" ]; then
             ;;
         exec)
             echo "desktop application"
-            echo
-            echo "$arg"
+            win=""
+            [ -n "$appid" ] && win=$(running_window_id "$appid")
+            if [ -n "$win" ]; then
+                echo "already open — enter focuses the window"
+            else
+                echo
+                echo "$arg"
+            fi
             ;;
         run)
             echo "shell command (runs in this window, output stays)"
@@ -159,11 +195,9 @@ done < <({
 } | tac | awk '!seen[$0]++' | head -200)
 
 # --- open sway windows (SWAY_SOCK is present inside the session)
-swaymsg -t get_windows 2>/dev/null | jq -r '
-    .[] | "\(.app_id // .window_properties.class // "?") — \(.title // "?")\twin:\(.id)"' 2>/dev/null |
-    while IFS= read -r line; do
-        printf '%s\n' "$line" >>"$MODES/wins.f"
-    done
+window_lines | while IFS=$'\t' read -r appid _ id title; do
+    printf '%s — %s\twin:%s\n' "$appid" "$title" "$id" >>"$MODES/wins.f"
+done
 
 # --- power/system actions
 printf 'Lock session\tsys:lock\nExit sway (end session)\tsys:exit\nReboot system\tsys:reboot\nPower off system\tsys:poweroff\n' >>"$MODES/sys.f"
@@ -276,9 +310,15 @@ fi
 
 case "$kind" in
     exec)  # detach so the app survives this foot window closing; note the
-        # launch so the app sorts to the top of the list next time
+        # launch so the app sorts to the top of the list next time. If the
+        # app is already open, focus its window instead of spawning another.
         [ -n "$appid" ] && remember "$APP_HIST" "$appid"
-        setsid -f sh -c "$arg" </dev/null >/dev/null 2>&1
+        win=$(running_window_id "$appid")
+        if [ -n "$win" ]; then
+            swaymsg "[con_id=$win]" focus
+        else
+            setsid -f sh -c "$arg" </dev/null >/dev/null 2>&1
+        fi
         ;;
     open)
         setsid -f xdg-open "$arg" </dev/null >/dev/null 2>&1
