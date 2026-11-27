@@ -133,11 +133,10 @@ if [[ ! -f /etc/snapper/configs/root ]]; then
 fi
 if [[ -f /etc/snapper/configs/root ]]; then
   # Tighten retention — the 10/10/10/10 default is heavy on a busy root
-  sed -i -e 's/^TIMELINE_LIMIT_HOURLY=.*/TIMELINE_LIMIT_HOURLY="5"/' \
-         -e 's/^TIMELINE_LIMIT_DAILY=.*/TIMELINE_LIMIT_DAILY="7"/' \
-         -e 's/^TIMELINE_LIMIT_WEEKLY=.*/TIMELINE_LIMIT_WEEKLY="0"/' \
-         -e 's/^TIMELINE_LIMIT_MONTHLY=.*/TIMELINE_LIMIT_MONTHLY="0"/' \
-         -e 's/^TIMELINE_LIMIT_YEARLY=.*/TIMELINE_LIMIT_YEARLY="0"/' /etc/snapper/configs/root
+  for kv in HOURLY:5 DAILY:7 WEEKLY:0 MONTHLY:0 YEARLY:0; do
+    key="TIMELINE_LIMIT_${kv%%:*}"
+    sed -i "s/^$key=.*/$key=\"${kv#*:}\"/" /etc/snapper/configs/root
+  done
   systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
 fi
 
@@ -263,8 +262,14 @@ step "sway config: symlink config + scripts → ~/.config/sway"
 # easy to see/commit. Back up any pre-existing regular files first.
 SWAY_DIR="/home/$TARGET_USER/.config/sway"
 install -d -o "$TARGET_USER" -g "$TARGET_USER" "$SWAY_DIR/scripts"
-for rel in config scripts/autotile scripts/idle-gate scripts/screensaver scripts/idle-resume scripts/set-wallpaper scripts/update-sddm-background scripts/shot-region scripts/shot-full scripts/toggle-nightlight scripts/generate-wallpapers scripts/dim-inactive; do
-  src="/home/$TARGET_USER/dot-files/arch/sway/$rel"
+# The config itself plus EVERY script shipped in arch/sway/scripts — the glob
+# keeps this in sync with the directory, so a new script needs only its sway
+# `exec` line (a stale list here used to make it fail silently at exec time);
+# a non-file (e.g. __pycache__) is skipped.
+SWAY_SRC="/home/$TARGET_USER/dot-files/arch/sway"
+for src in "$SWAY_SRC/config" "$SWAY_SRC/scripts/"*; do
+  rel="${src#"$SWAY_SRC"/}"
+  [[ -f $src ]] || continue
   dst="$SWAY_DIR/$rel"
   [[ -e $dst && ! -L $dst ]] && mv "$dst" "$dst.pre-symlink"
   ln -sfn "$src" "$dst"
