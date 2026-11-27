@@ -235,7 +235,7 @@ def evaluate(s, st, value, now_ts, fullscreen):
     escalate = tier > st.notified_level
     repeat = CRIT_REPEAT if tier == 2 else WARN_REPEAT
     if escalate or now_ts - st.last_sent >= repeat:
-        actions.append((URGENCY[tier], "Waybar alert: %s" % label_of(s),
+        actions.append((URGENCY[tier], label_of(s),
                         alert_body(s, value, tier)))
         st.last_sent = now_ts
         st.notified_level = tier
