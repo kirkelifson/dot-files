@@ -1,0 +1,300 @@
+#!/usr/bin/env bash
+# launcher — the Mod+d launcher: apps, home files, shell commands, sway
+# windows, calculator and web search in one fzf list, in a floating foot
+# window. The window closes when this script exits.
+#
+# Entry lines are  <display>\t<payload>  where payload is <kind>:<arg>
+# (exec|open|run|win|sys). fzf 0.75+ searches only the DISPLAY field
+# (--with-nth=1 --nth=1: fzf computes --nth against the transformed line,
+# so hidden fields are not searchable — displays must carry everything
+# you want to match). Type filtering is done by reloading prebuilt lists:
+#   ctrl-a apps · ctrl-f files · ctrl-c commands · ctrl-w windows · ctrl-u all
+#
+# Query prefixes (override whatever is selected):
+#   "> cmd"      run a shell command in this window (output stays)
+#   "= expr"     calculator — result printed and copied to clipboard
+#   "web terms"  duckduckgo search in the browser
+#   "run x" / "open x" / "exec x"  same as the prefixes suggest
+# A plain query that matches nothing runs as a shell command.
+
+set -u
+
+HIST_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/launcher-history"
+APP_HIST="${XDG_CACHE_HOME:-$HOME/.cache}/launcher-app-history"
+SELF="$(readlink -f "$0")"
+
+# ---------------------------------------------------------------- preview --
+if [ "${1:-}" = "--preview" ]; then
+    shift
+    IFS=$'\t' read -r _display payload _ <<<"$1"
+    kind=${payload%%:*}
+    arg=${payload#*:}
+    case "$kind" in
+        open)
+            if [ -d "$arg" ]; then
+                eza --tree --color=always -L 2 --group-directories-first "$arg" 2>/dev/null \
+                    || ls -la --color=always "$arg"
+            elif bat --color=always --line-range :300 "$arg" 2>/dev/null; then
+                :
+            else
+                file -b "$arg"
+            fi
+            ;;
+        exec)
+            echo "desktop application"
+            echo
+            echo "$arg"
+            ;;
+        run)
+            echo "shell command (runs in this window, output stays)"
+            echo
+            echo "\$ $arg"
+            ;;
+        win)
+            echo "sway window — enter focuses it"
+            echo
+            echo "$_display"
+            ;;
+        sys)
+            echo "system action — enter runs it"
+            echo
+            echo "$_display"
+            ;;
+    esac
+    exit 0
+fi
+
+# ------------------------------------------------------------ entry build --
+MODES=$(mktemp -d)
+trap 'rm -rf "$MODES"' EXIT
+touch "$MODES/apps.f" "$MODES/files.f" "$MODES/cmds.f" "$MODES/wins.f" "$MODES/sys.f"
+
+# --- apps: parse .desktop files. awk emits "name \x1f exec \x1f generic \x1f id";
+# the unit separator survives names containing dashes/tabs. The user-local
+# applications dir is listed FIRST so its entries win on duplicate ids.
+while IFS= read -r d; do
+    [ -d "$d/applications" ] || continue
+    for f in "$d"/applications/*.desktop; do
+        [ -f "$f" ] || continue
+        awk -v id="$(basename "$f" .desktop)" '
+            BEGIN { FS = "=" }
+            /^\[/ && !/^\[Desktop Entry\]/ { inentrie = 0; next }
+            /^\[Desktop Entry\]/           { inentrie = 1; type = nodisp = hidden = ""; next }
+            !inentrie { next }
+            function val() { return substr($0, index($0, "=") + 1) }
+            /^Type=/       { type = val() }
+            /^NoDisplay=/  { nodisp = val() }
+            /^Hidden=/     { hidden = val() }
+            /^Name=/       { name = val() }
+            /^GenericName=/ { gen = val() }
+            /^Exec=/       { exec = val() }
+            END {
+                if (type == "Application" && exec != "" && name != "" \
+                    && nodisp != "true" && hidden != "true")
+                    printf "%s\x1f%s\x1f%s\x1f%s\n", name, exec, gen, id
+            }' "$f"
+    done
+done < <(printf '%s\n' "$HOME/.local/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/usr/share" | tr ':' '\n' | awk '!seen[$0]++') |
+while IFS=$'\x1f' read -r name aexec gen id; do
+    [ -n "$name" ] || continue
+    # strip desktop-entry field codes (%u %f %U %F ...)
+    aexec=$(printf '%s' "$aexec" | sed -E 's/ ?%[fFuUdDnNickvm]//g')
+    disp=$name
+    [ -n "$gen" ] && disp="$name — $gen"
+    printf '%s\texec:%s\t%s\n' "$disp" "$aexec" "$id" >>"$MODES/apps-raw.f"
+done
+
+# order apps: most recently launched first (launch history), rest alphabetical.
+# Single awk pass: file 1 = raw apps (dedupe by id, first wins = user-local),
+# file 2 = launch history ids (most recent last -> tac) emitted first; the
+# never-launched tail is sorted by display (uppercase key, \x01 separator).
+awk -F'\t' '
+    NR == FNR {
+        if (!($NF in line)) order[++n] = $NF
+        line[$NF] = $0
+        next
+    }
+    $0 != "" && ($0 in line) && !($0 in emitted) {
+        emitted[$0] = 1
+        print line[$0]
+    }
+    END {
+        m = 0
+        for (i = 1; i <= n; i++)
+            if (!(order[i] in emitted))
+                rest[++m] = toupper(line[order[i]]) "\x01" line[order[i]]
+        asort(rest)
+        for (i = 1; i <= m; i++) {
+            sub(/^[^\x01]*\x01/, "", rest[i])
+            print rest[i]
+        }
+    }' "$MODES/apps-raw.f" <(tac "$APP_HIST" 2>/dev/null) >"$MODES/apps.f"
+
+# --- files under $HOME (fd is ~10 ms here); caches, tool state, credentials
+# and heavy trees stay out of the index
+fd --hidden --type file --type directory \
+    --exclude .cache --exclude .local --exclude .steam --exclude .var \
+    --exclude .cargo --exclude .rustup --exclude .mozilla --exclude .npm \
+    --exclude .bun --exclude .gnupg --exclude .pki --exclude .vim \
+    --exclude .hermes --exclude .cua-driver --exclude .grok \
+    --exclude .config --exclude .ssh \
+    --exclude node_modules --exclude .git --exclude __pycache__ \
+    . "$HOME" 2>/dev/null |
+    while IFS= read -r p; do
+        printf '%s\topen:%s\n' "$p" "$p" >>"$MODES/files.f"
+    done
+
+# --- commands from fish history + this launcher's own history (deduped,
+# capped 200); display truncated to 58 chars so long one-liners don't
+# fuzzy-match every query — the full command stays in the payload
+while IFS= read -r c; do
+    disp="> ${c:0:58}"
+    [ ${#c} -gt 58 ] && disp="$disp…"
+    printf '%s\trun:%s\n' "$disp" "$c" >>"$MODES/cmds.f"
+done < <({
+    [ -r "$HOME/.local/share/fish/fish_history" ] &&
+        awk '/^- cmd: /{ sub(/^- cmd: /, ""); print }' \
+            "$HOME/.local/share/fish/fish_history"
+    [ -r "$HIST_FILE" ] && cat "$HIST_FILE"
+} | tac | awk '!seen[$0]++' | head -200)
+
+# --- open sway windows (SWAY_SOCK is present inside the session)
+swaymsg -t get_windows 2>/dev/null | jq -r '
+    .[] | "\(.app_id // .window_properties.class // "?") — \(.title // "?")\twin:\(.id)"' 2>/dev/null |
+    while IFS= read -r line; do
+        printf '%s\n' "$line" >>"$MODES/wins.f"
+    done
+
+# --- power/system actions
+printf 'Lock session\tsys:lock\nExit sway (end session)\tsys:exit\nReboot system\tsys:reboot\nPower off system\tsys:poweroff\n' >>"$MODES/sys.f"
+
+cat "$MODES/apps.f" "$MODES/sys.f" "$MODES/wins.f" "$MODES/cmds.f" "$MODES/files.f" >"$MODES/all.f"
+[ -s "$MODES/all.f" ] || exit 1
+
+# ----------------------------------------------------------------- pick ----
+out=$(fzf --reverse --delimiter='\t' --with-nth=1 --nth=1 \
+        --prompt='launch ❯ ' \
+        --header='ctrl-a apps · ctrl-f files · ctrl-c cmds · ctrl-w wins · ctrl-u all · tab complete
+"> cmd" shell · "= expr" calc · "web query" search · esc quit' \
+        --preview="$SELF --preview {}" \
+        --preview-window=right:55%:wrap:border-left \
+        --info=inline --print-query \
+        --bind="ctrl-a:reload(cat $MODES/apps.f)" \
+        --bind="ctrl-f:reload(cat $MODES/files.f)" \
+        --bind="ctrl-c:reload(cat $MODES/cmds.f)" \
+        --bind="ctrl-w:reload(cat $MODES/wins.f)" \
+        --bind="ctrl-u:reload(cat $MODES/all.f)" \
+        --bind='tab:transform-query(printf %s "$FZF_CURRENT_ITEM" | cut -f1 | sed -E "s/ — .*//")' \
+        <"$MODES/all.f")
+fzfrc=$?
+# 0 = selection, 1 = "enter" on a no-match query (shell/calc/search mode);
+# anything else (2 = error, 130 = esc) is an abort
+[ "$fzfrc" -eq 0 ] || [ "$fzfrc" -eq 1 ] || exit 0
+
+query=${out%%$'\n'*}
+sel=${out#*$'\n'}
+[ "$sel" = "$out" ] && sel=""
+
+trim() { local s=$1; s=${s#"${s%%[![:space:]]*}"}; printf '%s' "$s"; }
+
+# ----------------------------------------------- special query prefixes ----
+# "= expr" calc · "web q" search · "> cmd" shell — these override whatever
+# fzf selected; a plain query with no selection runs as a shell command
+action=""
+case "$query" in
+    "="*)
+        action=calc
+        arg=$(trim "${query#=}")
+        ;;
+    "web "?*)
+        action=search
+        arg=$(trim "${query#web}")
+        ;;
+    ">"?*)
+        action=shell
+        arg=$(trim "${query#\>}")
+        ;;
+esac
+
+# --------------------------------------------------------------- dispatch --
+remember() {  # remember $2 in history file $1: dedupe, most recent last, cap
+    mkdir -p "$(dirname "$1")"
+    { [ -r "$1" ] && grep -Fxv "$2" "$1" | tail -99; } >"$1.new" 2>/dev/null
+    mv "$1.new" "$1"
+    printf '%s\n' "$2" >>"$1"
+}
+
+shell_mode() {  # $1 = command; remember it, run in the foreground, keep output
+    remember "$HIST_FILE" "$1"
+    eval "$1"
+    rc=$?
+    echo
+    read -r -p "[exit $rc] enter to close"
+}
+
+case "$action" in
+    calc)  # anything starting with "=" is calc — awk's own errors surface
+        if [ -n "$arg" ] && result=$(awk "BEGIN{printf \"%.10g\", ($arg)}" 2>/dev/null); then
+            printf '%s = %s\n' "$arg" "$result"
+            printf '%s' "$result" | wl-copy >/dev/null 2>&1
+            read -r -p "[copied to clipboard] enter to close"
+        else
+            printf 'cannot evaluate: %s\n' "${arg:-<empty>}"
+            read -r -p "enter to close"
+        fi
+        exit 0
+        ;;
+    search)
+        url=$(/usr/bin/python3 -c 'import sys,urllib.parse; print(urllib.parse.quote_plus(sys.argv[1]))' "$arg")
+        setsid -f xdg-open "https://duckduckgo.com/?q=$url" </dev/null >/dev/null 2>&1
+        exit 0
+        ;;
+esac
+
+if [ -z "$action" ] && [ -n "$sel" ]; then
+    IFS=$'\t' read -r _display payload appid _ <<<"$sel"
+    kind=${payload%%:*}
+    arg=${payload#*:}
+else
+    # shell mode: "> cmd", a kind-prefixed query ("run steam"), or a plain
+    # query that matched nothing
+    [ "$action" = shell ] || arg=$query
+    kind=run
+    arg=$(trim "${arg#\>}")
+    case "$arg" in
+        run[[:space:]:]*|exec[[:space:]:]*)
+            arg=${arg#run}; arg=${arg#exec}; arg=${arg#:}
+            arg=$(trim "$arg")
+            ;;
+        open[[:space:]:]*)
+            arg=${arg#open}; arg=${arg#:}
+            arg="xdg-open $(trim "$arg")"
+            ;;
+    esac
+    [ -n "$arg" ] || exit 0
+fi
+
+case "$kind" in
+    exec)  # detach so the app survives this foot window closing; note the
+        # launch so the app sorts to the top of the list next time
+        [ -n "$appid" ] && remember "$APP_HIST" "$appid"
+        setsid -f sh -c "$arg" </dev/null >/dev/null 2>&1
+        ;;
+    open)
+        setsid -f xdg-open "$arg" </dev/null >/dev/null 2>&1
+        ;;
+    run)
+        shell_mode "$arg"
+        ;;
+    win)
+        swaymsg "[con_id=$arg]" focus
+        ;;
+    sys)
+        case "$arg" in
+            lock)     exec "$HOME/.config/sway/scripts/screensaver" start-force ;;
+            exit)     swaymsg exit ;;
+            reboot)   systemctl reboot ;;
+            poweroff) systemctl poweroff ;;
+        esac
+        ;;
+esac

@@ -92,7 +92,8 @@ exec dex -a
 bindsym $mod+Return exec $term
 # browser: $mod+b is splith (i3-standard), so $mod+i
 bindsym $mod+i exec $browser
-bindsym $mod+d exec wofi --show drun
+# launcher: fzf in a floating foot window — apps, home files, shell commands
+bindsym $mod+d exec foot --app-id=launcher ~/.config/sway/scripts/launcher
 bindsym $mod+p exec sh -c 'cliphist list | wofi --dmenu | cliphist decode | wl-copy'
 # Searchable keybinding cheat sheet; run selected exec bindings from the menu
 bindsym $mod+slash exec ~/bin/sway-keys
@@ -228,6 +229,8 @@ for_window [title="Picture-in-Picture"] floating enable, sticky enable
 for_window [window_role="pop-up"] floating enable
 for_window [window_role="dialog"] floating enable
 for_window [window_type="dialog"] floating enable
+# launcher: centered floating picker window
+for_window [app_id="launcher"] floating enable, resize set width 1200 px height 700 px, move position center
 # Steam Big Picture (Moonlight "Steam" tile): open on its own workspace so it
 # never buries the desktop — BPM maps as a fullscreen view on the CURRENT
 # workspace and reads as "the desktop closed", though it never actually exits.

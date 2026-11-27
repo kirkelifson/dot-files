@@ -108,7 +108,9 @@ but is AUR-only and upstream-unmaintained since Aug 2025.)
 > ecosystem matures.
 
 All companions are official repos, wired in `arch/sway/config`:
-waybar (status bar), foot (terminal), wofi (launcher), mako
+waybar (status bar), foot (terminal), wofi (clipboard/keybinding menus;
+the app/file/command launcher on Mod+d is a fzf script,
+`arch/sway/scripts/launcher`), mako
 (notifications), swaybg, swaylock, swayidle, grim+slurp (screenshots),
 wl-clipboard+cliphist, playerctl (media keys), brightnessctl, gammastep
 (night light), polkit-gnome (privilege prompts), xdg-desktop-portal-wlr

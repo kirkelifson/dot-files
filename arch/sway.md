@@ -3,7 +3,11 @@ Here's a summary of the key shortcuts from your sway config (Mod = Windows key):
 Launching things:
   Mod+Enter        Open a terminal (foot)
   Mod+i            Open a browser (firefox)
-  Mod+d            App launcher (wofi)
+  Mod+d            Launcher (fzf): apps + home files + shell commands + sway
+                   windows + calc + web search; ctrl-a/f/c/w/u switch source;
+                   tab completes the query to the highlighted entry;
+                   "> cmd" shell · "= expr" calc (copies result) · "web q" search;
+                   plain no-match query runs as a shell command
   Mod+/            Keybinding helper (search all bindings, run exec ones)
   Mod+p            Clipboard history (cliphist via wofi)
 
