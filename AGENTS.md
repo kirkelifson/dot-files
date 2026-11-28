@@ -15,9 +15,10 @@ the home directory; it is idempotent and safe to re-run at any time.
   file; skim that final block to see the whole flow. Heavy steps (bulk
   packages, runtime compilation, `chsh`) are skipped when `$CI` is set, or
   forced locally with `DOTFILES_CI=1 ./install` (e.g. a fast relink).
-- `.config/` — fish, nvim, ghostty, waybar, fastfetch, mise, mako, gtk-3.0,
-  gtk-4.0. `install`
-  links fish/waybar/fastfetch, nvim, ghostty and the mise fragment (Omarchy
+- `.config/` — fish, nvim, ghostty, waybar, fastfetch, cava, opencode, mise,
+  mako, gtk-3.0, gtk-4.0. `install`
+  links fish/waybar/fastfetch/cava, nvim, ghostty, the mise fragment, and the
+  agent-config file links (opencode/pi) (Omarchy
   exceptions below); ghostty on macOS links into
   `~/Library/Application Support/com.mitchellh.ghostty/`. mako (Wayland
   notification daemon) links on Linux only, not on Omarchy.
@@ -29,8 +30,9 @@ the home directory; it is idempotent and safe to re-run at any time.
 - `test_install.py` — unit tests for `install`; run it after installer edits.
 - `CONTRIBUTING.md` — commit format and rules; every commit (human or agent)
   follows it.
-- `arch/` — unattended Arch install kit; see `arch/README.md` and
-  `arch/test/README.md`.
+- `arch/` — unattended Arch install kit; see `arch/README.md` (design + kit),
+  `arch/USAGE.md` (tools/scripts catalogue), `arch/KEYBOARD.md` (keybindings),
+  and `arch/test/README.md`.
 
 ## Conventions
 

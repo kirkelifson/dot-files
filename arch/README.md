@@ -11,7 +11,9 @@ finishing pass — nothing else lives here. (Omarchy notes are at the bottom;
 that machine is out of scope for this kit.)
 
 This file is both the design doc and the kit manual: §1–§9 and §11–§13 are
-the plan, §10 is the buildable install kit (build, flash, install, edit).
+the plan, §10 is the buildable install kit. Day-to-day tooling on the
+installed desktop is catalogued in [USAGE.md](USAGE.md); every keyboard
+shortcut is in [KEYBOARD.md](KEYBOARD.md).
 
 ## Target hardware
 
@@ -249,8 +251,16 @@ and `arch/flash-usb.sh` writes it to the USB stick when you plug it in.
 - `arch/post-install.sh` does the rest after first boot: the full
   desktop + gaming stack (`packages/pacman{,-gaming}.txt`), the AUR list
   (`packages/aur.txt` via paru), GPU stack, zram, sshd hardening,
-  sway/foot config, boot order, sbctl (interactive). First boot after
+  sway/foot config, boot order, sbctl (interactive), and streaming host
+  (Sunshine: pinned pkg + filecaps + user unit + prep hooks — see
+  [USAGE.md](USAGE.md)). First boot after
   the install is a TTY login; run post-install, reboot, land in sway.
+
+> **Heads-up before re-running post-install on an existing system:** it
+> runs as root and makes system-wide changes — installs the full package
+> sets, hardens sshd (pubkey-only, port 8631, AllowUsers), re-writes the
+> boot order, and re-pins file capabilities. Everything is idempotent, but
+> review the diff if you've tuned things by hand.
 
 **When an ISO rebuild IS needed** (these are the only things baked in):
 
@@ -276,12 +286,13 @@ time — push the repo, then re-run post-install on the target):
 ```
 arch/
 ├── README.md                  ← this file (design §1–§9, §11–§13; kit in §10)
+├── USAGE.md                   ← daily tools/scripts: desktop session, waybar helpers, audio, streaming, tmux, fish, maintenance
+├── KEYBOARD.md                ← every keyboard shortcut, grouped by layer (sway/tmux/fish/nvim)
 ├── SUGGESTIONS.md             ← open improvement ideas
-├── sway.md                    ← sway keybindings cheat sheet
 ├── build-iso.sh               ← build the ISO in Docker (no Arch install needed)
 ├── find-usb.sh                ← list USB/removable disks to find the device id
 ├── flash-usb.sh               ← write the built ISO to the device YOU pass in
-├── post-install.sh            ← run on the INSTALLED system (sudo): GPU/gaming/dotfiles/sshd/sddm/sway/update-nudge
+├── post-install.sh            ← run on the INSTALLED system (sudo): GPU/gaming/dotfiles/sshd/sddm/sway/streaming/update-nudge
 ├── verify-install.sh          ← run as your user after install: health check
 ├── ssh/authorized_keys        ← pubkey-only sshd (host-local copy, never symlinked)
 ├── sway/

@@ -5,7 +5,7 @@ Personal dotfiles for Fish shell + Ghostty terminal, managed via symlinks. Suppo
 ### Quick Start
 
 ```bash
-git clone https://github.com/kirkelifson/dot-files.git
+git clone git@debprox.marg.town:xtc/dot-files.git
 cd dot-files
 ./install
 ```
@@ -25,17 +25,16 @@ The install script is idempotent — safe to run multiple times. It will:
 
 | File/Dir | Purpose |
 |---|---|
-| `.config/fish/` | Fish shell config, prompt, abbreviations, aliases |
+| `.config/fish/` | Fish shell config, prompt, abbreviations, aliases; failed-command handler lives in the interactive block of `config.fish` |
 | `.config/fish/functions/fish_prompt.fish` | Prompt: hostname, last 2 dirs, git branch + status |
-| `.config/fish/functions/fish_postexec.fish` | Post-exec hook: restores failed commands |
 | `.config/ghostty/` | Ghostty terminal config (theme, font, OSC 52, keybindings) |
 | `.tmux.conf` | tmux config (C-a prefix, vi copy mode, sessionizer) |
-| `.vimrc` | Vim config (Sierra theme, lightline, gitgutter) |
+| `.vimrc` | Vim config (Sierra theme) |
 | `.gitconfig` | Git aliases and settings |
 | `bin/` | Utility scripts (tmux-sessionizer, password, etc.) |
 | `Brewfile` | Homebrew packages (macOS) |
 | `packages/` | Package lists: apt, pacman (+gaming), AUR, FreeBSD |
-| `arch/` | Unattended Arch install kit — see `arch/README.md`; sway keybindings cheat sheet at `arch/sway.md` |
+| `arch/` | Unattended Arch install kit — see `arch/README.md`; tools/scripts catalogue at `arch/USAGE.md`, keybindings at `arch/KEYBOARD.md` |
 | `.config/mise/config.toml` | mise language versions |
 | `.config/opencode/opencode.json` | opencode coding agent: LM Studio provider + models |
 | `.config/mako/` | Notification daemon config (persistent top-right toasts; linked on Linux only, not Omarchy) |
@@ -102,7 +101,12 @@ Edit the projects root and default harness at the top of `bin/tai` (`TAI_PROJECT
 
 **`pull.ff = only` in `.gitconfig`** means `git pull` will refuse to create a merge commit if the branch has diverged. You'll get an error and need to rebase manually.
 
-**`fish_postexec` removes failed commands from history** and restores them to the command line so you can fix and re-run. This means typos and broken commands won't pollute your history, but it can feel surprising the first time a failed command "comes back."
+**Failed commands come back on your command line.** The postexec hook in
+`config.fish` (`__log_failed_commands`) removes failed commands from history
+— logged separately to `~/.local/share/fish/failed_history` — and restores
+them to the command line so you can fix and re-run. Ctrl+C-terminated
+commands (exit 130) are left alone. It can feel surprising the first time a
+failed command "comes back."
 
 **`node = "lts"` or `"latest"` in `.config/mise/config.toml`** resolves dynamically at install time. If you reinstall later, you may get a different version than what's currently active. Pin to a specific version (like the other tools already are) if reproducibility matters.
 
