@@ -167,7 +167,7 @@ stage_verify() {
   $SSH 'echo; echo "--- sshd on 8631:"; ss -tlnp | grep 8631
 echo "--- multilib:"; grep -A1 "^\[multilib\]" /etc/pacman.conf | head -2
 echo "--- zram:"; zramctl | head -2
-echo "--- river config:"; ls /home/xtc/.config/river 2>/dev/null || ls /home/*/.config/river
+echo "--- sway config:"; ls /home/xtc/.config/sway 2>/dev/null || ls /home/*/.config/sway
 echo "--- bootctl:"; cat /boot/loader/loader.conf
 echo "--- dot-files:"; ls -d /home/xtc/dot-files 2>/dev/null || ls -d /home/*/dot-files
 echo "--- gaming spot-check:"; pacman -Q steam lutris wine 2>/dev/null || pacman -Q | grep -icE "steam|lutris|wine"

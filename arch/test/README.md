@@ -23,7 +23,7 @@ arch/test/fill-pkg-cache.sh            # optional: snapshot packages for the VM 
 arch/test/run-vm-test.sh install       # ~25-35 min: full unattended install in VM
 arch/test/run-vm-test.sh prep-ssh      # prep installed system for ssh validation
 arch/test/run-vm-test.sh post-install  # run post-install.sh over ssh
-arch/test/run-vm-test.sh verify        # assert zram/river/ssh/dot-files/bootctl
+arch/test/run-vm-test.sh verify        # assert zram/sway/ssh/dot-files/bootctl
 ```
 
 Artifacts (disk image, keys, screenshots, package caches) are gitignored —
@@ -33,11 +33,11 @@ inside the VM.
 ## What "pass" means
 
 - `install`: log ends with `Installation completed without any errors`
-- after reboot: SDDM greeter lists the **River** session; login works
-- `post-install`: multilib enabled, gaming packages in, zram up, river config
-  at `~/.config/river`, sshd hardened on :8631, dot-files cloned + `./install` ran
+- after reboot: SDDM greeter lists the **Sway** session; login works
+- `post-install`: multilib enabled, gaming packages in, zram up, sway config
+  at `~/.config/sway`, sshd hardened on :8631, dot-files cloned + `./install` ran
 - no test-only packages in the installed system (`pacman -Q` diff vs the
   package lists — the harness only adds sshd/sudoers/9p glue *inside the VM*)
 
 See the `arch-vm-install-test` skill for the pitfalls list (archinstall 4.x
-schema, QMP keyboard limits, river's blank-session behavior).
+schema, QMP keyboard limits, blank-session behavior).
