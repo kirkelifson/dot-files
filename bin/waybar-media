@@ -10,6 +10,8 @@ that's still playing), so an app with audio actually FLOWING (uncorked
 PulseAudio sink-input) but no "Playing" MPRIS player also counts as playing.
 "click" mode: toggles play/pause on the MPRIS player shown in the bar
 (state file written by the loop; falls back to playerctl's active player).
+Paused players stay visible (class "paused", dimmed) so the button that
+resumes them is always present while a player exists.
 """
 import json
 import os
@@ -87,11 +89,19 @@ def clean_tab_title(raw):
 def render(players):
     """(waybar payload, state-file name or None) for this snapshot.
 
-    The bar shows the play glyph plus the track title — never the app name.
+    Playing: the play glyph plus the track title — never the app name.
     A track counts while its source audibly plays: a Playing MPRIS player,
     or audio flowing in an uncorked sink-input without one (the Firefox
     stale-bus case, bug 1710229, using the stream's media.name as track).
-    Empty otherwise, so with "hide-empty-text" the module leaves the bar.
+
+    Paused: a Playing MPRIS player with no audio flowing (or whose status
+    flipped between sweeps) renders dimmed with a pause glyph and its class
+    set, so the module stays in the bar and clickable — hidden modules can't
+    take the play/pause click back. The pause double-duty of the glyph is
+    deliberate.
+
+    Empty only when there is genuinely nothing anywhere (no players at all),
+    so with "hide-empty-text" the module leaves the bar then.
     """
     streams = audio_streams()
     playing = [p for p in players if p["status"] == "Playing"]
@@ -103,14 +113,24 @@ def render(players):
         title = clean_tab_title(raw)
         if title:
             cands.append((title, None))
-    if not cands:
-        return {"text": "", "class": "none", "tooltip": ""}, None
-    track, player_name = cands[0]
-    return {
-        "text": "\uf04b %s" % track,  # Nerd Font play glyph + track
-        "class": "playing",
-        "tooltip": "",
-    }, player_name
+    if cands:
+        track, player_name = cands[0]
+        return {
+            "text": "\uf04b %s" % track,  # Nerd Font play glyph + track
+            "class": "playing",
+            "tooltip": "",
+        }, player_name
+    # Nothing audibly playing: show any paused player, dimmed, so the bar
+    # keeps a button that can resume playback.
+    paused = [p for p in players if p["status"] == "Paused"]
+    if paused:
+        track, player_name = paused[0]["track"], paused[0]["name"]
+        return {
+            "text": "\uf04c %s" % track,  # Nerd Font pause glyph + track
+            "class": "paused",
+            "tooltip": "paused — click to resume",
+        }, player_name
+    return {"text": "", "class": "none", "tooltip": ""}, None
 
 
 def toggle():
