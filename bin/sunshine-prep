@@ -3,14 +3,96 @@
 # Sunshine execs prep commands WITHOUT a shell, so all logic lives here and
 # args stay single-token. ALWAYS exits 0 — a prep command failure aborts the
 # stream launch in Moonlight ("failed to start application", seen live).
+#
+# Audio: the host keeps playing locally during a stream (Sunshine just taps
+# the sink monitor — nothing shifts on its own), and whatever manual fix gets
+# used mid-stream (mute, device cycle via the waybar VOL module) survives the
+# disconnect, leaving the box silent or pointing at a dead device afterwards.
+# connect() snapshots the pre-stream listening state (default sink + every
+# sink's mute) to $XDG_RUNTIME_DIR; disconnect() puts it all back, so audio
+# reliably comes home to this machine when the Moonlight client leaves. The
+# snapshot is one-shot per session and lives in the runtime dir, so a reboot
+# (or a crash without a disconnect) just drops it. Within a session node
+# names are stable, so pactl names suffice.
+#
+# silence-on-disconnect: a standing option (host-side choice, applies to every
+# client, not per-client) that pauses every MPRIS player when the client
+# leaves. Desk-side, a paused player is one click to resume — but streaming
+# from the MacBook while out of state means a playing track would otherwise
+# blare from the home speakers into an empty room. The marker in
+# ~/.local/state survives reboots, so the choice is sticky. MPRIS covers
+# music/video players (Firefox, media players) — a streaming GAME with no
+# MPRIS interface keeps making noise until it exits; the lock screen doesn't
+# stop game audio.
+
+runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+audio_state="$runtime/sunshine.audio-state"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+quiet_flag="$state_dir/sunshine-quiet-on-disconnect"
+
+quiet_enabled() { [ -f "$quiet_flag" ]; }
+
+silence_audio() {
+    playerctl -a pause >/dev/null 2>&1 || true
+}
+
+snapshot_audio() {
+    {
+        pactl get-default-sink 2>/dev/null || true
+        pactl list sinks 2>/dev/null | awk -F': *' '
+            /^[ \t]*Name:/ { sub(/^[ \t]+/, ""); name = $2 }
+            /^[ \t]*Mute:/ { sub(/^[ \t]+/, ""); print name "\t" $2 }
+        '
+    } > "$audio_state" 2>/dev/null
+}
+
+restore_audio() {
+    [ -f "$audio_state" ] || return 0
+    default=$(head -n 1 "$audio_state")
+    [ -n "$default" ] && pactl set-default-sink "$default" >/dev/null 2>&1
+    tail -n +2 "$audio_state" | while IFS='	' read -r name mute; do
+        [ -n "$name" ] || continue
+        case "$mute" in
+            yes) pactl set-sink-mute "$name" yes  >/dev/null 2>&1 ;;
+            *)   pactl set-sink-mute "$name" no   >/dev/null 2>&1 ;;
+        esac
+    done
+    rm -f "$audio_state"
+}
 
 case ${1:-} in
+quiet)
+    # sunshine-prep quiet [on|off|toggle|status] — pause all players when a
+    # Moonlight client disconnects. Default off; sticky across reboots.
+    action=${2:-toggle}
+    case "$action" in
+        on)     touch "$quiet_flag" ;;
+        off)    rm -f "$quiet_flag" ;;
+        toggle) if quiet_enabled; then rm -f "$quiet_flag"; else touch "$quiet_flag"; fi ;;
+        status) if quiet_enabled; then echo "on"; else echo "off"; fi ; exit 0 ;;
+        *) echo "usage: $0 quiet [on|off|toggle|status]" >&2; exit 2 ;;
+    esac
+    if quiet_enabled; then
+        printf 'sunshine disconnect silence: on\n'
+        notify-send -a silence 'sunshine' 'disconnect silence ON — players pause on disconnect' >/dev/null 2>&1 || true
+    else
+        printf 'sunshine disconnect silence: off\n'
+        notify-send -a silence 'sunshine' 'disconnect silence OFF' >/dev/null 2>&1 || true
+    fi
+    ;;
 connect)
     # Wake the display so a remote client never lands on a DPMS-off screen.
     # Needs SWAYSOCK in the service env (imported by the sway autostart line).
     swaymsg output DP-1 dpms on >/dev/null 2>&1 || true
+    snapshot_audio
     ;;
 disconnect)
+    restore_audio
+    # Pause whatever is playing so nothing blares from a locked, unattended
+    # machine (see header: silence-on-disconnect option).
+    if quiet_enabled; then
+        silence_audio
+    fi
     # Lock on disconnect — the Mod+Shift+L path: no-op when swaylock is
     # already up, and start-force no-ops when the screensaver fish is up.
     pgrep -x swaylock >/dev/null 2>&1 \
